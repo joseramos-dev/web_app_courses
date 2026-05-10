@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not set")
 ALGORITHM = os.getenv("ALGORITHM","HS256")
-EXP_TOKEN = int(os.getenv("EXP_TOKEN"), 30)
+EXP_TOKEN = int(os.getenv("EXP_TOKEN", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 

@@ -1,1 +1,56 @@
+@import url("https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,400;0,600;0,700;1,400&display=swap");
+
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Paleta verde inspirada en la identidad del logotipo UNED (tonos institucionales).
+  Sin reproducir el logo; valores elegidos para contraste AA en cabecera y enlaces.
+*/
+:root {
+  --header-bg: #14532d;
+  --header-fg: #ffffff;
+  --header-border: rgb(255 255 255 / 0.18);
+  --surface-bg: #f3faf6;
+  --surface-muted: #e3f0e8;
+  --uned-primary: #15803d;
+  --uned-primary-hover: #166534;
+  --uned-accent: #16a34a;
+  --uned-accent-hover: #15803d;
+  --font-sans-stack: Arial, Helvetica, sans-serif;
+  --font-display-stack: "Titillium Web", Arial, Helvetica, sans-serif;
+}
+
+.dark {
+  --header-bg: #052e16;
+  --header-fg: #ecfdf5;
+  --header-border: rgb(255 255 255 / 0.12);
+  --surface-bg: #0f172a;
+  --surface-muted: #1e293b;
+  --uned-primary: #4ade80;
+  --uned-primary-hover: #86efac;
+  --uned-accent: #22c55e;
+  --uned-accent-hover: #4ade80;
+}
+
+@theme inline {
+  --color-header: var(--header-bg);
+  --color-header-foreground: var(--header-fg);
+  --color-header-border: var(--header-border);
+  --color-surface: var(--surface-bg);
+  --color-surface-muted: var(--surface-muted);
+  --color-uned-primary: var(--uned-primary);
+  --color-uned-primary-hover: var(--uned-primary-hover);
+  --color-uned-accent: var(--uned-accent);
+  --color-uned-accent-hover: var(--uned-accent-hover);
+  --font-sans: var(--font-sans-stack);
+  --font-display: var(--font-display-stack);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans-stack);
+    @apply bg-surface text-slate-900 antialiased dark:text-slate-100;
+  }
+}

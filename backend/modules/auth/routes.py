@@ -3,7 +3,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from modules.auth.schema import CurrentUserSchema, TokenSchema
+from modules.auth.schema import TokenSchema
+from modules.users.schema import UserSchema, UserSelfUpdateSchema
+from modules.users.service import update_self_user
 from modules.auth.service import get_current_user, get_user_by_name_or_email
 from core.security import verify_password, create_access_token
 
@@ -23,7 +25,16 @@ def token(
     return TokenSchema(access_token=token)
 
 
-@auth_router.get("/me", response_model=CurrentUserSchema)
+@auth_router.get("/me", response_model=UserSchema)
 def read_me(current_user=Depends(get_current_user)):
     return current_user
+
+
+@auth_router.patch("/me", response_model=UserSchema)
+def patch_me(
+    payload: UserSelfUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return update_self_user(db, current_user, payload)
 

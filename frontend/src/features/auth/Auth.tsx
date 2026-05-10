@@ -1,19 +1,24 @@
-import { useState, type ReactNode } from "react"
 import { AuthLogin } from "./components/AuthLogin";
 import { AuthRegister } from "./components/AuthRegister";
+import type { AuthType } from "../../shared/types/AuthTypes";
+import type { ReactNode } from "react";
+import { useAuth } from "../../shared/povider/AuthContext";
 
-type AuthType = "Login" | "Register";
+export const Auth = (
+    { authType = "Login", setAuthType }
+        : { authType?: AuthType, setAuthType: (authType: AuthType) => void }
+) => {
+    const { user } = useAuth();
 
-export const Auth = () => {
-
-    const [authType, setAuthType] = useState<AuthType>("Login")
-
-    const changeAuthType = () => {
-        setAuthType(authType == "Login" ? "Register" : "Login")
+    const changeAuthType = (e: AuthType) => {
+        setAuthType(e)
     }
 
+    if (user) { setAuthType(null) }
     return (
-        <div className="w-full h-screen bg-blue-300 flex items-center justify-center">
+        <div
+            onClick={() => setAuthType(null)}
+            className="fixed inset-0 backdrop-blur-xs flex items-center justify-center z-50">
             <AuxCard>
                 {
                     authType == "Login" ?
@@ -29,9 +34,14 @@ export const Auth = () => {
 
 
 
-export const AuxCard = ({ children }: { children: ReactNode }) => {
+export const AuxCard = (
+    { children }
+        : { children: ReactNode }
+) => {
     return (
-        <div className="w-120 p-14 bg-gray-200 shadow-2xl color-blue-500 rounded-t-4xl">
+        <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-120 rounded-2xl border border-gray-200 bg-white p-12 shadow-2xl dark:border-slate-600 dark:bg-slate-800">
             {children}
         </div>
     )

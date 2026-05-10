@@ -1,0 +1,15 @@
+.git
+.gitignore
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.venv
+**/venv
+**/node_modules
+frontend/dist
+**/.env
+**/.env.*
+!docker/.env.example
+*.md
+.cursor
+**/.DS_Store

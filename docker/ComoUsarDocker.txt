@@ -1,0 +1,28 @@
+Cómo usarlo
+Docker Desktop (o Docker Engine + Compose v2) en marcha.
+
+Crear el entorno (solo la primera vez):
+
+cd docker
+copy .env.example .env
+En PowerShell también: Copy-Item .env.example .env
+Edita .env y pon un SECRET_KEY largo y aleatorio. Si cambias usuario, contraseña o nombre de la base de POSTGRES_*, actualiza también DATABASE_URL (host db, puerto 5432).
+
+Levantar todo (desde la carpeta docker):
+
+docker compose up --build
+La primera vez puede tardar (imágenes + npm ci + uv sync).
+
+Abrir en el navegador
+
+Frontend: http://localhost:5173
+API: http://localhost:8000/docs
+El frontend sigue usando http://localhost:8000 en el navegador; al publicar el backend en el puerto 8000 del host, no hace falta cambiar el código del cliente.
+Parar
+
+Ctrl+C en la terminal, o en otra terminal:
+cd docker → docker compose down
+Para borrar los datos de Postgres: docker compose down -v (elimina el volumen pgdata).
+Puerto 5432 del Postgres también está publicado por si quieres conectar con un cliente externo; si ya tienes otro Postgres en el host, cambia el mapeo en docker-compose.yml (por ejemplo "5433:5432").
+
+Si cambias POSTGRES_USER o POSTGRES_DB, ajusta también el healthcheck del servicio db en docker/docker-compose.yml (comentario en el archivo) o mantén los mismos valores que en .env.

@@ -1,11 +1,9 @@
-from enum import Enum
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
-class UserRole(str, Enum):
-    STUDENT = "student"
-    INSTRUCTOR = "instructor"
-    ADMIN = "admin"
+from pydantic import BaseModel, ConfigDict, Field
+from modules.users.model import UserRole
+
 
 class UserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -22,3 +20,18 @@ class UserCreateSchema(BaseModel):
     email: str
     password: str
     role: UserRole
+
+
+class UserSelfUpdateSchema(BaseModel):
+    """Partial self-service profile update. Sensitive changes require current_password."""
+
+    name: Optional[str] = None
+    email: Optional[str] = None
+    current_password: Optional[str] = Field(
+        default=None,
+        description="Required when changing email or password.",
+    )
+    new_password: Optional[str] = Field(
+        default=None,
+        description="New password; requires current_password.",
+    )

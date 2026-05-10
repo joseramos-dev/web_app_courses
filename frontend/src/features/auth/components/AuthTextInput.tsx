@@ -6,7 +6,7 @@ export const AuthTextInput = (
         : { label:string, text: string, setText: (e: string) => void }) => {
     return (
         <div className="w-full flex flex-col">
-            <p>{label}</p>
+            <p className="text-gray-900 dark:text-slate-200">{label}</p>
             <InputText text={text} setText={setText} />
         </div>
     )

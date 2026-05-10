@@ -2,15 +2,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.database import Base, engine
-
 from modules.auth.routes import auth_router
 from modules.users.routes import users_router
+from modules.courses.routes import courses_router
+from modules.lessons.routes import lessons_router
+from modules.enrollments.routes import enrollments_router
+from modules.progress.routes import progress_router
+from modules.dashboard.routes import dashboard_router
 
+# To run the server -> uv run uvicorn main:app --reload
+# To access other devices -> uv run uvicorn main:app --host 0.0.0.0 --port 8000
+#  From other devices search -> 192.168.1.x:8000
 
-# para ejecutar -> uv run uvicorn main:app --reload
-# acceder otros dispositivos -> uv run uvicorn main:app --host 0.0.0.0 --port 8000
-#  desde otro dispositivos buscas -> 192.168.1.x:8000
+# To use alembic:
+# To create a new migration -> alembic revision --autogenerate -m "add age column to users"
+# To apply the migration -> alembic upgrade head
 
 app = FastAPI()
 
@@ -29,10 +35,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-Base.metadata.create_all(bind=engine)
+#deleted since alembic is used to manage the database
+#Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(courses_router)
+app.include_router(lessons_router)
+app.include_router(enrollments_router)
+app.include_router(progress_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/")

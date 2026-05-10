@@ -1,4 +1,5 @@
 import axios from 'axios';
+import qs from 'qs';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/', // La URL de su servidor
@@ -12,4 +13,12 @@ const apiAuth = axios.create({
   headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
 });
 
-export { api, apiAuth };
+const apiArray = axios.create({
+  baseURL: 'http://localhost:8000/',
+  timeout: 5000,
+  paramsSerializer: (params) => {
+    return qs.stringify(params, {arrayFormat: 'repeat'})
+  },
+})
+
+export { api, apiAuth, apiArray };
