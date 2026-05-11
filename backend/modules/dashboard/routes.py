@@ -23,12 +23,6 @@ dashboard_router = APIRouter(
 )
 
 
-# Admins are allowed on every endpoint so they can preview each role's
-# experience without juggling accounts. The actual data is still scoped
-# by the caller's id (an admin viewing the student dashboard sees their
-# own student data, which is normally empty).
-
-
 @dashboard_router.get("/student/me", response_model=StudentDashboardSchema)
 def student_dashboard(
     db: Annotated[Session, Depends(get_db)],

@@ -40,7 +40,11 @@ def update_course(db: Session, course_id: int, payload: CourseUpdateSchema):
     for k, v in updates.items():
         setattr(course, k, v)
     db.add(course)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}") from e
     db.refresh(course)
     return course
 
@@ -54,15 +58,12 @@ def create_course(
     data.pop("instructor_id", None)
     url_raw = data.pop("url", None)
     url = (url_raw or "").strip()
-    course = CourseModel(
-        **data,
-        url=url or "",
-        instructor_id=instructor_id,
-    )
+    course = CourseModel(**data, url=url or "", instructor_id=instructor_id)
     db.add(course)
-    db.flush()
-    if not url:
-        course.url = f"/course/{course.id}"
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}") from e
     db.refresh(course)
     return course

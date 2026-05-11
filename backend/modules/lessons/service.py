@@ -67,14 +67,6 @@ def reorder_lessons(db: Session, course_id: int, ordered_lesson_ids: list[int]):
     by_id = {l.id: l for l in lessons}
     if set(by_id.keys()) != set(ordered_lesson_ids):
         return None
-
-    # The `(course_id, position)` UNIQUE constraint is enforced row-by-row
-    # (Postgres only defers it when declared DEFERRABLE), so a naive
-    # in-place reassignment fails the moment two lessons swap places. We
-    # work around it with a two-phase update: first negate every position
-    # so the rows hold non-conflicting placeholders, flush, and then write
-    # the final positive positions. The negatives are guaranteed unique
-    # among themselves because the original positions were.
     for lesson in lessons:
         lesson.position = -lesson.position
     db.flush()

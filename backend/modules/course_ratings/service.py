@@ -12,7 +12,7 @@ def upsert_course_rating(db: Session, user_id: int, course_id: int, score: int):
     enrollment = get_enrollment(db, user_id, course_id)
     if not enrollment or enrollment.status == EnrollmentStatus.DROPPED:
         return None
-    lessons_count = int(getattr(course, "lessons_count", 0) or 0)
+    lessons_count = int(course.lessons_count or 0)
     completed = int(enrollment.completed_lessons_count or 0)
     # With lessons: require at least one completed. Empty course: enrolled students may rate.
     if lessons_count > 0 and completed < 1:

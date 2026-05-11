@@ -1,11 +1,3 @@
-"""Pydantic schemas for the role-specific dashboard endpoints.
-
-Each dashboard endpoint returns a single payload that the frontend can
-render without further round-trips. We co-locate the small helper schemas
-(daily activity, recent items, top rankings) here so the file reads
-top-down from atomic to composite.
-"""
-
 from datetime import date, datetime
 from typing import List, Optional
 
@@ -16,6 +8,7 @@ from modules.progress.model import LessonProgressStatus
 
 
 # ---------- Atomic helpers ----------
+
 
 class DailyActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -51,6 +44,7 @@ class CategoryStatSchema(BaseModel):
 
 
 # ---------- Student ----------
+
 
 class RecentCourseSchema(BaseModel):
     course_id: int
@@ -91,6 +85,7 @@ class StudentDashboardSchema(BaseModel):
 
 # ---------- Instructor ----------
 
+
 class InstructorCourseRowSchema(BaseModel):
     course_id: int
     course_title: str
@@ -111,6 +106,7 @@ class InstructorDashboardSchema(BaseModel):
 
 
 # ---------- Admin ----------
+
 
 class AdminDashboardSchema(BaseModel):
     students_count: int

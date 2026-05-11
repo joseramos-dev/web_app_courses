@@ -121,14 +121,10 @@ class CourseModel(Base):
     lessons = relationship("LessonModel", back_populates="course")
 
 
-# ----------------------------------------------------------------------------
-# Aggregate columns attached after class definition to avoid circular
-# imports. Each one is a correlated scalar subquery, so every SELECT on
-# `CourseModel` resolves them in a single round trip with no N+1.
-# ----------------------------------------------------------------------------
-from modules.lessons.model import LessonModel  # noqa: E402  (placed at bottom on purpose)
-from modules.users.model import UserModel  # noqa: E402
-from modules.course_ratings.model import CourseRatingModel  # noqa: E402
+# ***************** VIRTUAL COLUMNS *****************
+from modules.lessons.model import LessonModel  
+from modules.users.model import UserModel
+from modules.course_ratings.model import CourseRatingModel
 
 CourseModel.lessons_count = column_property(
     select(func.count(LessonModel.id))
@@ -138,9 +134,6 @@ CourseModel.lessons_count = column_property(
     deferred=False,
 )
 
-# Resolves the instructor's display name in the same query that fetches the
-# course, so the frontend can show "Jane Doe" instead of "#42" without an
-# extra request or an N+1 across the course list.
 CourseModel.instructor_name = column_property(
     select(UserModel.name)
     .where(UserModel.id == CourseModel.instructor_id)
