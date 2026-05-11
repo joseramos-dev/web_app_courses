@@ -1,58 +1,58 @@
-# Quick start for reviewers
+# Inicio rápido para revisores
 
-Thanks for taking a look. This is the shortest path from a fresh clone to a running app.
+Gracias por echar un vistazo. Este es el camino más corto desde un clon recién hecho hasta la aplicación en ejecución.
 
-## Prerequisites
+## Requisitos previos
 
 - **Git**
-- Either **Docker Desktop** (recommended for one command), or **Python 3.12+** with [**uv**](https://docs.astral.sh/uv/), **Node.js** (current LTS is fine), and **PostgreSQL** (e.g. 16) if you run services locally.
+- **Docker Desktop** (recomendado para levantar todo con un solo comando), o bien **Python 3.12+** con [**uv**](https://docs.astral.sh/uv/), **Node.js** (la LTS actual vale), y **PostgreSQL** (p. ej. 16) si ejecutas los servicios en local.
 
-## Clone
+## Clonar
 
 ```bash
 git clone <repository-url>
 cd TFG
 ```
 
-(Use the folder name you cloned into if it is not `TFG`.)
+(Usa el nombre de la carpeta en la que hayas clonado si no es `TFG`.)
 
-## Configuration / secrets
+## Configuración / secretos
 
-- **Docker path:** copy `docker/.env.example` to `docker/.env`, set a long random `SECRET_KEY`, and keep `DATABASE_URL` aligned with the Postgres user/password/database you define. Step-by-step (Spanish): [docker/ComoUsarDocker.txt](../docker/ComoUsarDocker.txt).
-- **Local backend:** create `backend/.env` with at least `DATABASE_URL` and `SECRET_KEY` (same semantics as in `docker/.env.example`). If Postgres runs on your machine (not inside Compose), use host `localhost` and port `5432` in `DATABASE_URL`, not `db`.
+- **Ruta Docker:** copia `docker/.env.example` a `docker/.env`, define un `SECRET_KEY` largo y aleatorio, y mantén `DATABASE_URL` alineado con el usuario/contraseña/base de datos de Postgres que definas. Paso a paso (español): [docker/ComoUsarDocker.txt](../docker/ComoUsarDocker.txt).
+- **Backend en local:** crea `backend/.env` con al menos `DATABASE_URL` y `SECRET_KEY` (misma idea que en `docker/.env.example`). Si Postgres corre en tu máquina (no dentro de Compose), usa el host `localhost` y el puerto `5432` en `DATABASE_URL`, no `db`.
 
-The frontend calls the API at `http://localhost:8000` (see `frontend/src/shared/api/api.tsx`); no separate frontend env file is required for the default setup.
+El frontend llama a la API en `http://localhost:8000` (véase `frontend/src/shared/api/api.tsx`); no hace falta un archivo `.env` aparte en el frontend para la configuración por defecto.
 
-## Install
+## Instalación
 
 ```bash
 cd backend && uv sync && cd ..
 cd frontend && npm install && cd ..
 ```
 
-## Run
+## Ejecución
 
-**Option A — Docker (db + backend + frontend):** from the `docker` folder, `docker compose up --build`. First run can take a while.
+**Opción A — Docker (base de datos + backend + frontend):** desde la carpeta `docker`, ejecuta `docker compose up --build`. La primera ejecución puede tardar bastante.
 
-**Option B — Local:** start Postgres, apply migrations from `backend` (`uv run alembic upgrade head`), then `uv run uvicorn main:app --reload` (still from `backend`). In another terminal, from `frontend`, run `npm run dev`.
+**Opción B — Local:** arranca Postgres, aplica las migraciones desde `backend` (`uv run alembic upgrade head`), luego `uv run uvicorn main:app --reload` (sigue en `backend`). En otra terminal, desde `frontend`, ejecuta `npm run dev`.
 
 ## URLs
 
-| What        | URL                          |
+| Qué         | URL                          |
 | ----------- | ---------------------------- |
 | Frontend    | http://localhost:5173        |
-| API root    | http://localhost:8000        |
+| Raíz API    | http://localhost:8000        |
 | OpenAPI UI  | http://localhost:8000/docs   |
 | ReDoc       | http://localhost:8000/redoc  |
 
-Interactive API testing is easiest via **Swagger** at `/docs`.
+Probar la API de forma interactiva es más sencillo con **Swagger** en `/docs`.
 
-## Accounts and data
+## Cuentas y datos
 
-There is **no bundled seed script**. Use the app’s **registration** flow in the UI to create a user.
+**No hay script de datos iniciales** incluido. Usa el flujo de **registro** de la interfaz para crear un usuario.
 
-For development only, the backend exposes `POST /users/create_admin`, which creates an admin user (`admin` / `admin@admin` / password `admin`). It is marked for removal in `backend/modules/users/routes.py`; do not use in production.
+Solo para desarrollo, el backend expone `POST /users/create_admin`, que crea un usuario administrador (`admin` / `admin@admin` / contraseña `admin`). Está marcado para eliminación en `backend/modules/users/routes.py`; no lo uses en producción.
 
 ---
 
-The template text in [frontend/README.md](../frontend/README.md) is generic Vite boilerplate, not project-specific run instructions.
+El texto de plantilla en [frontend/README.md](../frontend/README.md) es el boilerplate genérico de Vite, no instrucciones de ejecución específicas del proyecto.

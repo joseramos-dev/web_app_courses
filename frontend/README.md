@@ -1,21 +1,21 @@
-# Frontend overview
+# Descripción general del frontend
 
-Concise map of the `frontend/` SPA (Vite + React). Not a full API reference.
+Mapa conciso del SPA `frontend/` (Vite + React). No es una referencia completa de la API.
 
 ## Stack
 
-| Layer | Choice |
+| Capa | Elección |
 |--------|--------|
-| Build / dev server | **Vite** 8 (`@vitejs/plugin-react`) |
+| Build / servidor de desarrollo | **Vite** 8 (`@vitejs/plugin-react`) |
 | UI | **React** 19, **TypeScript** |
-| Styling | **Tailwind CSS** 4 (`@tailwindcss/vite`), **MUI** 9 (`@mui/material` + Emotion), **Lucide** icons |
-| Routing | **react-router-dom** 7 (`BrowserRouter`, declarative `Routes`/`Route`) |
-| HTTP | **Axios** (shared instances; **qs** for array query serialization) |
+| Estilos | **Tailwind CSS** 4 (`@tailwindcss/vite`), **MUI** 9 (`@mui/material` + Emotion), iconos **Lucide** |
+| Enrutado | **react-router-dom** 7 (`BrowserRouter`, `Routes`/`Route` declarativos) |
+| HTTP | **Axios** (instancias compartidas; **qs** para serialización de arrays en query) |
 | UX | **react-hot-toast** |
 
-Entry: `src/main.tsx` wraps the app in `BrowserRouter` → `AuthProvider` → `ThemeProvider` → `App`.
+Punto de entrada: `src/main.tsx` envuelve la app en `BrowserRouter` → `AuthProvider` → `ThemeProvider` → `App`.
 
-## Folder structure (schematic)
+## Estructura de carpetas (esquemática)
 
 ```text
 frontend/
@@ -25,7 +25,7 @@ frontend/
 ├── package.json
 └── src/
     ├── main.tsx, App.tsx, index.css
-    ├── features/          # vertical slices (screens + local api/helpers)
+    ├── features/          # rebanadas verticales (pantallas + api/helpers locales)
     │   ├── auth/
     │   ├── courses/
     │   ├── course_detail/
@@ -35,23 +35,23 @@ frontend/
     │   ├── admin_panel/
     │   └── settings/
     └── shared/
-        ├── api/api.tsx    # axios clients (api, apiAuth, apiArray)
+        ├── api/api.tsx    # clientes axios (api, apiAuth, apiArray)
         ├── components/    # layout, nav, guards, inputs, footer
         ├── context/       # ThemeContext, AuthModalContext
-        ├── povider/       # AuthContext (note: folder name as in repo)
+        ├── povider/       # AuthContext (nota: nombre de carpeta como en el repositorio)
         ├── hooks/
         ├── interfaces/, types/, constants/
 ```
 
-Feature modules typically expose a top-level page component (e.g. `Courses.tsx`) and colocate `api.ts` where HTTP calls live.
+Los módulos de *feature* suelen exponer un componente de página de nivel superior (p. ej. `Courses.tsx`) y colocar `api.ts` junto a él, donde viven las llamadas HTTP.
 
-## Routing
+## Enrutado
 
-`App.tsx` defines all routes. Guards wrap sensitive pages.
+`App.tsx` define todas las rutas. Los *guards* envuelven las páginas sensibles.
 
 ```mermaid
 flowchart LR
-  subgraph public
+  subgraph public["Público"]
     A["/courses"]
     B["/course/:courseId"]
   end
@@ -69,48 +69,48 @@ flowchart LR
   end
 ```
 
-| Path | Guard | Screen |
+| Ruta | Guard | Pantalla |
 |------|--------|--------|
-| `/` | — | redirect → `/courses` |
-| `/courses` | — | course catalog + filters |
-| `/dashboard` | — | guest gate or role-specific dashboard |
-| `/settings` | RequireAuth | user settings |
-| `/admin` | RequireAdmin | admin panel |
-| `/course/new`, `/course/:id/edit`, `.../lesson/new` | RequireStaff | course / lesson editor |
-| `/course/:courseId` | — | course detail |
-| `/course/:courseId/lesson/:lessonId` | RequireAuth | lesson player (video, text, quiz) |
-| `*` | — | redirect → `/courses` |
+| `/` | — | redirección → `/courses` |
+| `/courses` | — | catálogo de cursos + filtros |
+| `/dashboard` | — | acceso invitado o panel según rol |
+| `/settings` | RequireAuth | ajustes de usuario |
+| `/admin` | RequireAdmin | panel de administración |
+| `/course/new`, `/course/:id/edit`, `.../lesson/new` | RequireStaff | editor de curso / lección |
+| `/course/:courseId` | — | detalle del curso |
+| `/course/:courseId/lesson/:lessonId` | RequireAuth | reproductor de lección (vídeo, texto, quiz) |
+| `*` | — | redirección → `/courses` |
 
-`/profile` redirects to `/settings`.
+`/profile` redirige a `/settings`.
 
-## State and data fetching
+## Estado y obtención de datos
 
-- **Global auth**: `AuthProvider` (`shared/povider/AuthContext.tsx`) holds `user`, `login` / `logout`, `isLoading`, `isAdmin`. Restores `user` + JWT from `localStorage` on load and sets `Authorization` on the default Axios instance.
-- **Theme / modals**: `ThemeContext`; `AuthModalContext` supplies `openLogin` / `openRegister` for the nav-driven auth overlay (`App` local state chooses Login vs Register; `Auth` renders the form).
-- **Server data**: no React Query / Redux in `package.json`. Features use **async functions** in per-feature `api.ts` files calling `api`, `apiAuth`, or `apiArray` from `shared/api/api.tsx`. Pages/components use **React hooks** (`useState`, `useEffect`, etc.) to load and store responses. `useDebounce` exists for search/filter UX.
+- **Auth global**: `AuthProvider` (`shared/povider/AuthContext.tsx`) guarda `user`, `login` / `logout`, `isLoading`, `isAdmin`. Restaura `user` + JWT desde `localStorage` al cargar y establece `Authorization` en la instancia por defecto de Axios.
+- **Tema / modales**: `ThemeContext`; `AuthModalContext` ofrece `openLogin` / `openRegister` para el overlay de auth desde el nav (el estado local de `App` elige Login vs Register; `Auth` renderiza el formulario).
+- **Datos del servidor**: no hay React Query / Redux en `package.json`. Los *features* usan **funciones async** en `api.ts` por *feature* que llaman a `api`, `apiAuth` o `apiArray` desde `shared/api/api.tsx`. Las páginas/componentes usan **hooks de React** (`useState`, `useEffect`, etc.) para cargar y guardar respuestas. Existe `useDebounce` para la UX de búsqueda/filtros.
 
-Base URL for Axios is configured as `http://localhost:8000/` in `shared/api/api.tsx` (backend expected on that host).
+La URL base de Axios está configurada como `http://localhost:8000/` en `shared/api/api.tsx` (se espera el backend en ese host).
 
-## Feature areas (aligned with routes)
+## Áreas de funcionalidad (alineadas con las rutas)
 
-| Area | Role / access | Purpose |
+| Área | Rol / acceso | Propósito |
 |------|----------------|---------|
-| **Courses** | Public | List, search, sort, filter courses |
-| **Course detail** | Public | Metadata, enrollment actions, ratings (UI varies by role) |
-| **Lesson** | Signed-in | Consume lesson content (video, text, quiz) |
-| **Course edit / new lesson** | Instructor / admin | CRUD-style authoring for courses and lessons |
-| **Dashboard** | Guest sees CTA; signed-in | `student` / `instructor` / `admin` dashboards |
-| **Admin panel** | Admin | Platform administration |
-| **Auth** | Modal | Login / register against backend |
-| **Settings** | Signed-in | Profile / preferences |
+| **Courses** | Público | Listar, buscar, ordenar y filtrar cursos |
+| **Course detail** | Público | Metadatos, acciones de matriculación, valoraciones (la UI varía según el rol) |
+| **Lesson** | Sesión iniciada | Consumir contenido de la lección (vídeo, texto, quiz) |
+| **Course edit / new lesson** | Instructor / admin | Creación/edición tipo CRUD de cursos y lecciones |
+| **Dashboard** | Invitado ve CTA; con sesión | paneles `student` / `instructor` / `admin` |
+| **Admin panel** | Admin | administración de la plataforma |
+| **Auth** | Modal | login / registro contra el backend |
+| **Settings** | Sesión iniciada | perfil / preferencias |
 
 ## Scripts (`frontend/package.json`)
 
-Run from the `frontend/` directory:
+Ejecutar desde el directorio `frontend/`:
 
-| Command | Action |
+| Comando | Acción |
 |---------|--------|
-| `npm run dev` | Vite dev server |
-| `npm run build` | `tsc -b` then production bundle |
-| `npm run preview` | Serve the production build locally |
-| `npm run lint` | ESLint on the project |
+| `npm run dev` | Servidor de desarrollo de Vite |
+| `npm run build` | `tsc -b` y luego bundle de producción |
+| `npm run preview` | Servir el build de producción en local |
+| `npm run lint` | ESLint sobre el proyecto |
