@@ -36,7 +36,7 @@ El frontend llama a la API en `http://localhost:8000` (véase `frontend/src/shar
 
 **Opción A — Docker (base de datos + backend + frontend):** desde la carpeta `docker`, ejecuta `docker compose up --build`. La primera ejecución puede tardar bastante. (Sera necesario que Docker Desktop este ejecutandose)
 
-**Opción B — Local:** arranca Postgres, aplica las migraciones desde `backend` (`uv run alembic upgrade head`), luego `uv run uvicorn main:app --reload` (sigue en `backend`). En otra terminal, desde `frontend`, ejecuta `npm run dev`.
+**Opción B — Local:** arranca Postgres, aplica las migraciones desde `backend` (`uv run alembic upgrade head`), luego `uv run uvicorn main:app --reload` (sigue en `backend`). En otra terminal, desde `frontend`, ejecuta `npm run dev`. (Para que funcione en local, sera necesario que en tu equipo, usando psql o la interfaz gráfica de PostgresSQL, hayas creado el usuario, contraseña y tabla correspondiente, y que estas coincidan con la información introducida en los .env)
 
 ## URLs
 
