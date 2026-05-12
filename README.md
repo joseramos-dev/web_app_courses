@@ -10,7 +10,7 @@ Gracias por echar un vistazo. A continuación muestro **dos formas** en las que 
 
 ```bash
 git clone https://github.com/joseramos-dev/web_app_courses.git
-cd TFG
+cd web_app_courses
 ```
 
 (Usa el nombre de la carpeta en la que hayas clonado si no es `TFG`.)
