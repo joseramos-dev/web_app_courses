@@ -41,7 +41,7 @@ main.py
 
 ## Registro de rutas
 
-Los routers se importan de forma explícita en `main.py` y se montan con `app.include_router(...)` — no hay autodescubrimiento.
+Los routers se importan de forma explícita en `main.py` y se montan con `app.include_router(...)`
 
 ```mermaid
 flowchart LR
@@ -69,7 +69,7 @@ flowchart LR
 | `ALGORITHM` | Opcional; por defecto `HS256` en la ruta de `create_access_token` |
 | `EXP_TOKEN` | Opcional; vida del JWT en **minutos** (por defecto `30`) |
 
-Coloca `.env` donde el cwd del proceso pueda cargarlo (normalmente ejecuta los comandos desde `backend/`).
+Coloca `.env` en `/backend`.
 
 ## Ejecutar la API en local
 
@@ -91,4 +91,3 @@ Crea revisiones nuevas con `alembic revision --autogenerate -m "..."` cuando cam
 
 ---
 
-**Limitaciones / advertencias (según el repositorio):** `course_ratings` solo está cableado a través de las rutas de **courses**, no tiene router propio; varios manejadores de **`/users`** no tienen `Depends(get_current_user)`** en el código (listado/creación/borrado abiertos salvo otra capa); `POST /users/create_admin` está marcado explícitamente como solo desarrollo en un comentario TODO.

@@ -25,7 +25,7 @@ frontend/
 ├── package.json
 └── src/
     ├── main.tsx, App.tsx, index.css
-    ├── features/          # rebanadas verticales (pantallas + api/helpers locales)
+    ├── features/          # pantallas + api/helpers locales
     │   ├── auth/
     │   ├── courses/
     │   ├── course_detail/

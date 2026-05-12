@@ -244,7 +244,7 @@ def reorder_course_lessons(
     return reordered
 
 # TODO: ONLY DURING DEVELOPMENT
-@courses_router.post("/")
+@courses_router.post("/populate_courses")
 def initiate_courses_db(
     db: Annotated[Session, Depends(get_db)],
     user = Depends(require_role(["admin"]))
