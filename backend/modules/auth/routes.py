@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,7 @@ from core.security import verify_password, create_access_token
 auth_router = APIRouter(tags=["auth"])
 
 
-@auth_router.post("/token")
+@auth_router.post("/token", status_code=status.HTTP_200_OK)
 def token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
@@ -25,12 +25,12 @@ def token(
     return TokenSchema(access_token=token)
 
 
-@auth_router.get("/me", response_model=UserSchema)
+@auth_router.get("/me", response_model=UserSchema, status_code=status.HTTP_200_OK)
 def read_me(current_user=Depends(get_current_user)):
     return current_user
 
 
-@auth_router.patch("/me", response_model=UserSchema)
+@auth_router.patch("/me", response_model=UserSchema, status_code=status.HTTP_200_OK)
 def patch_me(
     payload: UserSelfUpdateSchema,
     db: Session = Depends(get_db),

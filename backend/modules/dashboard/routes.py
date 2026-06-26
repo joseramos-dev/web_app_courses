@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -23,7 +23,11 @@ dashboard_router = APIRouter(
 )
 
 
-@dashboard_router.get("/student/me", response_model=StudentDashboardSchema)
+@dashboard_router.get(
+    "/student/me",
+    response_model=StudentDashboardSchema,
+    status_code=status.HTTP_200_OK,
+)
 def student_dashboard(
     db: Annotated[Session, Depends(get_db)],
     user=Depends(require_role(["student", "admin"])),
@@ -31,7 +35,11 @@ def student_dashboard(
     return get_student_summary(db, user.id)
 
 
-@dashboard_router.get("/instructor/me", response_model=InstructorDashboardSchema)
+@dashboard_router.get(
+    "/instructor/me",
+    response_model=InstructorDashboardSchema,
+    status_code=status.HTTP_200_OK,
+)
 def instructor_dashboard(
     db: Annotated[Session, Depends(get_db)],
     user=Depends(require_role(["instructor", "admin"])),
@@ -39,7 +47,11 @@ def instructor_dashboard(
     return get_instructor_summary(db, user.id)
 
 
-@dashboard_router.get("/admin", response_model=AdminDashboardSchema)
+@dashboard_router.get(
+    "/admin",
+    response_model=AdminDashboardSchema,
+    status_code=status.HTTP_200_OK,
+)
 def admin_dashboard(
     db: Annotated[Session, Depends(get_db)],
     _user=Depends(require_role(["admin"])),

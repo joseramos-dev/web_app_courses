@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from modules.auth.routes import auth_router
@@ -9,6 +9,7 @@ from modules.lessons.routes import lessons_router
 from modules.enrollments.routes import enrollments_router
 from modules.progress.routes import progress_router
 from modules.dashboard.routes import dashboard_router
+from modules.recommendations.routes import recommendations_router
 
 # To run the server -> uv run uvicorn main:app --reload
 # To access other devices -> uv run uvicorn main:app --host 0.0.0.0 --port 8000
@@ -45,8 +46,9 @@ app.include_router(lessons_router)
 app.include_router(enrollments_router)
 app.include_router(progress_router)
 app.include_router(dashboard_router)
+app.include_router(recommendations_router)
 
 
-@app.get("/")
+@app.get("/", status_code=status.HTTP_200_OK)
 def read_root():
     return {"status": "ok"}

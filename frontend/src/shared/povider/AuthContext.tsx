@@ -1,9 +1,11 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import type { IUser } from "../interfaces/IUser";
 import type { IAuthContext } from "../interfaces/IAuthContext";
 import type { IToken } from "../interfaces/IToken";
 import { api } from "../api/api";
-import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext<IAuthContext | null>(null);
 
@@ -47,6 +49,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         delete api.defaults.headers.common["Authorization"];
         navigate(`/`);
     };
+
+    const logoutRef = useRef(logout);
+    logoutRef.current = logout;
+
+    // Interceptor de errores para manejar el logout cuando la sesión expira
+    useEffect(() => {
+        const interceptorId = api.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                if (
+                    axios.isAxiosError(error) &&
+                    error.response?.status === 401 &&
+                    error.response.data?.detail !== "Invalid current password"
+                ) {
+                    toast.error("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+                    logoutRef.current();
+                }
+                return Promise.reject(error);
+            },
+        );
+
+        return () => {
+            api.interceptors.response.eject(interceptorId);
+        };
+    }, []);
 
     const updateUser = (next: IUser) => {
         setUser(next);

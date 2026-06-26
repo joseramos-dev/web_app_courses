@@ -10,6 +10,7 @@ import { ProgressBar } from "./components/ProgressBar";
 import { MiniBarChart } from "./components/MiniBarChart";
 import { formatRelativeTime } from "./components/formatRelativeTime";
 import { KURSA_DASHBOARD_REFRESH_EVENT } from "../../shared/constants/appEvents";
+import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
 
 const WEEKDAY_FORMATTER = new Intl.DateTimeFormat(undefined, {
     weekday: "short",
@@ -321,6 +322,8 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                     </section>
                 </>
             )}
+
+            <RecommendedCoursesCarousel className="mt-10" />
         </div>
     );
 };

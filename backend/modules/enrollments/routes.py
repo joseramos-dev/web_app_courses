@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -26,7 +26,11 @@ enrollments_router = APIRouter(
 )
 
 
-@enrollments_router.post("/{course_id}", response_model=EnrollmentSchema)
+@enrollments_router.post(
+    "/{course_id}",
+    response_model=EnrollmentSchema,
+    status_code=status.HTTP_200_OK,
+)
 def enroll_in_course(
     course_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -45,7 +49,7 @@ def enroll_in_course(
     return enroll_user_in_course(db, user.id, course_id)
 
 
-@enrollments_router.get("/me", response_model=List[EnrollmentSchema])
+@enrollments_router.get("/me", response_model=List[EnrollmentSchema], status_code=status.HTTP_200_OK)
 def get_my_enrollments(
     db: Annotated[Session, Depends(get_db)],
     user=Depends(get_current_user),
@@ -55,7 +59,9 @@ def get_my_enrollments(
 
 
 @enrollments_router.get(
-    "/me/course/{course_id}", response_model=EnrollmentDetailSchema
+    "/me/course/{course_id}",
+    response_model=EnrollmentDetailSchema,
+    status_code=status.HTTP_200_OK,
 )
 def get_my_enrollment_for_course(
     course_id: int,
@@ -76,6 +82,7 @@ def get_my_enrollment_for_course(
 @enrollments_router.post(
     "/me/course/{course_id}/complete-without-lessons",
     response_model=EnrollmentDetailSchema,
+    status_code=status.HTTP_200_OK,
 )
 def complete_enrollment_without_lessons(
     course_id: int,

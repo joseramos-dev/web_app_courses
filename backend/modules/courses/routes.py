@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Annotated, List, Optional
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
@@ -55,7 +55,7 @@ courses_router = APIRouter(
 )
 
 
-@courses_router.get("/", response_model=CoursePaginatedSchema)
+@courses_router.get("/", response_model=CoursePaginatedSchema, status_code=status.HTTP_200_OK)
 def get_courses(
     db: Annotated[Session, Depends(get_db)],
     pag: PaginationParams = Depends(get_pagination),
@@ -93,7 +93,11 @@ def get_courses(
     )
 
 
-@courses_router.post("/create", response_model=CourseSchema)
+@courses_router.post(
+    "/create",
+    response_model=CourseSchema,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_course_route(
     db: Annotated[Session, Depends(get_db)],
     payload: CourseCreateSchema,
@@ -107,7 +111,11 @@ def create_course_route(
     return create_course(db, payload, instructor_id)
 
 
-@courses_router.put("/{course_id}/rating", response_model=CourseRatingSchema)
+@courses_router.put(
+    "/{course_id}/rating",
+    response_model=CourseRatingSchema,
+    status_code=status.HTTP_200_OK,
+)
 def put_my_course_rating(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -128,7 +136,11 @@ def put_my_course_rating(
     return row
 
 
-@courses_router.get("/{course_id}/rating/me", response_model=CourseRatingSchema)
+@courses_router.get(
+    "/{course_id}/rating/me",
+    response_model=CourseRatingSchema,
+    status_code=status.HTTP_200_OK,
+)
 def get_my_course_rating(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -159,7 +171,7 @@ def get_my_course_rating(
     return row
 
 
-@courses_router.get("/{course_id}", response_model=CourseSchema)
+@courses_router.get("/{course_id}", response_model=CourseSchema, status_code=status.HTTP_200_OK)
 def get_course_detail_by_id(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -170,7 +182,7 @@ def get_course_detail_by_id(
     return get_course_detail(db, course_id)
 
 
-@courses_router.put("/{course_id}", response_model=CourseSchema)
+@courses_router.put("/{course_id}", response_model=CourseSchema, status_code=status.HTTP_200_OK)
 def update_course_by_id(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -212,7 +224,11 @@ def update_course_by_id(
     return update_course(db, course_id, payload)
 
 
-@courses_router.get("/{course_id}/lessons", response_model=list[LessonSchema])
+@courses_router.get(
+    "/{course_id}/lessons",
+    response_model=list[LessonSchema],
+    status_code=status.HTTP_200_OK,
+)
 def get_course_lessons(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -224,7 +240,11 @@ def get_course_lessons(
     return get_lessons_by_course(db, course_id)
 
 
-@courses_router.post("/{course_id}/lessons/reorder", response_model=list[LessonSchema])
+@courses_router.post(
+    "/{course_id}/lessons/reorder",
+    response_model=list[LessonSchema],
+    status_code=status.HTTP_200_OK,
+)
 def reorder_course_lessons(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
@@ -244,7 +264,7 @@ def reorder_course_lessons(
     return reordered
 
 # TODO: ONLY DURING DEVELOPMENT
-@courses_router.post("/populate_courses")
+@courses_router.post("/populate_courses", status_code=status.HTTP_200_OK)
 def initiate_courses_db(
     db: Annotated[Session, Depends(get_db)],
     user = Depends(require_role(["admin"]))

@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -24,7 +24,9 @@ progress_router = APIRouter(
 
 
 @progress_router.get(
-    "/lesson/{lesson_id}", response_model=LessonProgressSchema
+    "/lesson/{lesson_id}",
+    response_model=LessonProgressSchema,
+    status_code=status.HTTP_200_OK,
 )
 def get_progress(
     lesson_id: int,
@@ -35,7 +37,9 @@ def get_progress(
 
 
 @progress_router.post(
-    "/lesson/{lesson_id}/start", response_model=LessonProgressSchema
+    "/lesson/{lesson_id}/start",
+    response_model=LessonProgressSchema,
+    status_code=status.HTTP_200_OK,
 )
 def start(
     lesson_id: int,
@@ -51,7 +55,9 @@ def start(
 
 
 @progress_router.post(
-    "/lesson/{lesson_id}/complete", response_model=LessonCompleteResultSchema
+    "/lesson/{lesson_id}/complete",
+    response_model=LessonCompleteResultSchema,
+    status_code=status.HTTP_200_OK,
 )
 def complete(
     lesson_id: int,

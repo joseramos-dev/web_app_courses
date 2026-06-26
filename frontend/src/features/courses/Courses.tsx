@@ -9,6 +9,7 @@ import { FilterDropDown } from "./components/FilterDropDown";
 import { courseTypesDict, type SiteTypes, type CategoryTypes, type LanguageTypes, type CourseTypeTypes } from "../../shared/types/CourseTypes";
 import { type sort_by_dir, SORT_BY_ENTRIES, type sort_by_types } from "../../shared/types/SortTypes";
 import { useAuth } from "../../shared/povider/AuthContext";
+import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
 
 
 const PAGE_SIZE = 24
@@ -354,6 +355,8 @@ export function Courses() {
 
                 </main>
             </div>
+
+            <RecommendedCoursesCarousel className="mt-10" hideForAdmin />
         </div>
     );
 }

@@ -6,7 +6,6 @@
 
 /*
   Paleta verde inspirada en la identidad del logotipo UNED (tonos institucionales).
-  Sin reproducir el logo; valores elegidos para contraste AA en cabecera y enlaces.
 */
 :root {
   --header-bg: #14532d;

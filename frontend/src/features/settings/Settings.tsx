@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../shared/povider/AuthContext";
+import { get_preferences, patch_preferences } from "../courses/api";
+import type { IRecommendationPreferencesUpdate } from "../../shared/interfaces/IRecommendation";
+import { PreferencesSelector } from "../../shared/components/PreferencesSelector";
 import { API_patchMe } from "./api";
 import { runWithToastSaving } from "./components/runWithToastSaving";
 import { SettingsAppearanceSection } from "./components/SettingsAppearanceSection";
@@ -27,12 +30,52 @@ export function Settings() {
   const [pwdConfirm, setPwdConfirm] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
 
+  const canManagePreferences =
+    user?.role === "student" || user?.role === "admin";
+  const [prefs, setPrefs] = useState<IRecommendationPreferencesUpdate>({
+    preferred_sites: [],
+    preferred_categories: [],
+    preferred_languages: [],
+    preferred_course_types: [],
+  });
+  const [loadingPrefs, setLoadingPrefs] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     setName(user.name);
     setEmail(user.email);
     setEmailNew(user.email);
   }, [user]);
+
+  useEffect(() => {
+    if (!canManagePreferences) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingPrefs(true);
+        const data = await get_preferences();
+        if (!cancelled) {
+          setPrefs({
+            preferred_sites: data.preferred_sites,
+            preferred_categories: data.preferred_categories,
+            preferred_languages: data.preferred_languages,
+            preferred_course_types: data.preferred_course_types,
+          });
+        }
+      } catch (e) {
+        console.error("Error loading preferences:", e);
+        if (!cancelled) toast.error("No se pudieron cargar las preferencias.");
+      } finally {
+        if (!cancelled) setLoadingPrefs(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canManagePreferences]);
 
   if (!user) return null;
 
@@ -117,6 +160,33 @@ export function Settings() {
     }
   };
 
+  const handleSavePreferences = async () => {
+    const hasAny =
+      (prefs.preferred_sites?.length ?? 0) > 0 ||
+      (prefs.preferred_categories?.length ?? 0) > 0 ||
+      (prefs.preferred_languages?.length ?? 0) > 0 ||
+      (prefs.preferred_course_types?.length ?? 0) > 0;
+    if (!hasAny) {
+      toast.error("Selecciona al menos una preferencia");
+      return;
+    }
+
+    const updated = await runWithToastSaving(
+      setSavingPrefs,
+      () => patch_preferences(prefs),
+      "No se pudieron guardar las preferencias",
+    );
+    if (updated) {
+      setPrefs({
+        preferred_sites: updated.preferred_sites,
+        preferred_categories: updated.preferred_categories,
+        preferred_languages: updated.preferred_languages,
+        preferred_course_types: updated.preferred_course_types,
+      });
+      toast.success("Preferencias guardadas");
+    }
+  };
+
   const inputCn = settingsInputClassName;
   const labelCn = settingsFieldLabelClassName;
   const btnCn = settingsPrimaryButtonClassName();
@@ -130,7 +200,7 @@ export function Settings() {
         Ajustes
       </h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Cuenta y apariencia
+        Cuenta, recomendaciones y apariencia
       </p>
 
       <section className={sectionCn({ isFirst: true })}>
@@ -213,6 +283,39 @@ export function Settings() {
           {savingPwd ? "Guardando…" : "Cambiar contraseña"}
         </button>
       </section>
+
+      {canManagePreferences ? (
+        <section id="recommendation-preferences" className={sectionCn()}>
+          <h2 className={titleCn}>Preferencias de recomendación</h2>
+          <p className={hintCn}>
+            Estas opciones alimentan el recomendador de cursos en tu dashboard y
+            en el catálogo.
+          </p>
+          {loadingPrefs ? (
+            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+              Cargando preferencias…
+            </p>
+          ) : (
+            <>
+              <div className="mt-4">
+                <PreferencesSelector
+                  value={prefs}
+                  onChange={setPrefs}
+                  disabled={savingPrefs}
+                />
+              </div>
+              <button
+                type="button"
+                disabled={savingPrefs}
+                onClick={() => void handleSavePreferences()}
+                className={btnCn}
+              >
+                {savingPrefs ? "Guardando…" : "Guardar preferencias"}
+              </button>
+            </>
+          )}
+        </section>
+      ) : null}
 
       <SettingsAppearanceSection />
     </div>

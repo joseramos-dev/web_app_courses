@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from core.database import get_db
@@ -48,7 +48,7 @@ def _is_course_editor(user, course) -> bool:
     )
 
 
-@lessons_router.get("/", response_model=List[LessonSchema])
+@lessons_router.get("/", response_model=List[LessonSchema], status_code=status.HTTP_200_OK)
 def get_lessons(db: Annotated[Session, Depends(get_db)]):
     """
     Get all lessons for a course
@@ -56,7 +56,11 @@ def get_lessons(db: Annotated[Session, Depends(get_db)]):
     return get_lessons_service(db)
 
 
-@lessons_router.get("/course/{course_id}", response_model=List[LessonSchema])
+@lessons_router.get(
+    "/course/{course_id}",
+    response_model=List[LessonSchema],
+    status_code=status.HTTP_200_OK,
+)
 def get_lessons_for_course(
     course_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -67,7 +71,7 @@ def get_lessons_for_course(
     return get_lessons_by_course_service(db, course_id)
 
 
-@lessons_router.get("/{lesson_id}", response_model=LessonSchema)
+@lessons_router.get("/{lesson_id}", response_model=LessonSchema, status_code=status.HTTP_200_OK)
 def get_lesson_by_id(
     lesson_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -78,7 +82,11 @@ def get_lesson_by_id(
     return _require_lesson(db, lesson_id)
 
 
-@lessons_router.post("/{course_id}", response_model=LessonSchema)
+@lessons_router.post(
+    "/{course_id}",
+    response_model=LessonSchema,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_lesson(
     course_id: int,
     lesson: LessonCreateSchema,
@@ -94,7 +102,7 @@ def create_lesson(
     return create_lesson_service(db, course_id, lesson)
 
 
-@lessons_router.patch("/{lesson_id}", response_model=LessonSchema)
+@lessons_router.patch("/{lesson_id}", response_model=LessonSchema, status_code=status.HTTP_200_OK)
 def patch_lesson(
     lesson_id: int,
     payload: LessonUpdateSchema,
@@ -112,7 +120,7 @@ def patch_lesson(
     return updated
 
 
-@lessons_router.delete("/{lesson_id}")
+@lessons_router.delete("/{lesson_id}", status_code=status.HTTP_200_OK)
 def remove_lesson(
     lesson_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -129,7 +137,11 @@ def remove_lesson(
     return {"detail": "Lesson deleted"}
 
 
-@lessons_router.post("/course/{course_id}/reorder", response_model=List[LessonSchema])
+@lessons_router.post(
+    "/course/{course_id}/reorder",
+    response_model=List[LessonSchema],
+    status_code=status.HTTP_200_OK,
+)
 def reorder_course_lessons(
     course_id: int,
     payload: LessonsReorderSchema,
@@ -149,7 +161,9 @@ def reorder_course_lessons(
 # ---------- Questions ----------
 
 @lessons_router.get(
-    "/{lesson_id}/questions", response_model=List[QuestionPublicSchema]
+    "/{lesson_id}/questions",
+    response_model=List[QuestionPublicSchema],
+    status_code=status.HTTP_200_OK,
 )
 def get_lesson_questions_public(
     lesson_id: int,
@@ -182,7 +196,9 @@ def get_lesson_questions_public(
 
 
 @lessons_router.get(
-    "/{lesson_id}/questions/admin", response_model=List[QuestionAdminSchema]
+    "/{lesson_id}/questions/admin",
+    response_model=List[QuestionAdminSchema],
+    status_code=status.HTTP_200_OK,
 )
 def get_lesson_questions_admin(
     lesson_id: int,
@@ -201,7 +217,9 @@ def get_lesson_questions_admin(
 
 
 @lessons_router.post(
-    "/{lesson_id}/questions", response_model=QuestionAdminSchema
+    "/{lesson_id}/questions",
+    response_model=QuestionAdminSchema,
+    status_code=status.HTTP_201_CREATED,
 )
 def create_lesson_question(
     lesson_id: int,
@@ -217,7 +235,9 @@ def create_lesson_question(
 
 
 @lessons_router.put(
-    "/{lesson_id}/questions/{question_id}", response_model=QuestionAdminSchema
+    "/{lesson_id}/questions/{question_id}",
+    response_model=QuestionAdminSchema,
+    status_code=status.HTTP_200_OK,
 )
 def update_lesson_question(
     lesson_id: int,
@@ -236,7 +256,10 @@ def update_lesson_question(
     return updated
 
 
-@lessons_router.delete("/{lesson_id}/questions/{question_id}")
+@lessons_router.delete(
+    "/{lesson_id}/questions/{question_id}",
+    status_code=status.HTTP_200_OK,
+)
 def delete_lesson_question(
     lesson_id: int,
     question_id: int,

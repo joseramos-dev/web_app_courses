@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from modules.users.model import UserModel, UserRole
 from core.security import hash_password, verify_password
 from modules.users.schema import UserCreateSchema, UserSelfUpdateSchema
+from modules.recommendations.service import create_default_recommendation
 
 load_dotenv()
 
@@ -46,6 +47,8 @@ def add_user_database(db: Session, user_sch: UserCreateSchema) -> UserModel:
             hash_password=hash_password(user_sch.password),
         )
         db.add(user)
+        db.flush()
+        create_default_recommendation(db, user.id)
         db.commit()
         db.refresh(user)
         return user
