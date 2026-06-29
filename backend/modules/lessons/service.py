@@ -33,6 +33,9 @@ def create_lesson(db: Session, course_id: int, lesson: LessonCreateSchema):
         position=lesson.position,
         body=lesson.body,
         video_url=lesson.video_url,
+        max_score=lesson.max_score,
+        passing_score=lesson.passing_score,
+        allows_file_submission=lesson.allows_file_submission,
     )
     db.add(new_lesson)
     db.commit()

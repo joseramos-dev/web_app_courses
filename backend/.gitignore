@@ -10,3 +10,6 @@ wheels/
 .venv
 
 .env
+
+# Uploaded lesson materials (PDF, etc.)
+uploads/

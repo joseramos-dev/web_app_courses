@@ -13,6 +13,8 @@ import {
 import { LessonText } from "./components/LessonText";
 import { LessonVideo } from "./components/LessonVideo";
 import { LessonQuiz } from "./components/LessonQuiz";
+import { LessonAssignment } from "./components/LessonAssignment";
+import { LessonAttachments } from "./components/LessonAttachments";
 import { lessonBackToCourseButtonClassName } from "./components/lessonBackToCourseButtonClassName";
 import { lessonErrorNoticePanelClassName } from "./components/lessonErrorNoticePanelClassName";
 import { lessonMarkCompleteButtonClassName } from "./components/lessonMarkCompleteButtonClassName";
@@ -21,7 +23,8 @@ import { lessonPageShellClassName } from "./components/lessonPageShellClassName"
 import { navigateBackToCourseFromLesson } from "./components/navigateBackToCourseFromLesson";
 import { runWithSubmitting } from "./components/runWithSubmitting";
 import { tryNavigateAwayOnLessonHttpError } from "./components/tryNavigateAwayOnLessonHttpError";
-import type { ILesson, IQuestionPublic } from "../course_edit/lessonTypes";
+import type { ILesson, ILessonFile, IQuestionPublic } from "../course_edit/lessonTypes";
+import { API_getLessonFiles } from "../course_edit/api";
 import {
   KURSA_COURSE_ENROLLMENT_CHANGED_EVENT,
   KURSA_DASHBOARD_REFRESH_EVENT,
@@ -30,6 +33,14 @@ import {
   lessonChainState,
   resolveReturnTo,
 } from "../../shared/types/CourseNavState";
+import { API_getLessonAttempts } from "../progress/api";
+import {
+  API_getLessonSubmission,
+  API_submitLessonAssignment,
+} from "../progress/submissionApi";
+import type { ILessonAttemptList } from "../../shared/interfaces/IProgress";
+import type { ISubmission } from "../../shared/interfaces/ISubmission";
+import { LessonAttemptHistory } from "./components/LessonAttemptHistory";
 
 export const Lesson = () => {
   const { courseId, lessonId } = useParams();
@@ -43,6 +54,43 @@ export const Lesson = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [lastScore, setLastScore] = useState<number | null>(null);
+  const [attemptHistory, setAttemptHistory] = useState<ILessonAttemptList | null>(
+    null,
+  );
+  const [attemptsLoading, setAttemptsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<ILessonFile[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [submission, setSubmission] = useState<ISubmission | null>(null);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+
+  const loadAttemptHistory = async (id: number) => {
+    try {
+      setAttemptsLoading(true);
+      const history = await API_getLessonAttempts(id);
+      setAttemptHistory(history);
+      if (history.best_score != null) {
+        setLastScore(history.best_score);
+      }
+    } catch (e) {
+      console.error(e);
+      setAttemptHistory(null);
+    } finally {
+      setAttemptsLoading(false);
+    }
+  };
+
+  const loadSubmission = async (id: number) => {
+    try {
+      setSubmissionLoading(true);
+      const data = await API_getLessonSubmission(id);
+      setSubmission(data);
+    } catch (e) {
+      console.error(e);
+      setSubmission(null);
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
 
   const courseIdNum = Number(courseId);
   const lessonIdNum = Number(lessonId);
@@ -80,7 +128,31 @@ export const Lesson = () => {
         setSiblings(navData);
 
         try {
-          await startReq;
+          setAttachmentsLoading(true);
+          const files = await API_getLessonFiles(lessonIdNum);
+          setAttachments(files);
+        } catch (e) {
+          console.error(e);
+          setAttachments([]);
+        } finally {
+          setAttachmentsLoading(false);
+        }
+
+        try {
+          const progress = await startReq;
+          if (
+            lessonData.lesson_type === "test" ||
+            lessonData.lesson_type === "multiple_selection"
+          ) {
+            const qs = await API_getLessonQuestions(lessonIdNum);
+            setQuestions(qs);
+            if (progress.best_score != null) {
+              setLastScore(progress.best_score);
+            }
+            await loadAttemptHistory(lessonIdNum);
+          } else if (lessonData.lesson_type === "assignment") {
+            await loadSubmission(lessonIdNum);
+          }
         } catch (e) {
           const handled = tryNavigateAwayOnLessonHttpError({
             error: e,
@@ -91,14 +163,6 @@ export const Lesson = () => {
           });
           if (handled) return;
           throw e;
-        }
-
-        if (
-          lessonData.lesson_type === "test" ||
-          lessonData.lesson_type === "multiple_selection"
-        ) {
-          const qs = await API_getLessonQuestions(lessonIdNum);
-          setQuestions(qs);
         }
       } catch (e) {
         console.error(e);
@@ -163,15 +227,34 @@ export const Lesson = () => {
     );
     if (!result) return;
     setLastScore(result.score);
-    if (result.passed) {
-      handleAfterPass(result.enrollment_completed);
-    } else {
+    if (!result.passed) {
       toast.error(
         `No has alcanzado el 70% (puntuación: ${Math.round(
           result.score ?? 0,
         )}%). Inténtalo de nuevo.`,
       );
+      await loadAttemptHistory(lesson.id);
+      return;
     }
+    handleAfterPass(result.enrollment_completed);
+  };
+
+  const handleAssignmentSubmit = async (content: string, file?: File | null) => {
+    if (!lesson) return;
+    const result = await runWithSubmitting(
+      setSubmitting,
+      () => API_submitLessonAssignment(lesson.id, { content, file }),
+      "No se pudo enviar la entrega.",
+    );
+    if (!result) return;
+    setSubmission(result);
+    toast.success("Entrega enviada correctamente");
+    window.dispatchEvent(new Event(KURSA_DASHBOARD_REFRESH_EVENT));
+    window.dispatchEvent(
+      new CustomEvent(KURSA_COURSE_ENROLLMENT_CHANGED_EVENT, {
+        detail: { courseId: courseIdNum },
+      }),
+    );
   };
 
   if (isLoading) {
@@ -230,14 +313,48 @@ export const Lesson = () => {
         )}
         {(lesson.lesson_type === "test" ||
           lesson.lesson_type === "multiple_selection") && (
-          <LessonQuiz
-            questions={questions}
-            mode={lesson.lesson_type === "test" ? "single" : "multiple"}
-            submitting={submitting}
-            onSubmit={handleQuizSubmit}
-            lastScore={lastScore}
-          />
+          <>
+            <LessonQuiz
+              questions={questions}
+              mode={lesson.lesson_type === "test" ? "single" : "multiple"}
+              submitting={submitting}
+              onSubmit={handleQuizSubmit}
+              lastScore={lastScore}
+            />
+            <section className="mt-6 rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                Historial de intentos
+              </h2>
+              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                Registro de tus envíos en esta evaluación.
+              </p>
+              <div className="mt-3">
+                <LessonAttemptHistory
+                  data={attemptHistory}
+                  loading={attemptsLoading}
+                />
+              </div>
+            </section>
+          </>
         )}
+        {lesson.lesson_type === "assignment" && (
+          submissionLoading ? (
+            <div className={mutedPanelCn}>Cargando entrega…</div>
+          ) : (
+            <LessonAssignment
+              lesson={lesson}
+              submission={submission}
+              submitting={submitting}
+              onSubmit={(content, file) =>
+                void handleAssignmentSubmit(content, file)
+              }
+            />
+          )
+        )}
+      </div>
+
+      <div className="mb-6">
+        <LessonAttachments files={attachments} loading={attachmentsLoading} />
       </div>
 
       {(lesson.lesson_type === "text" || lesson.lesson_type === "video") && (

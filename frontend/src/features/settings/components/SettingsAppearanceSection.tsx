@@ -3,11 +3,11 @@ import { settingsMutedHintClassName } from "./settingsMutedHintClassName";
 import { settingsSectionCardClassName } from "./settingsSectionCardClassName";
 import { settingsSectionTitleClassName } from "./settingsSectionTitleClassName";
 
-export function SettingsAppearanceSection() {
+export function SettingsAppearanceSection({ noTopMargin }: { noTopMargin?: boolean } = {}) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <section className={settingsSectionCardClassName()}>
+    <section className={settingsSectionCardClassName({ noTopMargin })}>
       <h2 className={settingsSectionTitleClassName()}>Apariencia</h2>
       <p className={settingsMutedHintClassName()}>
         El modo se guarda en este dispositivo.

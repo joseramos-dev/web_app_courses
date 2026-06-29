@@ -47,3 +47,23 @@ export const API_login = async (nameOrEmail: string, password: string): Promise<
         throw axiosError?.response?.data?.detail || "Error al obtener el token de acceso"
     }
 }
+
+export const API_refreshToken = async (refreshToken: string): Promise<IToken> => {
+    const { data } = await api.post<IToken>("/token/refresh", {
+        refresh_token: refreshToken,
+    });
+    return data;
+};
+
+export const API_logoutToken = async (refreshToken: string): Promise<void> => {
+    try {
+        await api.post("/token/logout", { refresh_token: refreshToken });
+    } catch {
+        // Logout is best-effort; local session is cleared regardless.
+    }
+};
+
+export const API_getMe = async (): Promise<IUser> => {
+    const { data } = await api.get<IUser>("/me");
+    return data;
+};

@@ -122,6 +122,10 @@ Coloca un archivo `.env` en `backend/` (o usa `docker/.env` si ejecutas con Dock
 | `SECRET_KEY` | **Sí** | — | Clave para firmar y verificar JWT. Usar una cadena larga y aleatoria en producción |
 | `ALGORITHM` | No | `HS256` | Algoritmo JWT (`create_access_token` y `jwt.decode`) |
 | `EXP_TOKEN` | No | `30` | Vida del access token en **minutos** |
+| `REFRESH_TOKEN_DAYS` | No | `7` | Vida del refresh token en días |
+| `ENVIRONMENT` | No | `development` | `production` desactiva rutas de desarrollo por defecto |
+| `ENABLE_DEV_ROUTES` | No | `true` (dev) / `false` (prod) | Expone `POST /users/create_admin` y `POST /courses/populate_courses` |
+| `CORS_ORIGINS` | No | localhost:5173/3000 | Orígenes permitidos, separados por coma |
 
 ### Ejemplo `.env` (desarrollo local)
 
@@ -130,6 +134,10 @@ DATABASE_URL=postgresql+psycopg://kursa:kursa_dev_change_me@localhost:5432/kursa
 SECRET_KEY=una-cadena-muy-larga-y-aleatoria
 ALGORITHM=HS256
 EXP_TOKEN=30
+REFRESH_TOKEN_DAYS=7
+ENVIRONMENT=development
+ENABLE_DEV_ROUTES=true
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
 ### Docker
@@ -154,6 +162,15 @@ erDiagram
     users ||--o{ enrollments : "user_id"
     users ||--o{ course_ratings : "user_id"
     users ||--o{ study_activity : "user_id"
+    users ||--o{ refresh_tokens : "user_id"
+
+    refresh_tokens {
+        int id PK
+        int user_id FK
+        string token_hash
+        datetime expires_at
+        datetime revoked_at
+    }
 
     courses ||--o{ lessons : "course_id"
     courses ||--o{ enrollments : "course_id"
@@ -186,6 +203,7 @@ erDiagram
         string subcategory
         text intro
         int duration_seconds
+        enum difficulty
         int instructor_id FK
         datetime created_at
         datetime updated_at
@@ -199,6 +217,23 @@ erDiagram
         int position
         text body
         string video_url
+        float max_score
+        float passing_score
+        bool allows_file_submission
+    }
+
+    lesson_submissions {
+        int id PK
+        int enrollment_id FK
+        int lesson_id FK
+        text body
+        int file_id FK
+        enum status
+        float score
+        text feedback
+        datetime submitted_at
+        datetime graded_at
+        int graded_by FK
     }
 
     questions {
@@ -237,6 +272,15 @@ erDiagram
         int attempts
     }
 
+    lesson_attempts {
+        int id PK
+        int enrollment_id FK
+        int lesson_id FK
+        float score
+        bool passed
+        datetime attempted_at
+    }
+
     course_ratings {
         int id PK
         int user_id FK
@@ -263,6 +307,7 @@ erDiagram
 | Curso → Lección | 1:N | `ON DELETE CASCADE`; posición única por curso |
 | Lección → Pregunta → Opción | 1:N:N | Cascada en borrado; posiciones únicas por padre |
 | Matrícula → Progreso de lección | 1:N | Única por `(enrollment_id, lesson_id)` |
+| Matrícula → Intentos de lección | 1:N | Historial por intento en tests; índice `(enrollment_id, lesson_id, attempted_at DESC)` |
 | Usuario ↔ Curso (valoración) | N:M vía `course_ratings` | Una valoración por usuario y curso; score 1–5 |
 | Usuario → Actividad diaria | 1:N | Una fila por `(user_id, activity_date)` |
 
@@ -283,7 +328,7 @@ El modelo de curso expone agregados calculados con `column_property` (no son col
 
 **Estado de progreso de lección:** `not_started`, `in_progress`, `completed`
 
-**Tipos de lección:** `text`, `video`, `test`, `multiple_selection`
+**Tipos de lección:** `text`, `video`, `test`, `multiple_selection`, `assignment`
 
 **Sitios de curso (`Site`):** Coursera, Future Learn, Udacity, Simplilearn, Academy
 
@@ -296,9 +341,15 @@ El modelo de curso expone agregados calculados con `column_property` (no son col
 1. El cliente envía `POST /token` con cuerpo **form-urlencoded** (`username`, `password`), compatible con `OAuth2PasswordRequestForm`.
 2. `username` acepta **nombre de usuario o email** (`get_user_by_name_or_email`).
 3. Se verifica la contraseña con bcrypt (`verify_password`).
-4. Se emite un JWT con `create_access_token(user_id, role)`.
+4. Se emite un par access + refresh token (`create_token_pair`).
 
-### Contenido del JWT
+### Refresh tokens
+
+- Tabla `refresh_tokens`: hash SHA-256 del token opaco, expiración (`REFRESH_TOKEN_DAYS`), revocación en rotación/logout.
+- `POST /token/refresh` — rota el refresh (revoca el anterior, emite par nuevo); **401** si inválido.
+- `POST /token/logout` — revoca el refresh token (idempotente).
+
+### Contenido del JWT (access)
 
 | Claim | Valor |
 |-------|-------|
@@ -323,13 +374,15 @@ sequenceDiagram
 
     Cliente->>API: POST /token (form: username, password)
     API->>DB: Buscar usuario por name/email
-    API->>API: verify_password + create_access_token
-    API-->>Cliente: { access_token, token_type: bearer }
+    API->>API: verify_password + create_token_pair
+    API-->>Cliente: { access_token, refresh_token, token_type: bearer }
 
     Cliente->>API: GET /me (Authorization: Bearer …)
     API->>Auth: jwt.decode + get_user
     Auth->>DB: SELECT users WHERE id = sub
     API-->>Cliente: UserSchema
+
+    Note over Cliente,API: Access expirado → POST /token/refresh → nuevo par
 ```
 
 ### Roles y permisos (resumen)
@@ -360,7 +413,9 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| `POST` | `/token` | Público | Login OAuth2; devuelve JWT |
+| `POST` | `/token` | Público | Login OAuth2; devuelve access + refresh token |
+| `POST` | `/token/refresh` | Público | Renueva par de tokens (rotación) |
+| `POST` | `/token/logout` | Público | Revoca refresh token |
 | `GET` | `/me` | Bearer | Perfil del usuario autenticado |
 | `PATCH` | `/me` | Bearer | Autoactualización de nombre, email o contraseña |
 
@@ -368,13 +423,11 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| `GET` | `/users/` | Público* | Lista usuarios; query opcional `?role=instructor` |
-| `POST` | `/users/` | Público* | Registro (`UserCreateSchema`) |
-| `DELETE` | `/users/{user_id}` | Público* | Eliminar usuario |
+| `GET` | `/users/` | **admin** | Lista usuarios; query opcional `?role=instructor` |
+| `POST` | `/users/` | Público | Registro (`UserCreateSchema`); rechaza `role=admin` |
+| `DELETE` | `/users/{user_id}` | **admin** | Eliminar usuario |
 | `PATCH` | `/users/{user_id}/role/{role}` | **admin** | Cambiar rol |
-| `POST` | `/users/create_admin` | Público* | **Solo desarrollo:** crea admin `admin@admin` / `admin` |
-
-\*En producción convendría proteger estas rutas; actualmente varias están abiertas.
+| `POST` | `/users/create_admin` | Bootstrap / **admin** | **Solo si `ENABLE_DEV_ROUTES=true`:** crea admin `admin@admin` / `admin` |
 
 ### Courses — prefijo `/courses`
 
@@ -384,11 +437,16 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 | `POST` | `/courses/create` | Bearer (instructor/admin) | Crear curso |
 | `GET` | `/courses/{course_id}` | Público | Detalle de curso |
 | `PUT` | `/courses/{course_id}` | Bearer (admin o instructor dueño) | Actualizar curso |
+| `DELETE` | `/courses/{course_id}` | Bearer (admin o instructor dueño) | Eliminar curso (cascada en BD: lecciones, matrículas, valoraciones, progreso) |
 | `GET` | `/courses/{course_id}/lessons` | Público | Lecciones del curso (ordenadas) |
 | `POST` | `/courses/{course_id}/lessons/reorder` | Bearer (admin o dueño) | Reordenar lecciones |
 | `PUT` | `/courses/{course_id}/rating` | Bearer (**student**) | Crear/actualizar valoración (1–5) |
 | `GET` | `/courses/{course_id}/rating/me` | Bearer (**student**) | Valoración propia |
-| `POST` | `/courses/populate_courses` | **admin** | **Solo desarrollo:** importar CSV Kaggle |
+| `GET` | `/courses/{course_id}/instructor/enrollments` | Bearer (admin o instructor dueño) | Lista de alumnos + agregados analíticos (tasa finalización, valoración, stats por lección, buckets de progreso, cohortes) |
+| `GET` | `/courses/{course_id}/instructor/enrollments/{user_id}` | Bearer (admin o instructor dueño) | Progreso lección a lección de un alumno |
+| `GET` | `/courses/{course_id}/submissions` | Bearer (admin o instructor dueño) | Entregas de tareas; query opcional `?status=pending\|graded\|returned` |
+| `PATCH` | `/courses/{course_id}/submissions/{submission_id}/grade` | Bearer (admin o instructor dueño) | Calificar o devolver una entrega (`score`, `feedback`, `returned`) |
+| `POST` | `/courses/populate_courses` | **admin** | **Solo si `ENABLE_DEV_ROUTES=true`:** importar CSV Kaggle |
 
 **Query params de `GET /courses/`:**
 
@@ -400,6 +458,39 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 | `order` | `asc` \| `desc` | Dirección |
 | `search` | string | Búsqueda en título (`ILIKE`) |
 | `site`, `category`, `language`, `course_type` | listas | Filtros múltiples (repetir clave en query) |
+| `duration_bucket` | lista (`short`, `medium`, `long`) | Filtra por bucket derivado de `duration_seconds` (< 10 h / 10 h–1 sem / > 1 sem). Cursos sin duración se excluyen. |
+| `difficulty` | lista (`beginner`, `intermediate`, `advanced`) | Filtro múltiple por dificultad |
+
+**Campos de curso relevantes:**
+
+| Campo | Tipo | Notas |
+|-------|------|-------|
+| `difficulty` | `beginner` \| `intermediate` \| `advanced` | Persistido; default `intermediate` |
+| `duration_bucket` | calculado en respuesta | Derivado de `duration_seconds`; no es columna en BD |
+
+### Recommendations — prefijo `/recommendations`
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| `GET` | `/recommendations/me` | Bearer (**student** o **admin**) | Cursos recomendados (content-based + colaborativo) |
+| `GET` | `/recommendations/preferences` | Bearer (**student** o **admin**) | Preferencias del perfil de recomendación |
+| `PATCH` | `/recommendations/preferences` | Bearer (**student** o **admin**) | Actualizar preferencias |
+
+**Preferencias en `user_recommendations` (JSON arrays):** `preferred_sites`, `preferred_categories`, `preferred_languages`, `preferred_course_types`, `preferred_duration_buckets` (`short`/`medium`/`long`), `preferred_difficulties` (`beginner`/`intermediate`/`advanced`).
+
+El recomendador content-based (`aux_content_based.py`, `aux_history_based.py`) combina hasta tres señales:
+
+1. **Preferencias explícitas** — coincidencias / dimensiones seleccionadas en Ajustes (hasta 6 dimensiones).
+2. **Historial de completados** — perfil inferido por frecuencia de `site`, `category`, `language`, `course_type`, `duration_bucket` y `difficulty` en cursos con matrícula `COMPLETED`. Activa recomendaciones aunque el usuario no haya configurado preferencias.
+3. **Valoraciones de cursos similares** — media ponderada de las valoraciones del usuario en completados que comparten ≥2 dimensiones con el candidato; si no hay similares valorados, usa la valoración global del curso.
+
+Score final: `0.65 × content_score + 0.35 × rating_signal`, donde `content_score = max(preferencias, historial)`.
+
+**Orquestación** (`recommend_courses`): con ≥3 matrículas activas/completadas intenta colaborativo (similitud coseno); si no hay resultados, usa content-based híbrido.
+
+**`source_type` en respuesta:** `preferences` | `history` | `collaborative`.
+
+Cursos con `duration_seconds` null/0 no coinciden con preferencias de duración.
 
 ### Lessons — prefijo `/lessons`
 
@@ -417,6 +508,12 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 | `POST` | `/lessons/{lesson_id}/questions` | Bearer (editor) | Crear pregunta |
 | `PUT` | `/lessons/{lesson_id}/questions/{question_id}` | Bearer (editor) | Actualizar pregunta |
 | `DELETE` | `/lessons/{lesson_id}/questions/{question_id}` | Bearer (editor) | Eliminar pregunta |
+| `POST` | `/lessons/{lesson_id}/files` | Bearer (editor) | Subir material (multipart; PDF por defecto, máx. 10 MB) |
+| `GET` | `/lessons/{lesson_id}/files` | Bearer (matriculado o editor) | Metadatos de archivos de la lección |
+| `GET` | `/lessons/files/{file_id}/download` | Bearer (matriculado o editor) | Descargar archivo |
+| `DELETE` | `/lessons/files/{file_id}` | Bearer (editor) | Eliminar archivo y registro |
+
+Los ficheros se guardan en disco con nombre opaco (`UUID` + extensión) bajo `UPLOAD_DIR` (por defecto `backend/uploads/`; en Docker volumen `/app/uploads`). Variables: `MAX_UPLOAD_BYTES`, `ALLOWED_UPLOAD_MIMES`.
 
 *Editor = admin o instructor dueño del curso.*
 
@@ -436,16 +533,25 @@ Todos los paths son relativos a `http://localhost:8000`. La columna **Auth** ind
 | `GET` | `/progress/lesson/{lesson_id}` | Bearer | Estado de progreso de la lección |
 | `POST` | `/progress/lesson/{lesson_id}/start` | Bearer | Marcar lección como iniciada |
 | `POST` | `/progress/lesson/{lesson_id}/complete` | Bearer | Completar lección; body opcional con respuestas para test/quiz |
+| `GET` | `/progress/lesson/{lesson_id}/attempts` | Bearer (**student** o **admin**) | Historial de intentos del alumno autenticado en esa lección (solo test/multiple_selection) |
+| `POST` | `/progress/lesson/{lesson_id}/submit` | Bearer (**student**) | Entregar tarea (`assignment`); body `{ body?, file_id? }` |
+| `GET` | `/progress/lesson/{lesson_id}/submission` | Bearer (**student**) | Entrega propia en una lección `assignment` |
+| `GET` | `/progress/me/performance` | Bearer (**student** o **admin**) | Informe agregado: media global, comparativa por curso vs cohorte, intentos recientes |
 
-**Completar lección:** para `test` y `multiple_selection` el body debe incluir las opciones seleccionadas. Umbral de aprobación: **70 %** (`PASSING_SCORE` en `progress/service.py`). TEXT y VIDEO ignoran el body.
+**Completar lección:** para `test` y `multiple_selection` el body debe incluir las opciones seleccionadas. Umbral de aprobación: **70 %** (`PASSING_SCORE` en `progress/service.py`). TEXT y VIDEO ignoran el body. Las lecciones `assignment` se completan al calificar con `score >= passing_score` (por defecto 70); ver `progress/submission_service.py`.
+
+**Informe de rendimiento (`/progress/me/performance`):**
+- `user_avg_score` por curso: media de `best_score` en lecciones tipo test con al menos un intento.
+- `cohort_avg_score`: misma regla aplicada a **todos** los alumnos matriculados en ese curso (media de mejores notas por test).
+- `recent_attempts`: últimos 10 intentos del usuario ordenados por `attempted_at` descendente.
 
 ### Dashboard — prefijo `/dashboard`
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
 | `GET` | `/dashboard/student/me` | **student** o **admin** | Resumen estudiante (rachas, cursos recientes, actividad 7 días) |
-| `GET` | `/dashboard/instructor/me` | **instructor** o **admin** | Resumen instructor (cursos, alumnos, tops) |
-| `GET` | `/dashboard/admin` | **admin** | Métricas globales de la plataforma |
+| `GET` | `/dashboard/instructor/me` | **instructor** o **admin** | Resumen instructor (cursos con finalización y valoración, alumnos, tops) |
+| `GET` | `/dashboard/admin` | **admin** | Métricas globales: finalización, valoración media, distribución por categoría/site/dificultad, cohortes mensuales |
 
 ---
 
@@ -545,11 +651,15 @@ uv run uvicorn main:app --reload
 
 ### Datos iniciales (manual)
 
-No hay seed automático. Para pruebas:
+No hay seed automático. Para pruebas en **desarrollo** (`ENABLE_DEV_ROUTES=true`):
 
-1. `POST /users/create_admin` — crea administrador (`admin` / `admin@admin` / `admin`).
-2. Login en Swagger → **Authorize** con el token.
-3. `POST /courses/populate_courses` — importa cursos desde `data_analysis/online_courses_clean.csv` (requiere admin).
+1. `uv run python -m scripts.bootstrap_admin` — crea administrador (`admin` / `admin@admin` / `admin`).
+   - Alternativa: `POST /users/create_admin` en Swagger (solo con rutas dev activas).
+2. Login en Swagger → **Authorize** con el access token.
+3. `uv run python -m scripts.populate_courses` — importa cursos desde `data_analysis/online_courses_clean.csv`.
+   - Alternativa: `POST /courses/populate_courses` (requiere admin y rutas dev).
+
+En **producción** (`ENVIRONMENT=production`, `ENABLE_DEV_ROUTES=false`), usar solo los scripts CLI desde el entorno de despliegue.
 
 También puedes registrar usuarios con `POST /users/` desde la UI o Swagger.
 
@@ -583,12 +693,12 @@ También puedes registrar usuarios con `POST /users/` desde la UI o Swagger.
 ### Seguridad
 
 - Contraseñas nunca en claro; hash bcrypt con límite de 72 caracteres.
-- JWT stateless; no hay refresh token en el diseño actual.
+- Access JWT de corta duración (`EXP_TOKEN` minutos) + refresh tokens opacos en BD con rotación.
 - Preguntas de quiz: endpoint **público para estudiantes** oculta `is_correct`; solo `/questions/admin` la expone.
 
 ### API HTTP
 
-- Sin prefijo `/api`; el frontend usa `baseURL: http://localhost:8000/`.
+- Sin prefijo `/api`; el frontend usa `VITE_API_URL` (fallback `http://localhost:8000/`).
 - Login: `application/x-www-form-urlencoded` en `/token`.
 - Resto: JSON (`application/json`).
 - Filtros de lista múltiple: repetir clave en query string (p. ej. `category=business&category=health`).
@@ -603,14 +713,20 @@ También puedes registrar usuarios con `POST /users/` desde la UI o Swagger.
 
 ## Notas para desarrolladores
 
-### Endpoints marcados para eliminar en producción
+### Endpoints de desarrollo
 
-Comentarios `TODO` en el código:
+Controlados por `ENABLE_DEV_ROUTES` (desactivados por defecto en `ENVIRONMENT=production`):
 
-- `POST /users/create_admin` — bootstrap de admin sin autenticación.
+- `POST /users/create_admin` — bootstrap de admin vía HTTP.
 - `POST /courses/populate_courses` — carga masiva desde CSV.
 
-Convendría proteger o eliminar estos endpoints antes de un despliegue real.
+Equivalentes CLI: `uv run python -m scripts.bootstrap_admin` y `uv run python -m scripts.populate_courses`.
+
+### Borrado de cursos
+
+- `DELETE /courses/{course_id}` elimina la fila en `courses`; PostgreSQL aplica `ON DELETE CASCADE` en `lessons`, `enrollments` y `course_ratings`.
+- `lesson_progress` se elimina al borrarse la matrícula o la lección (doble FK en cascada).
+- `study_activity` no referencia cursos; los agregados diarios del estudiante pueden quedar ligeramente desactualizados tras un borrado (aceptado por diseño).
 
 ### Progreso y matrículas
 
@@ -633,6 +749,7 @@ Convendría proteger o eliminar estos endpoints antes de un despliegue real.
 | `text` | `body` (Markdown) | POST complete sin body |
 | `video` | `video_url` | POST complete; opcional `watched_seconds` |
 | `test` / `multiple_selection` | preguntas + opciones | POST complete con respuestas; score ≥ 70 % para aprobar |
+| `assignment` | `body` (instrucciones Markdown); opcional `max_score`, `passing_score`, `allows_file_submission` | POST `/progress/lesson/{id}/submit`; el instructor califica con PATCH `/courses/{id}/submissions/{id}/grade`; aprobación si `score >= passing_score` y no `returned` |
 
 ### Paginación de cursos
 
@@ -640,18 +757,17 @@ Convendría proteger o eliminar estos endpoints antes de un despliegue real.
 
 ### Integración con el frontend
 
-Ver [api-and-integration.md](../api-and-integration.md): el cliente guarda el JWT en `localStorage`, lo inyecta en `Authorization: Bearer`, y trata **404** en `GET /enrollments/me/course/{id}` como “no matriculado”.
+Ver [api-and-integration.md](../api-and-integration.md): el cliente guarda access y refresh token en `localStorage`, renueva el access con `/token/refresh` ante 401, y trata **404** en `GET /enrollments/me/course/{id}` como “no matriculado”.
 
 ### Análisis de datos (`data_analysis/`)
 
-Notebooks y CSV de Kaggle usados para poblar el catálogo inicial. No se importan al arrancar la API; solo mediante `populate_courses`.
+Notebooks y CSV de Kaggle usados para poblar el catálogo inicial. No se importan al arrancar la API; usar `scripts.populate_courses` o el endpoint dev.
 
 ### Próximas mejoras sugeridas (no implementadas)
 
-- Proteger `GET/POST/DELETE /users` con roles.
-- Refresh tokens o rotación de sesión.
-- Variables de entorno para CORS y `baseURL` del frontend.
-- Eliminar endpoints de desarrollo o guardarlos tras feature flag.
+- Rate limiting en `/token/refresh`.
+- Cookies httpOnly para refresh tokens.
+- Build estático del frontend con nginx en Docker.
 
 ---
 

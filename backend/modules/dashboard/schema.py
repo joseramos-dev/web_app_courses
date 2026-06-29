@@ -1,9 +1,10 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from modules.courses.model import Category
+from modules.courses.model import Category, Difficulty, Site
+from modules.lessons.model import LessonType
 from modules.progress.model import LessonProgressStatus
 
 
@@ -41,6 +42,37 @@ class TopCourseSchema(BaseModel):
 class CategoryStatSchema(BaseModel):
     category: Category
     enrollments_count: int
+
+
+class SiteStatSchema(BaseModel):
+    site: Site
+    enrollments_count: int
+
+
+class DifficultyStatSchema(BaseModel):
+    difficulty: Difficulty
+    enrollments_count: int
+
+
+class EnrollmentCohortSchema(BaseModel):
+    cohort_month: date
+    enrollments_count: int
+    avg_progress_percent: float
+    completion_rate: float
+
+
+class ProgressBucketSchema(BaseModel):
+    label: str
+    count: int
+
+
+class LessonAggregateSchema(BaseModel):
+    lesson_id: int
+    lesson_title: str
+    position: int
+    completed_count: int
+    completion_rate: float
+    avg_best_score: Optional[float] = None
 
 
 # ---------- Student ----------
@@ -92,6 +124,8 @@ class InstructorCourseRowSchema(BaseModel):
     students_count: int
     avg_progress_percent: float
     completed_students: int
+    completion_rate: float
+    avg_rating: Optional[float] = None
     last_activity_at: Optional[datetime] = None
 
 
@@ -113,7 +147,33 @@ class AdminDashboardSchema(BaseModel):
     courses_count: int
     active_enrollments_count: int
     total_lessons_completed: int
+    total_enrollments: int
+    completion_rate: float
+    avg_course_rating: Optional[float] = None
     top_courses: List[TopCourseSchema]
     top_active_students: List[TopStudentSchema]
     category_distribution: List[CategoryStatSchema]
+    site_distribution: List[SiteStatSchema]
+    difficulty_distribution: List[DifficultyStatSchema]
+    enrollment_cohorts: List[EnrollmentCohortSchema]
     last_30_days: List[DailyActivitySchema]
+
+
+# ---------- Public landing ----------
+
+
+class LessonTypeStatSchema(BaseModel):
+    lesson_type: LessonType
+    completed_count: int
+
+
+class PublicStatsSchema(BaseModel):
+    period: Literal["day", "week", "month"]
+    courses_count: int
+    total_enrollments: int
+    active_enrollments_count: int
+    lessons_completed_in_period: int
+    top_courses: List[TopCourseSchema]
+    category_distribution: List[CategoryStatSchema]
+    activity_series: List[DailyActivitySchema]
+    lesson_completions_by_type: List[LessonTypeStatSchema]

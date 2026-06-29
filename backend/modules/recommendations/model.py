@@ -19,6 +19,8 @@ class RecommendationModel(Base):
     preferred_categories = Column(JSON, nullable=False, server_default="[]")
     preferred_languages = Column(JSON, nullable=False, server_default="[]")
     preferred_course_types = Column(JSON, nullable=False, server_default="[]")
+    preferred_duration_buckets = Column(JSON, nullable=False, server_default="[]")
+    preferred_difficulties = Column(JSON, nullable=False, server_default="[]")
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),

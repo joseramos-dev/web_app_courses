@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -8,11 +8,13 @@ from core.dependencies import require_role
 from modules.dashboard.schema import (
     AdminDashboardSchema,
     InstructorDashboardSchema,
+    PublicStatsSchema,
     StudentDashboardSchema,
 )
 from modules.dashboard.service import (
     get_admin_summary,
     get_instructor_summary,
+    get_public_stats,
     get_student_summary,
 )
 
@@ -21,6 +23,18 @@ dashboard_router = APIRouter(
     prefix="/dashboard",
     tags=["dashboard"],
 )
+
+
+@dashboard_router.get(
+    "/public",
+    response_model=PublicStatsSchema,
+    status_code=status.HTTP_200_OK,
+)
+def public_stats(
+    db: Annotated[Session, Depends(get_db)],
+    period: Literal["day", "week", "month"] = "week",
+):
+    return get_public_stats(db, period)
 
 
 @dashboard_router.get(

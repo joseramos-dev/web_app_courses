@@ -32,6 +32,13 @@ def check_email_exists(db: Session, email:str):
     return db.query(UserModel).filter(UserModel.email == email).first()
 
 
+def count_admins(db: Session) -> int:
+    return (
+        db.query(UserModel)
+        .filter(UserModel.role == UserRole.ADMIN)
+        .count()
+    )
+
 
 ## ACTION FUNCTIONS
 def add_user_database(db: Session, user_sch: UserCreateSchema) -> UserModel:
@@ -39,6 +46,8 @@ def add_user_database(db: Session, user_sch: UserCreateSchema) -> UserModel:
     Handles ONLY the database interaction.
     Accepts a prepared Model, not a Schema.
     """
+    if user_sch.role == UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Cannot register as admin")
     try:
         user = UserModel(
             name=user_sch.name,
@@ -156,3 +165,22 @@ def update_user_role_database(db: Session, user_id: int, role: UserRole) -> User
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Database error when updating user role")
+
+
+def create_bootstrap_admin(db: Session) -> dict:
+    """Create default admin user (development bootstrap). Idempotent if admin exists."""
+    if check_name_exists(db, "admin") or check_email_exists(db, "admin@admin"):
+        return {"detail": "Admin user already exists"}
+
+    user = UserModel(
+        name="admin",
+        email="admin@admin",
+        role=UserRole.ADMIN,
+        hash_password=hash_password("admin"),
+    )
+    db.add(user)
+    db.flush()
+    create_default_recommendation(db, user.id)
+    db.commit()
+    db.refresh(user)
+    return {"detail": "Admin user created", "user_id": user.id}

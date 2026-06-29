@@ -6,7 +6,7 @@ import type { ICourses } from "../../shared/interfaces/ICourses";
 import Pagination from '@mui/material/Pagination';
 import { useDebounce } from "../../shared/hooks/useDebounce";
 import { FilterDropDown } from "./components/FilterDropDown";
-import { courseTypesDict, type SiteTypes, type CategoryTypes, type LanguageTypes, type CourseTypeTypes } from "../../shared/types/CourseTypes";
+import { courseTypesDict, type SiteTypes, type CategoryTypes, type LanguageTypes, type CourseTypeTypes, type DurationBucketTypes, type DifficultyTypes, durationBucketShortLabels, difficultyLabels } from "../../shared/types/CourseTypes";
 import { type sort_by_dir, SORT_BY_ENTRIES, type sort_by_types } from "../../shared/types/SortTypes";
 import { useAuth } from "../../shared/povider/AuthContext";
 import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
@@ -30,6 +30,8 @@ const VALID_SITES = courseTypesDict.SiteTypes as readonly string[]
 const VALID_CATEGORIES = courseTypesDict.CategoryTypes as readonly string[]
 const VALID_LANGUAGES = courseTypesDict.LanguageTypes as readonly string[]
 const VALID_COURSE_TYPES = courseTypesDict.CourseTypeTypes as readonly string[]
+const VALID_DURATION_BUCKETS = courseTypesDict.DurationBucketTypes as readonly string[]
+const VALID_DIFFICULTIES = courseTypesDict.DifficultyTypes as readonly string[]
 const VALID_SORT_BY: readonly string[] = SORT_BY_ENTRIES.map(([k]) => k)
 const VALID_ORDER: readonly string[] = ["asc", "desc"]
 
@@ -79,6 +81,14 @@ export function Courses() {
         searchParams.getAll("course_type"),
         VALID_COURSE_TYPES,
     )
+    const durationFilter = filterValid<DurationBucketTypes>(
+        searchParams.getAll("duration_bucket"),
+        VALID_DURATION_BUCKETS,
+    )
+    const difficultyFilter = filterValid<DifficultyTypes>(
+        searchParams.getAll("difficulty"),
+        VALID_DIFFICULTIES,
+    )
 
     const debouncedSearch = useDebounce(search, 500)
 
@@ -124,7 +134,7 @@ export function Courses() {
         updateParams({ order: sortDirection === "asc" ? "desc" : "asc" })
 
     const handleFilterChange = (
-        paramKey: "site" | "category" | "language" | "course_type",
+        paramKey: "site" | "category" | "language" | "course_type" | "duration_bucket" | "difficulty",
         selected: string[]
     ) => updateParams({ [paramKey]: selected, page: null })
 
@@ -161,6 +171,12 @@ export function Courses() {
                 case "course_type":
                     if (VALID_COURSE_TYPES.includes(v)) cleaned.append(k, v)
                     break
+                case "duration_bucket":
+                    if (VALID_DURATION_BUCKETS.includes(v)) cleaned.append(k, v)
+                    break
+                case "difficulty":
+                    if (VALID_DIFFICULTIES.includes(v)) cleaned.append(k, v)
+                    break
                 // unknown keys are silently dropped
             }
         }
@@ -182,6 +198,8 @@ export function Courses() {
                     category: categoryFilter.length > 0 ? categoryFilter : undefined,
                     language: languageFilter.length > 0 ? languageFilter : undefined,
                     course_type: courseTypeFilter.length > 0 ? courseTypeFilter : undefined,
+                    duration_bucket: durationFilter.length > 0 ? durationFilter : undefined,
+                    difficulty: difficultyFilter.length > 0 ? difficultyFilter : undefined,
                     sort_by: sortBy,
                     order: sortDirection,
                 })
@@ -206,6 +224,8 @@ export function Courses() {
         categoryFilter.join(","),
         languageFilter.join(","),
         courseTypeFilter.join(","),
+        durationFilter.join(","),
+        difficultyFilter.join(","),
         sortBy,
         sortDirection,
     ])
@@ -251,6 +271,20 @@ export function Courses() {
                         )
                     })
                 }
+                <FilterDropDown
+                    label="Duración"
+                    options={[...VALID_DURATION_BUCKETS]}
+                    optionLabels={durationBucketShortLabels}
+                    value={durationFilter as string[]}
+                    onChange={(selected) => handleFilterChange("duration_bucket", selected)}
+                />
+                <FilterDropDown
+                    label="Dificultad"
+                    options={[...VALID_DIFFICULTIES]}
+                    optionLabels={difficultyLabels}
+                    value={difficultyFilter as string[]}
+                    onChange={(selected) => handleFilterChange("difficulty", selected)}
+                />
                 <button
                     type="button"
                     className="py-2 pl-4 text-slate-800 dark:text-slate-200"

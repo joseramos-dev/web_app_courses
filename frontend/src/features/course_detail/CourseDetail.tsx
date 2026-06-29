@@ -7,9 +7,11 @@ import {
     API_getMyEnrollment,
 } from "./api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
-import type { ILesson, LessonType } from "../course_edit/lessonTypes";
+import type { ILesson } from "../course_edit/lessonTypes";
+import { lessonTypeLabels } from "../../shared/types/LessonTypes";
 import type {
     IEnrollmentDetail,
+    ILessonProgress,
     LessonProgressStatus,
 } from "../../shared/interfaces/IEnrollment";
 import { DetailBackButton } from "./components/DetailBackButton";
@@ -25,13 +27,6 @@ import {
     KURSA_COURSE_ENROLLMENT_CHANGED_EVENT,
     KURSA_DASHBOARD_REFRESH_EVENT,
 } from "../../shared/constants/appEvents";
-
-const lessonTypeLabel: Record<LessonType, string> = {
-    text: "Text",
-    video: "Video",
-    test: "Test",
-    multiple_selection: "Multiple choice",
-};
 
 const statusBadgeClass: Record<LessonProgressStatus, string> = {
     completed:
@@ -76,13 +71,15 @@ export const CourseDetail = () => {
     );
 
     const progressByLesson = useMemo(() => {
-        const map = new Map<number, LessonProgressStatus>();
+        const statusMap = new Map<number, LessonProgressStatus>();
+        const detailMap = new Map<number, ILessonProgress>();
         if (enrollment) {
             for (const lp of enrollment.lesson_progress) {
-                map.set(lp.lesson_id, lp.status);
+                statusMap.set(lp.lesson_id, lp.status);
+                detailMap.set(lp.lesson_id, lp);
             }
         }
-        return map;
+        return { statusMap, detailMap };
     }, [enrollment]);
 
     const refetchEnrollment = useCallback(async () => {
@@ -277,7 +274,18 @@ export const CourseDetail = () => {
                             <div className="mt-3 space-y-2">
                                 {sortedLessons.map((l) => {
                                     const status =
-                                        progressByLesson.get(l.id) ?? "not_started";
+                                        progressByLesson.statusMap.get(l.id) ??
+                                        "not_started";
+                                    const progress =
+                                        progressByLesson.detailMap.get(l.id);
+                                    const isTestLesson =
+                                        l.lesson_type === "test" ||
+                                        l.lesson_type === "multiple_selection";
+                                    const showTestStats =
+                                        isEnrolled &&
+                                        isTestLesson &&
+                                        progress != null &&
+                                        progress.attempts > 0;
                                     const lessonItem = (
                                         <div
                                             className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isEnrolled
@@ -296,7 +304,17 @@ export const CourseDetail = () => {
                                                         {l.position}. {l.title}
                                                     </div>
                                                     <div className="text-xs text-gray-500 dark:text-slate-400">
-                                                        {lessonTypeLabel[l.lesson_type] ?? l.lesson_type}
+                                                        {lessonTypeLabels[l.lesson_type] ?? l.lesson_type}
+                                                        {showTestStats && progress.best_score != null ? (
+                                                            <>
+                                                                {" · "}
+                                                                Mejor: {Math.round(progress.best_score)}% ·{" "}
+                                                                {progress.attempts}{" "}
+                                                                {progress.attempts === 1
+                                                                    ? "intento"
+                                                                    : "intentos"}
+                                                            </>
+                                                        ) : null}
                                                     </div>
                                                 </div>
                                             </div>

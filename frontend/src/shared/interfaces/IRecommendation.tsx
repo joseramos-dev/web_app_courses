@@ -2,11 +2,13 @@ import type { ICourses } from "./ICourses";
 import type {
     CategoryTypes,
     CourseTypeTypes,
+    DifficultyTypes,
+    DurationBucketTypes,
     LanguageTypes,
     SiteTypes,
 } from "../types/CourseTypes";
 
-export type RecommendationSourceType = "preferences" | "collaborative";
+export type RecommendationSourceType = "preferences" | "collaborative" | "history";
 
 export interface ICourseRecommendation {
     course: ICourses;
@@ -24,6 +26,8 @@ export interface IRecommendationPreferences {
     preferred_categories: CategoryTypes[];
     preferred_languages: LanguageTypes[];
     preferred_course_types: CourseTypeTypes[];
+    preferred_duration_buckets: DurationBucketTypes[];
+    preferred_difficulties: DifficultyTypes[];
 }
 
 export type IRecommendationPreferencesUpdate = {
@@ -31,4 +35,6 @@ export type IRecommendationPreferencesUpdate = {
     preferred_categories?: CategoryTypes[];
     preferred_languages?: LanguageTypes[];
     preferred_course_types?: CourseTypeTypes[];
+    preferred_duration_buckets?: DurationBucketTypes[];
+    preferred_difficulties?: DifficultyTypes[];
 };

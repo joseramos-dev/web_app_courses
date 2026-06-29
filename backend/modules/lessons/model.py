@@ -7,10 +7,10 @@ from core.database import Base
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     String,
     Integer,
-    String,
     Column,
     Enum as SqlEnum,
     Text,
@@ -23,6 +23,7 @@ class LessonType(str, enum.Enum):
     VIDEO = "video"
     TEST = "test"
     MULTIPLE_SELECTION = "multiple_selection"
+    ASSIGNMENT = "assignment"
 
 
 class LessonModel(Base):
@@ -34,8 +35,17 @@ class LessonModel(Base):
     title = Column(String, nullable=False)
     lesson_type = Column(SqlEnum(LessonType), nullable=False)
     position = Column(Integer, nullable=False)
-    body = Column(Text, nullable=True)  # markdown for LessonType.TEXT
+    body = Column(Text, nullable=True)  # markdown for TEXT / ASSIGNMENT instructions
     video_url = Column(String, nullable=True)  # for LessonType.VIDEO
+    max_score = Column(
+        Float, nullable=True, default=100.0, server_default="100"
+    )  # ASSIGNMENT
+    passing_score = Column(
+        Float, nullable=True, default=70.0, server_default="70"
+    )  # ASSIGNMENT
+    allows_file_submission = Column(
+        Boolean, nullable=True, default=True, server_default="true"
+    )  # ASSIGNMENT
     create_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -48,6 +58,12 @@ class LessonModel(Base):
         back_populates="lesson",
         cascade="all, delete-orphan",
         order_by="QuestionModel.position",
+    )
+    files = relationship(
+        "LessonFileModel",
+        back_populates="lesson",
+        cascade="all, delete-orphan",
+        order_by="LessonFileModel.uploaded_at",
     )
     __table_args__ = (
         UniqueConstraint("course_id", "position", name="uq_course_position"),
@@ -97,3 +113,32 @@ class AnswerOptionModel(Base):
     __table_args__ = (
         UniqueConstraint("question_id", "position", name="uq_option_position"),
     )
+
+
+class LessonFileModel(Base):
+    __tablename__ = "lesson_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lesson_id = Column(
+        Integer,
+        ForeignKey("lessons.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    original_filename = Column(String, nullable=False)
+    storage_name = Column(String, nullable=False, unique=True)
+    mime_type = Column(String, nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+    uploaded_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+    uploaded_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    lesson = relationship("LessonModel", back_populates="files")
+    uploader = relationship("UserModel")

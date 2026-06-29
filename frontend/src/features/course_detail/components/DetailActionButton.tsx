@@ -142,13 +142,22 @@ export function DetailActionButton({
 
   if (action === "edit") {
     return (
-      <button
-        type="button"
-        onClick={() => navigate(`/course/${course?.id}/edit`)}
-        className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:shadow-md dark:hover:bg-uned-accent"
-      >
-        Edit
-      </button>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => navigate(`/course/${course?.id}/students`)}
+          className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        >
+          Ver alumnos
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(`/course/${course?.id}/edit`)}
+          className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:shadow-md dark:hover:bg-uned-accent"
+        >
+          Edit
+        </button>
+      </div>
     );
   }
 

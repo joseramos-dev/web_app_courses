@@ -3,13 +3,21 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from modules.courses.model import Category, CourseType, Language, Site
+from modules.courses.model import (
+    Category,
+    CourseType,
+    Difficulty,
+    DurationBucket,
+    Language,
+    Site,
+)
 from modules.courses.schema import CourseSchema
 
 
 class RecommendationSourceType(str, enum.Enum):
     PREFERENCES = "preferences"
     COLLABORATIVE = "collaborative"
+    HISTORY = "history"
 
 
 class RecommendationSchema(BaseModel):
@@ -20,6 +28,8 @@ class RecommendationSchema(BaseModel):
     preferred_categories: List[Category] = Field(default_factory=list)
     preferred_languages: List[Language] = Field(default_factory=list)
     preferred_course_types: List[CourseType] = Field(default_factory=list)
+    preferred_duration_buckets: List[DurationBucket] = Field(default_factory=list)
+    preferred_difficulties: List[Difficulty] = Field(default_factory=list)
 
 
 class RecommendationUpdateSchema(BaseModel):
@@ -27,6 +37,8 @@ class RecommendationUpdateSchema(BaseModel):
     preferred_categories: Optional[List[Category]] = None
     preferred_languages: Optional[List[Language]] = None
     preferred_course_types: Optional[List[CourseType]] = None
+    preferred_duration_buckets: Optional[List[DurationBucket]] = None
+    preferred_difficulties: Optional[List[Difficulty]] = None
 
 
 class CourseRecommendationSchema(BaseModel):

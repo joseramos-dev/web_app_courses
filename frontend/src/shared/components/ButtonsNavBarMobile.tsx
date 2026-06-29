@@ -40,6 +40,14 @@ export const ButtonsNavBarMobile = (
                 <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-black/10 bg-white shadow-lg dark:border-white/10 dark:bg-slate-800">
                     {/* Navigation Links */}
                     <NavLink
+                        to="/"
+                        end
+                        className={navLink}
+                        onClick={() => setIsMenuOpen(false)}
+                    >
+                        Inicio
+                    </NavLink>
+                    <NavLink
                         to="/courses"
                         className={navLink}
                         onClick={() => setIsMenuOpen(false)}

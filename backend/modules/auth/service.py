@@ -1,6 +1,6 @@
 from operator import or_
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
@@ -10,7 +10,7 @@ from jose import jwt, JWTError
 
 from modules.users.model import UserModel
 from modules.users.service import get_user
-from core.security import oauth2_scheme
+from core.security import oauth2_scheme, oauth2_scheme_optional
 from core.database import get_db
 
 load_dotenv()
@@ -54,5 +54,30 @@ def get_current_user(
     user = get_user(db, user_id)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
-    
+
+    return user
+
+
+def get_optional_current_user(
+    token: Annotated[Optional[str], Depends(oauth2_scheme_optional)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Optional[UserModel]:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = int(payload.get("sub"))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = get_user(db, user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
     return user

@@ -1,4 +1,4 @@
-import type { CategoryTypes } from "../types/CourseTypes";
+import type { CategoryTypes, DifficultyTypes, SiteTypes } from "../types/CourseTypes";
 import type { LessonProgressStatus } from "./IEnrollment";
 
 export interface IDailyActivity {
@@ -30,6 +30,37 @@ export interface ITopCourse {
 export interface ICategoryStat {
     category: CategoryTypes;
     enrollments_count: number;
+}
+
+export interface ISiteStat {
+    site: SiteTypes;
+    enrollments_count: number;
+}
+
+export interface IDifficultyStat {
+    difficulty: DifficultyTypes;
+    enrollments_count: number;
+}
+
+export interface IEnrollmentCohort {
+    cohort_month: string;
+    enrollments_count: number;
+    avg_progress_percent: number;
+    completion_rate: number;
+}
+
+export interface IProgressBucket {
+    label: string;
+    count: number;
+}
+
+export interface ILessonAggregate {
+    lesson_id: number;
+    lesson_title: string;
+    position: number;
+    completed_count: number;
+    completion_rate: number;
+    avg_best_score: number | null;
 }
 
 // ---------- Student ----------
@@ -79,6 +110,8 @@ export interface IInstructorCourseRow {
     students_count: number;
     avg_progress_percent: number;
     completed_students: number;
+    completion_rate: number;
+    avg_rating: number | null;
     last_activity_at: string | null;
 }
 
@@ -99,8 +132,33 @@ export interface IAdminDashboard {
     courses_count: number;
     active_enrollments_count: number;
     total_lessons_completed: number;
+    total_enrollments: number;
+    completion_rate: number;
+    avg_course_rating: number | null;
     top_courses: ITopCourse[];
     top_active_students: ITopStudent[];
     category_distribution: ICategoryStat[];
+    site_distribution: ISiteStat[];
+    difficulty_distribution: IDifficultyStat[];
+    enrollment_cohorts: IEnrollmentCohort[];
     last_30_days: IDailyActivity[];
+}
+
+// ---------- Public landing ----------
+
+export interface ILessonTypeStat {
+    lesson_type: string;
+    completed_count: number;
+}
+
+export interface IPublicStats {
+    period: "day" | "week" | "month";
+    courses_count: number;
+    total_enrollments: number;
+    active_enrollments_count: number;
+    lessons_completed_in_period: number;
+    top_courses: ITopCourse[];
+    category_distribution: ICategoryStat[];
+    activity_series: IDailyActivity[];
+    lesson_completions_by_type: ILessonTypeStat[];
 }

@@ -4,6 +4,8 @@ import { ChevronDown } from 'lucide-react';
 interface FilterDropDownProps {
     label?: string;
     options: string[];
+    /** Maps option value → display label (e.g. API enum → Spanish). */
+    optionLabels?: Record<string, string>;
     /**
      * Optional controlled selection. When provided the component becomes
      * fully controlled — internal state is ignored and `onChange` is the
@@ -16,6 +18,7 @@ interface FilterDropDownProps {
 export const FilterDropDown = ({
     label = 'Select items...',
     options,
+    optionLabels,
     value,
     onChange,
 }: FilterDropDownProps) => {
@@ -32,9 +35,11 @@ export const FilterDropDown = ({
         onChange?.(next);
     };
 
+    const displayLabel = (option: string) => optionLabels?.[option] ?? option;
+
     // Filter options based on search term
     const filteredOptions = options.filter((option) =>
-        option.toLowerCase().includes(searchTerm.toLowerCase())
+        displayLabel(option).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Handle item selection
@@ -72,8 +77,8 @@ export const FilterDropDown = ({
     // Get display text
     const getDisplayText = () => {
         if (selected.length === 0) return label;
-        if (selected.length === 1) return selected[0];
-        return `${selected[0]} +${selected.length - 1}`;
+        if (selected.length === 1) return displayLabel(selected[0]);
+        return `${displayLabel(selected[0])} +${selected.length - 1}`;
     };
 
     return (
@@ -136,7 +141,7 @@ export const FilterDropDown = ({
                                         onChange={() => handleSelectItem(option)}
                                         className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-gray-400"
                                     />
-                                    <span className="ml-3 text-gray-800">{option}</span>
+                                    <span className="ml-3 text-gray-800">{displayLabel(option)}</span>
                                 </label>
                             ))
                         ) : (

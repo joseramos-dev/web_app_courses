@@ -1,6 +1,6 @@
 # Frontend — Kursa
 
-Documentación técnica del cliente web de **Kursa**, plataforma de cursos online del TFG. El frontend es una SPA (Single Page Application) que consume la API FastAPI del backend en `http://localhost:8000/`.
+Documentación técnica del cliente web de **Kursa**, plataforma de cursos online del TFG. El frontend es una SPA (Single Page Application) que consume la API FastAPI del backend (URL configurable vía `VITE_API_URL`).
 
 Para el contrato HTTP detallado (JWT, códigos de error, ejemplos), véase también [api-and-integration.md](../api-and-integration.md).
 
@@ -16,6 +16,7 @@ Para el contrato HTTP detallado (JWT, códigos de error, ejemplos), véase tambi
 | Estilos | **Tailwind CSS** 4 | Plugin `@tailwindcss/vite`; variante `dark` vía clase en `<html>` |
 | Componentes UI | **MUI** 9 | `@mui/material` + Emotion; usado p. ej. en paginación |
 | Iconos | **lucide-react** | Nav, dashboards, estados de lección |
+| Gráficos | **Recharts** | 3.x — dashboards (actividad, progreso de cursos) |
 | HTTP | **Axios** | Tres instancias compartidas; **qs** para arrays en query |
 | Notificaciones | **react-hot-toast** | Toasts globales en `App.tsx` |
 
@@ -54,6 +55,7 @@ frontend/
     │   ├── courses/
     │   ├── course_detail/
     │   ├── course_edit/
+    │   ├── course_students/
     │   ├── lesson/
     │   ├── dashboard/
     │   ├── admin_panel/
@@ -61,6 +63,7 @@ frontend/
     └── shared/
         ├── api/api.tsx        # Instancias Axios (api, apiAuth, apiArray)
         ├── components/        # Nav, footer, guards, inputs reutilizables
+        │   └── charts/        # Recharts: ActivityBarChart, CourseProgressChart, chartTheme
         ├── context/           # ThemeContext, AuthModalContext
         ├── povider/           # AuthContext (nombre histórico en el repo)
         ├── hooks/             # useDebounce
@@ -140,6 +143,7 @@ flowchart TB
 | `/course/new` | `RequireStaff` | `CourseEdit` | Instructor o admin |
 | `/course/:courseId` | — | `CourseDetail` | Ficha pública del curso |
 | `/course/:courseId/edit` | `RequireStaff` | `CourseEdit` | Instructor dueño o admin |
+| `/course/:courseId/students` | `RequireStaff` | `CourseStudents` | Instructor dueño o admin — progreso de alumnos |
 | `/course/:courseId/edit/lesson/new` | `RequireStaff` | `LessonNew` | Crear lección |
 | `/course/:courseId/lesson/:lessonId` | `RequireAuth` | `Lesson` | Estudiante matriculado (validado en API) |
 | `*` | — | `Navigate` → `/courses` | 404 → catálogo |
@@ -205,7 +209,9 @@ Archivo central: `shared/api/api.tsx`.
 | `apiAuth` | `application/x-www-form-urlencoded` | Solo `POST /token` (OAuth2 password flow) |
 | `apiArray` | JSON + `paramsSerializer` | `GET /courses` con filtros multi-valor (`qs`, `arrayFormat: 'repeat'`) |
 
-**Base URL:** `http://localhost:8000/` (hardcodeada; el backend debe estar en ese host en desarrollo).
+**Base URL:** `VITE_API_URL` en `.env` / `.env.local` (fallback `http://localhost:8000/`). Ver `frontend/.env.example`.
+
+**Sesión:** access + refresh token en `localStorage`. Interceptores en `api` y `apiArray` renuevan el access con `POST /token/refresh` ante 401; `logout` revoca el refresh.
 
 **Timeout:** 5000 ms en las tres instancias.
 
@@ -222,7 +228,7 @@ Cada feature define funciones en su `api.ts` que importan la instancia adecuada.
 | `Auth.tsx` | Overlay modal; alterna Login/Register |
 | `components/AuthLogin.tsx` | Formulario login → `API_login` → `login()` |
 | `components/AuthRegister.tsx` | Registro → `API_register` → cambia a Login |
-| `api.ts` | `API_register`, `API_login` |
+| `api.ts` | `API_register`, `API_login`, `API_refreshToken`, `API_logoutToken` |
 
 No tiene ruta propia; se activa desde la navbar o `GuestAuthGate`.
 
@@ -253,15 +259,29 @@ Página **pública**; la matrícula y el progreso requieren sesión de estudiant
 
 | Archivo clave | Responsabilidad |
 |---------------|-----------------|
-| `CourseEdit.tsx` | Modo crear (`/course/new`) o editar; formulario + sidebar lecciones |
+| `CourseEdit.tsx` | Modo crear (`/course/new`) o editar; formulario + sidebar lecciones; botón eliminar curso |
 | `LessonNew.tsx` | Formulario de nueva lección |
 | `components/CourseEditForm.tsx` | Campos del curso; combobox instructor (solo admin) |
 | `components/LessonsEditor.tsx` | Lista, edición inline, reordenación, borrado |
+| `components/LessonModal.tsx` | Edición de lección; sección «Materiales adjuntos» (subida/borrado) |
 | `components/QuestionsEditor.tsx` | Preguntas para lecciones tipo test |
-| `lessonTypes.ts` | Tipos `ILesson`, `IQuestion*`, `LessonType` |
-| `api.ts` | CRUD curso, lecciones, preguntas, reordenar |
+| `lessonTypes.ts` | Tipos `ILesson`, `ILessonFile`, `IQuestion*`, `LessonType` |
+| `api.ts` | CRUD curso (incl. delete), lecciones, preguntas, archivos adjuntos, reordenar |
 
 **Permisos en cliente:** admin edita cualquier curso; instructor solo si `course.instructor_id === user.id`. Tras crear curso, redirige a `/course/{id}/edit`.
+
+### 4b. `course_students` — Progreso de alumnos (instructor)
+
+| Archivo clave | Responsabilidad |
+|---------------|-----------------|
+| `CourseStudents.tsx` | Tabla de matriculados, stat cards (incl. finalización y valoración), gráficos por lección/cohortes/buckets, detalle expandible por lección, **panel de entregas de tareas** |
+| `components/SubmissionsPanel.tsx` | Tabla de entregas pendientes/todas; modal de corrección |
+| `components/GradeSubmissionModal.tsx` | Nota, feedback, calificar o devolver |
+| `api.ts` | `GET /courses/{id}/instructor/enrollments` y `.../{user_id}` |
+
+Ruta `/course/:courseId/students`. Enlaces desde dashboard instructor («Ver alumnos») y ficha del curso (botón junto a «Edit»). Muestra nota e intentos en lecciones tipo test.
+
+En la ficha del curso (`CourseDetail`), el estudiante matriculado ve junto a cada lección test/cuestionario con intentos: «Mejor: X% · N intentos» (datos de `enrollment.lesson_progress`).
 
 ### 5. `lesson` — Consumo de lección
 
@@ -271,21 +291,26 @@ Página **pública**; la matrícula y el progreso requieren sesión de estudiant
 | `components/LessonText.tsx` | Contenido texto |
 | `components/LessonVideo.tsx` | Reproductor vídeo (URL externa) |
 | `components/LessonQuiz.tsx` | Test / selección múltiple (umbral 70 %) |
+| `components/LessonAssignment.tsx` | Tarea manual: enunciado, entrega texto/archivo, estado y feedback |
+| `components/LessonAttachments.tsx` | Descarga de PDFs y materiales adjuntos del instructor |
+| `components/LessonAttemptHistory.tsx` | Historial cronológico de intentos en quiz |
 | `api.ts` | `start`, `complete`, preguntas públicas |
 
-Al entrar: `API_startLesson`. Texto/vídeo: botón «Marcar como completada». Quiz: envía respuestas en `complete`. Tras aprobar, navega a la siguiente lección o vuelve al curso. Dispara eventos de refresco de dashboard y matrícula.
+Al entrar: `API_startLesson`. Texto/vídeo: botón «Marcar como completada». Quiz: envía respuestas en `complete`; carga historial con `API_getLessonAttempts` e inicializa la mejor nota desde el progreso. **Tarea (`assignment`):** el alumno envía texto y opcionalmente un archivo (`API_submitLessonAssignment`); consulta su entrega con `API_getLessonSubmission` (estados `pending` / `graded` / `returned`). Tras un intento fallido en quiz, refresca el historial. Tras aprobar quiz, navega a la siguiente lección o vuelve al curso. Dispara eventos de refresco de dashboard y matrícula. **Materiales adjuntos:** `API_getLessonFiles` al cargar; `LessonAttachments` muestra descargas autenticadas (blob vía Axios) en todos los tipos de lección.
 
-**Tipos de lección:** `text` | `video` | `test` | `multiple_selection`.
+**Tipos de lección:** `text` | `video` | `test` | `multiple_selection` | `assignment`.
 
 ### 6. `dashboard` — Paneles por rol
 
 | Archivo clave | Responsabilidad |
 |---------------|-----------------|
 | `Dashboard.tsx` | Router interno por `user.role` |
-| `StudentDashboard.tsx` | Estadísticas, cursos en marcha, racha, actividad 7 días |
-| `InstructorDashboard.tsx` | Cursos del instructor, alumnos, progreso medio |
-| `AdminDashboard.tsx` | Métricas globales, top cursos, distribución por categoría |
+| `StudentDashboard.tsx` | Estadísticas, cursos en marcha, racha, actividad 7 días, **rendimiento en evaluaciones** (media global, gráficos por curso, comparativa vs cohorte, tabla de intentos recientes) |
+| `InstructorDashboard.tsx` | Cursos del instructor, alumnos, progreso medio, finalización y valoración por curso |
+| `AdminDashboard.tsx` | Métricas globales, top cursos, gráficos Recharts (categoría, plataforma, dificultad, cohortes) |
 | `api.ts` | `GET /dashboard/student/me`, `.../instructor/me`, `.../admin` |
+
+Los gráficos usan **Recharts** vía `shared/components/charts/` (`ActivityBarChart`, `CourseProgressChart`, `DistributionBarChart`, `DistributionPieChart`, `LessonCompletionChart`, `CohortComparisonChart`, `ScoreComparisonChart`), con colores alineados a los tokens `--uned-primary` y `--chart-track` de `index.css`.
 
 `StudentDashboard` escucha `KURSA_DASHBOARD_REFRESH_EVENT` para recargar en silencio tras progreso en lecciones.
 
@@ -434,6 +459,8 @@ Tabla de funciones del cliente y endpoints que invocan. Métodos omitidos son GE
 |---------|--------|----------|
 | `API_register` | POST | `/users` |
 | `API_login` | POST | `/token` |
+| `API_refreshToken` | POST | `/token/refresh` |
+| `API_logoutToken` | POST | `/token/logout` |
 | (tras login) | GET | `/me` |
 
 ### Courses (`features/courses/api.ts`)
@@ -460,6 +487,7 @@ Tabla de funciones del cliente y endpoints que invocan. Métodos omitidos son GE
 |---------|--------|----------|
 | `API_createCourse` | POST | `/courses/create` |
 | `API_updateCourse` | PUT | `/courses/{id}` |
+| `API_deleteCourse` | DELETE | `/courses/{id}` |
 | `API_getInstructors` | GET | `/users/?role=instructor` |
 | `API_getLessonsByCourse` | GET | `/courses/{id}/lessons` |
 | `API_createLesson` | POST | `/lessons/{courseId}` |
@@ -470,6 +498,10 @@ Tabla de funciones del cliente y endpoints que invocan. Métodos omitidos son GE
 | `API_createQuestion` | POST | `/lessons/{id}/questions` |
 | `API_updateQuestion` | PUT | `/lessons/{id}/questions/{qid}` |
 | `API_deleteQuestion` | DELETE | `/lessons/{id}/questions/{qid}` |
+| `API_getLessonFiles` | GET | `/lessons/{id}/files` |
+| `API_uploadLessonFile` | POST | `/lessons/{id}/files` (FormData) |
+| `API_deleteLessonFile` | DELETE | `/lessons/files/{fileId}` |
+| `getLessonFileDownloadUrl` | — | URL absoluta de `/lessons/files/{fileId}/download` |
 
 ### Lesson (`features/lesson/api.ts`)
 
@@ -480,6 +512,19 @@ Tabla de funciones del cliente y endpoints que invocan. Métodos omitidos son GE
 | `API_startLesson` | POST | `/progress/lesson/{id}/start` |
 | `API_completeLesson` | POST | `/progress/lesson/{id}/complete` |
 | `API_getCourseLessonsForNav` | GET | `/courses/{id}/lessons` |
+
+### Progress / submissions (`features/progress/`)
+
+| Función | Método | Ruta |
+|---------|--------|------|
+| `API_getLessonAttempts` | GET | `/progress/lesson/{id}/attempts` |
+| `API_getStudentPerformance` | GET | `/progress/me/performance` |
+| `API_getLessonSubmission` | GET | `/progress/lesson/{id}/submission` |
+| `API_submitLessonAssignment` | POST (multipart) | `/progress/lesson/{id}/submit` |
+| `API_getCourseSubmissions` | GET | `/courses/{id}/submissions` |
+| `API_gradeSubmission` | PATCH | `/courses/{id}/submissions/{id}/grade` |
+
+Tipos en `shared/interfaces/IProgress.tsx` e `ISubmission.tsx`.
 
 ### Dashboard (`features/dashboard/api.ts`)
 

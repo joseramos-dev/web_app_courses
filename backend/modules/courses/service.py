@@ -4,7 +4,7 @@ import pandas as pd
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from modules.courses.model import CourseModel
+from modules.courses.model import CourseModel, Difficulty
 from modules.courses.schema import CourseCreateSchema, CourseUpdateSchema
 
 
@@ -49,6 +49,16 @@ def update_course(db: Session, course_id: int, payload: CourseUpdateSchema):
     return course
 
 
+def delete_course(db: Session, course_id: int) -> None:
+    course = get_course_detail(db, course_id)
+    try:
+        db.delete(course)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}") from e
+
+
 def create_course(
     db: Session,
     payload: CourseCreateSchema,
@@ -58,6 +68,8 @@ def create_course(
     data.pop("instructor_id", None)
     url_raw = data.pop("url", None)
     url = (url_raw or "").strip()
+    if "difficulty" not in data:
+        data["difficulty"] = Difficulty.INTERMEDIATE
     course = CourseModel(**data, url=url or "", instructor_id=instructor_id)
     db.add(course)
     try:

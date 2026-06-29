@@ -1,101 +1,123 @@
 ================================================================================
-KURSA - PENDIENTE RESPECTO AL TFG (gestion de cursos online con recomendacion)
-Comparativa: PDF de requisitos vs estado actual (backend.md + frontend.md)
+KURSA — PENDIENTE RESPECTO AL TFG
+(Gestión de cursos online con módulo de recomendación)
+Comparativa: PDF TFG-Grado-en-II-LSI-25-26 vs estado actual del repositorio
 ================================================================================
 
-LO YA IMPLEMENTADO (resumen)
+LO YA IMPLEMENTADO (según requisitos del PDF)
+--------------------------------------------------------------------------------
+
+Arquitectura y roles
 - Arquitectura cliente-servidor: React/Vite + FastAPI + PostgreSQL.
-- Roles: estudiante, instructor (profesor), administrador.
-- Autenticacion JWT, registro, login, perfil basico (nombre, email, contrasena).
-- Catalogo de cursos con importacion desde dataset Kaggle (populate_courses).
-- Filtros, busqueda, paginacion y ordenacion del catalogo.
-- Alta y edicion de cursos; gestion de lecciones (texto, video, test, seleccion multiple).
-- Matriculas, progreso por leccion, completado de curso, valoraciones 1-5.
-- Dashboards por rol (estudiante, instructor, admin) con metricas y graficos basicos.
+- Roles: estudiante, instructor (profesor), administrador, con guards en frontend y JWT en backend.
+
+Autenticación y usuarios
+- Registro, login JWT, perfil básico (nombre, email, contraseña).
+- Refresh tokens con rotación en BD (`refresh_tokens`), endpoints `/token/refresh` y `/token/logout`.
 - Panel admin: listar usuarios, cambiar roles, eliminar usuarios.
-- Seguimiento individual del estudiante (progreso, racha, actividad 7 dias).
+- Endpoints `/users` endurecidos: listado/borrado solo admin; registro público sin rol admin.
+- Endpoints de desarrollo (`create_admin`, `populate_courses`) desactivables con `ENVIRONMENT=production`; scripts CLI equivalentes.
+
+Arquitectura y despliegue
+- URL del API configurable en frontend (`VITE_API_URL`).
+- CORS configurable (`CORS_ORIGINS`).
+
+Catálogo y cursos
+- Importación desde dataset Kaggle (populate_courses).
+- Filtros, búsqueda, paginación y ordenación del catálogo.
+- Alta, edición y eliminación de cursos (DELETE /courses/{id}, cascada en BD); gestión de lecciones (texto, video, test, selección múltiple).
+- Matrículas, progreso por lección, completado de curso, valoraciones 1–5.
+
+Dashboards y seguimiento individual
+- Dashboards por rol (estudiante, instructor, admin) con métricas y gráficos básicos.
+- Seguimiento individual del estudiante (progreso, racha, actividad 7 días).
+- Historial persistente de intentos en tests (`lesson_attempts`) e informe de rendimiento del estudiante.
+- Comparativa de rendimiento por curso vs media de la cohorte (dashboard estudiante).
+- Distribución de matrículas por categoría; top cursos y top estudiantes (admin).
+
+Visualización de datos analítica (PDF §3)
+- Progreso colectivo y comparativas entre cohortes (AdminDashboard y `/course/{id}/students`).
+- Inscritos por categoría, dificultad y plataforma (`site`) con gráficos Recharts en admin.
+- Tasa de finalización y valoración media por curso (InstructorDashboard y CourseStudents).
+- Estadísticas agregadas por lección, distribución de progreso y cohortes en vista instructor.
+- Landing pública en `/` con estadísticas agregadas anonimizadas (`GET /dashboard/public?period=day|week|month`): top cursos, matrículas por categoría, actividad diaria y completados por tipo de lección.
+
+Sistema de recomendación (PDF §3 — implementado en lo esencial)
+- Módulo backend `recommendations`: GET /recommendations/me, GET/PATCH /recommendations/preferences.
+- Recomendación por preferencias de interés (plataforma, categoría, idioma, tipo, duración, dificultad).
+- Recomendación por historial de cursos completados (perfil inferido de características).
+- Scoring híbrido con valoraciones de cursos similares completados (≥2 dimensiones compartidas).
+- Filtrado colaborativo (similitud coseno entre perfiles de matrícula + valoraciones).
+- Modelo de datos `user_recommendations` y formulario en Ajustes (#recommendation-preferences).
+- UI: carrusel de recomendaciones en catálogo y dashboard del estudiante (`source_type`: preferences, history, collaborative).
+
+Perfil de intereses del estudiante (PDF §4 — caso de uso parcialmente cubierto)
+- Preferencias de recomendación configurables en /settings (no solo nombre/email/contraseña).
+- Estadísticas personales y recomendaciones visibles tras login (dashboard + catálogo).
+
+Tests automatizados (PDF §5 — parcial)
+- Tests unitarios del recomendador: test/test_content_recommender.py, test/test_collaborative_recommender.py, test/test_history_recommender.py.
+
 
 ================================================================================
-PENDIENTE PRINCIPAL (funcionalidad de la aplicacion)
+PENDIENTE PRINCIPAL (funcionalidad de la aplicación)
 ================================================================================
 
-1. MODULO DE RECOMENDACION (requisito central del TFG - NO IMPLEMENTADO)
-   - Motor que sugiera cursos personalizados al estudiante.
-   - Recomendacion por historial de cursos completados y sus caracteristicas.
-   - Recomendacion por categorias de interes, nivel y duracion preferida.
-   - Recomendacion por valoraciones de cursos similares (filtrado por contenido).
-   - Filtrado colaborativo (similitud con otros estudiantes).
-   - API backend dedicada (p. ej. GET /recommendations/me).
-   - UI en perfil/dashboard del estudiante para mostrar recomendaciones.
+1. GESTIÓN DE CURSOS — GAPS (PDF §3)
+   - Subida y gestión de archivos (PDF, materiales): solo texto markdown y URL de video externa.
+   - Tareas/evaluaciones manuales: solo tests auto-corregidos (umbral 70%); no hay entregas ni corrección por el profesor.
+   - ~~Vista del instructor del progreso detallado por alumno matriculado en un curso concreto.~~ (implementado: API + pantalla `/course/{id}/students`).
 
-2. PERFIL DE INTERESES DEL ESTUDIANTE (caso de uso del PDF)
-   - El PDF pide que el estudiante configure intereses en su perfil.
-   - Settings actual solo permite nombre, email y contrasena.
-   - Falta modelo de datos, endpoints y formulario de intereses/preferencias.
-
-3. NOTIFICACIONES Y ALERTAS (modulo opcional del PDF - NO IMPLEMENTADO)
-   - Avisos de cursos no completados o proximos a caducar.
-   - Nuevos cursos relacionados con intereses del usuario.
-   - Notificacion de finalizacion exitosa de curso.
-   - Actividad reciente en cursos inscritos (nuevos materiales).
-   - Solo existen toasts puntuales (react-hot-toast), no un sistema de notificaciones.
-
-4. VISUALIZACION DE DATOS - COBERTURA INCOMPLETA
-   Implementado parcialmente en dashboards; falta respecto al PDF:
-   - Progreso colectivo y comparativas entre cohortes de estudiantes.
-   - Inscritos por curso/categoria/nivel con vistas analiticas dedicadas.
-   - Tasa de finalizacion y valoracion media por curso (agregados visibles en ficha de curso o panel del instructor).
-   - Comparativas entre plataformas (Coursera, Udacity, Future Learn, etc.) - no hay graficos por campo "site".
-   - Estadisticas detalladas por curso (vista especifica, no solo resumen en dashboard).
-
-5. GESTION DE CURSOS - GAPS
-   - Eliminacion de cursos: no hay endpoint DELETE /courses/{id} ni UI.
-   - Subida y gestion de archivos (PDF, materiales): solo texto markdown y URL de video externa.
-   - Tareas/evaluaciones manuales: solo tests auto-corregidos (umbral 70%); no hay entregas ni correccion por el profesor.
-   - Vista del instructor del progreso detallado por alumno matriculado en un curso concreto (listado de estudiantes con notas/intentos).
-
-6. DATOS Y DATASET
-   - Importacion Kaggle: hecha, pero campos del dataset no aprovechados en BD (Skills, Number of viewers).
-   - El PDF pide generar perfiles de usuario y simulaciones de actividad: solo hay notebook exploratorio (data_analysis/); falta script de seed/simulacion para poblar usuarios, matriculas y actividad de prueba de forma reproducible.
-
-7. EVALUACION Y SEGUIMIENTO - GAPS
-   - Registro de resultados: best_score y attempts existen en backend, pero no hay historial visible de intentos ni informes de rendimiento.
-   - Comparacion de rendimiento entre distintos cursos o cohortes: no implementada.
-
-8. ENDURECIMIENTO Y PRODUCCION (mencionado en backend.md como pendiente)
-   - Proteger GET/POST/DELETE /users (actualmente varios endpoints publicos).
-   - Eliminar o proteger endpoints de desarrollo (create_admin, populate_courses).
-   - Configurar URL del API por variables de entorno en frontend (ahora hardcodeada).
-   - Refresh tokens o gestion de sesion mas robusta.
 
 ================================================================================
-PENDIENTE DE ENTREGABLES DEL TFG (proceso y documentacion, no codigo)
+PENDIENTE OPCIONAL (no bloqueante para el TFG)
 ================================================================================
 
-9. PLAN DE TRABAJO con cronograma aprobado por el director/a.
+NOTIFICACIONES Y ALERTAS (PDF §3 — módulo opcional, NO IMPLEMENTADO)
+- Cursos no completados o próximos a caducar.
+- Nuevos cursos relacionados con intereses del usuario.
+- Notificación de finalización exitosa de curso.
+- Actividad reciente en cursos inscritos (nuevos materiales).
+- Solo existen toasts puntuales (react-hot-toast), no un sistema persistente.
 
-10. MEMORIA FINAL con estructura del PDF:
-    - Motivacion, estado del arte, objetivos, metodologia.
-    - Descripcion informatica (arquitectura, modulos, interfaces, algoritmos de recomendacion).
-    - Validacion mediante tests funcionales y de carga.
-    - Conclusiones, dificultades y mejoras futuras.
+CACHÉ DE RECOMENDACIONES (Redis)
+- Caché de recomendaciones (TODO en recommendations/service.py).
+- Mejora de rendimiento ante muchos usuarios; no requerido por el PDF.
 
-11. PLAN DE PRUEBAS y ejecucion de tests:
-    - No hay tests automatizados en el repositorio (backend ni frontend).
-    - Falta documentar y ejecutar pruebas funcionales sistematicas.
-    - Falta prueba de carga si se exige en la memoria.
 
-12. DISENO RESPONSIVE:
-    - El PDF pide adaptacion al dispositivo; la UI usa Tailwind y nav movil, pero conviene auditar y documentar la cobertura responsive en todas las pantallas clave.
+================================================================================
+PENDIENTE DE ENTREGABLES DEL TFG (proceso y documentación, no código)
+================================================================================
+
+5. PLAN DE TRABAJO (PDF §5)
+   - Cronograma realista aprobado por el director/a.
+
+6. MEMORIA FINAL (PDF §5)
+   Estructura orientativa del PDF:
+   - Motivación, estado del arte, objetivos, metodología.
+   - Descripción informática (arquitectura, módulos, interfaces, algoritmos de recomendación).
+   - Validación mediante tests funcionales y de carga.
+   - Conclusiones, dificultades y mejoras futuras.
+
+7. PLAN DE PRUEBAS Y COBERTURA (PDF §5)
+   - Tests del recomendador: existen (content-based y colaborativo).
+   - Falta plan de pruebas documentado y ejecución sistemática del resto de módulos.
+   - Falta suite de tests de integración/API y tests de frontend.
+   - Falta prueba de carga si se exige en la memoria.
+
+8. DISEÑO RESPONSIVE (PDF §5)
+   - El PDF pide adaptación al dispositivo; la UI usa Tailwind y nav móvil, pero conviene auditar y documentar la cobertura responsive en todas las pantallas clave.
+
+9. DOCUMENTACIÓN TÉCNICA INTERNA
+   - Actualizar docs/backend.md y docs/frontend.md: incluir módulo recommendations, endpoints y componentes nuevos.
+
 
 ================================================================================
 PRIORIDAD SUGERIDA PARA CERRAR EL TFG
 ================================================================================
 
-Alta:   Modulo de recomendacion + perfil de intereses + UI de recomendaciones.
-Media:  Estadisticas faltantes (comparativas plataforma/cohortes, stats por curso).
-Media:  Eliminacion de cursos, historial de evaluaciones, vista instructor por curso.
-Baja:   Notificaciones (opcional en PDF), subida de PDFs, simulacion de datos.
-Proceso: Memoria, plan de pruebas, tests automatizados basicos.
+Alta:   Memoria + plan de pruebas + ampliar tests (API e integración).
+Media:  Subida de PDFs y evaluaciones manuales por instructor.
+Opcional (no bloqueante): Notificaciones persistentes, caché Redis.
 
 ================================================================================

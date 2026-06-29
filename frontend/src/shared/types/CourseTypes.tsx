@@ -82,6 +82,28 @@ export type CourseTypeTypes =
     | "Project"
     | "Non defined";
 
+export type DurationBucketTypes = "short" | "medium" | "long";
+
+export type DifficultyTypes = "beginner" | "intermediate" | "advanced";
+
+export const durationBucketShortLabels: Record<DurationBucketTypes, string> = {
+    short: "Corto",
+    medium: "Medio",
+    long: "Largo",
+};
+
+export const durationBucketLabels: Record<DurationBucketTypes, string> = {
+    short: "Corto (< 10 h)",
+    medium: "Medio (10 h – 1 semana)",
+    long: "Largo (> 1 semana)",
+};
+
+export const difficultyLabels: Record<DifficultyTypes, string> = {
+    beginner: "Principiante",
+    intermediate: "Intermedio",
+    advanced: "Avanzado",
+};
+
 export const courseTypesDict = {
     SiteTypes: ["Coursera", "Future Learn", "Udacity", "Simplilearn", "Academy"],
     CategoryTypes: [
@@ -118,4 +140,6 @@ export const courseTypesDict = {
         "Project",
         "Non defined",
     ],
+    DurationBucketTypes: ["short", "medium", "long"],
+    DifficultyTypes: ["beginner", "intermediate", "advanced"],
 };

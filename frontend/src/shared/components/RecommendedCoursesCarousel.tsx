@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CourseCard } from "../../features/courses/components/CourseCard";
 import { get_recommended } from "../../features/courses/api";
-import type { ICourseRecommendation } from "../interfaces/IRecommendation";
+import type { ICourseRecommendation, RecommendationSourceType } from "../interfaces/IRecommendation";
 import { useAuth } from "../povider/AuthContext";
 
 /** Fixed carousel track height (badge row + card slot). */
@@ -12,6 +12,12 @@ const CAROUSEL_CARD_SLOT_HEIGHT = "h-[22rem]";
 
 const NAV_BUTTON_CLASS =
     "flex h-10 w-10 shrink-0 items-center justify-center self-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700";
+
+function recommendationSourceLabel(source: RecommendationSourceType): string {
+    if (source === "collaborative") return "Colaborativo";
+    if (source === "history") return "Por historial";
+    return "Por contenido";
+}
 
 function visibleCountForWidth(width: number): number {
     if (width >= 900) return 4;
@@ -23,6 +29,20 @@ function cardBasisForVisibleCount(visibleCount: number): string {
     if (visibleCount === 1) return "basis-full";
     if (visibleCount === 2) return "basis-[calc(50%-0.5rem)]";
     return "basis-[calc(25%-0.75rem)]";
+}
+
+function pageCountFor(itemCount: number, visibleCount: number): number {
+    if (itemCount <= visibleCount) return 1;
+    return Math.ceil(itemCount / visibleCount);
+}
+
+function currentPageIndex(
+    startIndex: number,
+    visibleCount: number,
+    totalPages: number,
+): number {
+    if (totalPages <= 1) return 0;
+    return Math.floor(startIndex / visibleCount) % totalPages;
 }
 
 function circularSlice<T>(items: T[], startIndex: number, count: number): T[] {
@@ -97,8 +117,11 @@ type CarouselTrackProps = {
     startIndex: number;
     visibleCount: number;
     itemCount: number;
+    pageCount: number;
+    currentPage: number;
     onPrev: () => void;
     onNext: () => void;
+    onGoToPage: (page: number) => void;
 };
 
 function renderRecommendationsCarousel({
@@ -109,8 +132,11 @@ function renderRecommendationsCarousel({
     startIndex,
     visibleCount,
     itemCount,
+    pageCount,
+    currentPage,
     onPrev,
     onNext,
+    onGoToPage,
 }: CarouselTrackProps) {
     const cardBasis = cardBasisForVisibleCount(visibleCount);
 
@@ -136,9 +162,19 @@ function renderRecommendationsCarousel({
                             key={`${rec.course.id}-${startIndex + idx}`}
                             className={`flex h-full min-w-0 shrink-0 grow-0 flex-col ${cardBasis}`}
                         >
-                            <div className="mb-2 flex h-7 shrink-0 items-center justify-end">
+                            <div className="mb-2 flex h-7 shrink-0 items-center justify-end gap-1.5">
                                 <span className="rounded-full bg-uned-primary/10 px-2.5 py-0.5 text-xs font-semibold text-uned-primary dark:bg-uned-primary/20">
                                     {rec.recommendation_percent}% coincidencia
+                                </span>
+                                <span
+                                    className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+                                    title={
+                                        rec.source_type === "collaborative"
+                                            ? "Recomendado por similitud con otros estudiantes"
+                                            : "Recomendado según tus preferencias de contenido"
+                                    }
+                                >
+                                    {recommendationSourceLabel(rec.source_type)}
                                 </span>
                             </div>
                             <div
@@ -160,6 +196,30 @@ function renderRecommendationsCarousel({
                     <ChevronRight className="size-5" />
                 </button>
             </div>
+
+            {pageCount > 1 ? (
+                <div
+                    className="mt-4 flex justify-center gap-2"
+                    role="tablist"
+                    aria-label="Páginas del carrusel"
+                >
+                    {Array.from({ length: pageCount }, (_, page) => (
+                        <button
+                            key={page}
+                            type="button"
+                            role="tab"
+                            aria-selected={page === currentPage}
+                            aria-label={`Página ${page + 1} de ${pageCount}`}
+                            onClick={() => onGoToPage(page)}
+                            className={`size-2 rounded-full transition-colors ${
+                                page === currentPage
+                                    ? "bg-uned-primary"
+                                    : "bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500"
+                            }`}
+                        />
+                    ))}
+                </div>
+            ) : null}
         </CarouselSectionShell>
     );
 }
@@ -254,6 +314,24 @@ export function RecommendedCoursesCarousel({
         setStartIndex((prev) => (prev + visibleCount) % itemCount);
     }, [itemCount, visibleCount]);
 
+    const pageCount = useMemo(
+        () => pageCountFor(itemCount, visibleCount),
+        [itemCount, visibleCount],
+    );
+
+    const currentPage = useMemo(
+        () => currentPageIndex(startIndex, visibleCount, pageCount),
+        [startIndex, visibleCount, pageCount],
+    );
+
+    const goToPage = useCallback(
+        (page: number) => {
+            if (itemCount === 0) return;
+            setStartIndex((page * visibleCount) % itemCount);
+        },
+        [itemCount, visibleCount],
+    );
+
     if (!canShow) return null;
     if (loading) return renderLoadingState(title, className);
     if (error) return renderErrorState(title, className, error);
@@ -267,7 +345,10 @@ export function RecommendedCoursesCarousel({
         startIndex,
         visibleCount,
         itemCount,
+        pageCount,
+        currentPage,
         onPrev: goPrev,
         onNext: goNext,
+        onGoToPage: goToPage,
     });
 }

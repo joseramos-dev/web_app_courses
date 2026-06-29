@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
 import type { IUser } from "../../../shared/interfaces/IUser";
-import { courseTypesDict } from "../../../shared/types/CourseTypes";
+import { courseTypesDict, difficultyLabels } from "../../../shared/types/CourseTypes";
 import { API_getInstructors } from "../api";
 import { InstructorCombobox } from "./InstructorCombobox";
 
@@ -25,6 +25,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
   const categories = useMemo(() => courseTypesDict.CategoryTypes, []);
   const languages = useMemo(() => courseTypesDict.LanguageTypes, []);
   const courseTypes = useMemo(() => courseTypesDict.CourseTypeTypes, []);
+  const difficulties = useMemo(() => courseTypesDict.DifficultyTypes, []);
 
   // Only admins can reassign ownership, so we only fetch the list for them.
   // We still tolerate a course pointing to an instructor that's not in the
@@ -164,6 +165,24 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             {courseTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-2">
+          <FieldLabel>Difficulty</FieldLabel>
+          <select
+            value={value.difficulty}
+            disabled={disabled}
+            onChange={(e) =>
+              onChange({ ...value, difficulty: e.target.value as ICourses["difficulty"] })
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+          >
+            {difficulties.map((d) => (
+              <option key={d} value={d}>
+                {difficultyLabels[d as keyof typeof difficultyLabels]}
               </option>
             ))}
           </select>

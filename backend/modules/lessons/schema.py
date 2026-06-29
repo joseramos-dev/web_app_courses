@@ -79,6 +79,9 @@ class LessonSchema(BaseModel):
     position: int
     body: Optional[str] = None
     video_url: Optional[str] = None
+    max_score: Optional[float] = None
+    passing_score: Optional[float] = None
+    allows_file_submission: Optional[bool] = None
     create_at: datetime
     update_at: datetime
 
@@ -89,6 +92,9 @@ class LessonCreateSchema(BaseModel):
     position: int
     body: Optional[str] = None
     video_url: Optional[str] = None
+    max_score: Optional[float] = 100.0
+    passing_score: Optional[float] = 70.0
+    allows_file_submission: Optional[bool] = True
 
 
 class LessonUpdateSchema(BaseModel):
@@ -97,6 +103,9 @@ class LessonUpdateSchema(BaseModel):
     position: Optional[int] = None
     body: Optional[str] = None
     video_url: Optional[str] = None
+    max_score: Optional[float] = None
+    passing_score: Optional[float] = None
+    allows_file_submission: Optional[bool] = None
 
 
 class LessonsReorderSchema(BaseModel):
@@ -112,3 +121,17 @@ class LessonAnswerSchema(BaseModel):
 
 class LessonAnswerSubmitSchema(BaseModel):
     answers: List[LessonAnswerSchema] = []
+
+
+# ---------- Lesson files ----------
+
+class LessonFileSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    lesson_id: int
+    original_filename: str
+    mime_type: str
+    size_bytes: int
+    uploaded_by: int
+    uploaded_at: datetime

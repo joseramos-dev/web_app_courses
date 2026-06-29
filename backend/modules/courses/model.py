@@ -99,6 +99,18 @@ class CourseType(str, enum.Enum):
     NON_DEFINED = "Non defined"
 
 
+class DurationBucket(str, enum.Enum):
+    SHORT = "short"
+    MEDIUM = "medium"
+    LONG = "long"
+
+
+class Difficulty(str, enum.Enum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+
+
 class CourseModel(Base):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True, index=True)
@@ -111,6 +123,15 @@ class CourseModel(Base):
     subcategory = Column(String, nullable=True)
     intro = Column(Text, nullable=True)
     duration_seconds = Column(Integer, nullable=True)
+    difficulty = Column(
+        SqlEnum(
+            Difficulty,
+            values_callable=lambda obj: [e.value for e in obj],
+            name="difficulty",
+        ),
+        nullable=False,
+        server_default=Difficulty.INTERMEDIATE.value,
+    )
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -118,7 +139,12 @@ class CourseModel(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
     instructor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    lessons = relationship("LessonModel", back_populates="course")
+    lessons = relationship(
+        "LessonModel",
+        back_populates="course",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 # ***************** VIRTUAL COLUMNS *****************

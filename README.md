@@ -53,9 +53,17 @@ Probar la API de forma interactiva es más sencillo con **Swagger** en `/docs`.
 
 **No hay script de datos iniciales** incluido. Usa el flujo de **registro** de la interfaz para crear un usuario.
 
-Desde **Swagger** (`http://localhost:8000/docs`) tendremos acceso a métodos que nos permitiran testear mejor el programa:
- - `users/create_admin`: nos permitira crear un admin inicial, ya que desde el login de la aplicación no se podra.
- - `courses/populate_courses`: llenara la base de datos con cursos que usaremos para probar el funcionamiento de la aplicación. Para ejecutar este método, sera necesario estar autentificado como **admin**. (en **Swagger** arriba a la derecha de la página, deberia de haber una pestaña en la que ponga _authorize_, desde hay te deberia de loggear con el usuario y contraseña del admin que hayas creado con _create_admin_)
+Desde **Swagger** (`http://localhost:8000/docs`) o **scripts CLI** (recomendado en producción):
+
+**Desarrollo** (`ENABLE_DEV_ROUTES=true`):
+ - Swagger: `POST /users/create_admin` — admin inicial (`admin` / `admin@admin`).
+ - Swagger: `POST /courses/populate_courses` — importa cursos Kaggle (requiere login admin).
+
+**Cualquier entorno** (desde `backend/`):
+ - `uv run python -m scripts.bootstrap_admin`
+ - `uv run python -m scripts.populate_courses`
+
+**Frontend:** copiar `frontend/.env.example` a `.env.local` y ajustar `VITE_API_URL` si el API no está en `localhost:8000`.
 
 ___
 

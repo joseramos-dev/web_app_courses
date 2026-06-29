@@ -15,6 +15,7 @@ import { CourseEditForm } from "./components/CourseEditForm";
 import { LessonsEditor } from "./components/LessonsEditor";
 import type { ILesson, ILessonCreate } from "./lessonTypes";
 import {
+  API_deleteCourse,
   API_deleteLesson,
   API_getLessonsByCourse,
   API_reorderLessons,
@@ -38,6 +39,7 @@ function emptyDraft(user: IUser): ICourses {
     rating: null,
     ratings_count: 0,
     duration_seconds: null,
+    difficulty: "intermediate",
     created_at: "",
     updated_at: "",
     instructor_id: user.role === "instructor" && user.id != null ? user.id : null,
@@ -66,6 +68,7 @@ export function CourseEdit() {
   const [draft, setDraft] = useState<ICourses | null>(null);
   const [lessons, setLessons] = useState<ILesson[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -178,6 +181,25 @@ export function CourseEdit() {
     }
   };
 
+  const handleDeleteCourse = async () => {
+    if (isCreateMode || !canEdit || !courseId || courseId === "new" || !course) return;
+    const confirmed = window.confirm(
+      `¿Eliminar el curso "${course.title}"? Se borrarán también lecciones, matrículas, progreso y valoraciones. Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+    try {
+      setIsDeleting(true);
+      const { detail } = await API_deleteCourse(Number(courseId));
+      toast.success(detail);
+      navigate("/courses", { replace: true });
+    } catch (e) {
+      console.error(e);
+      toast.error("No se pudo eliminar el curso");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!isCreateMode && isLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-6">
@@ -240,6 +262,16 @@ export function CourseEdit() {
         </button>
 
         <div className="flex items-center gap-2">
+          {!isCreateMode && canEdit ? (
+            <button
+              type="button"
+              onClick={() => void handleDeleteCourse()}
+              disabled={isDeleting}
+              className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-red-950/40"
+            >
+              {isDeleting ? "Eliminando…" : "Eliminar curso"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={primaryAction}

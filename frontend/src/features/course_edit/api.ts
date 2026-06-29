@@ -1,15 +1,17 @@
-import { api } from "../../shared/api/api";
+import { api, API_BASE_URL } from "../../shared/api/api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
 import type { IUser } from "../../shared/interfaces/IUser";
 import type {
   CategoryTypes,
   CourseTypeTypes,
+  DifficultyTypes,
   LanguageTypes,
   SiteTypes,
 } from "../../shared/types/CourseTypes";
 import type {
   ILesson,
   ILessonCreate,
+  ILessonFile,
   IQuestionAdmin,
   IQuestionCreate,
 } from "./lessonTypes";
@@ -23,6 +25,7 @@ export type ICourseCreatePayload = {
   category: CategoryTypes;
   language: LanguageTypes;
   course_type: CourseTypeTypes;
+  difficulty?: DifficultyTypes;
   subcategory?: string | null;
   intro?: string | null;
   duration_seconds?: number | null;
@@ -36,6 +39,7 @@ export function buildCourseCreatePayload(draft: ICourses, isAdmin: boolean): ICo
     category: draft.category,
     language: draft.language,
     course_type: draft.course_type,
+    difficulty: draft.difficulty,
   };
   const url = draft.url.trim();
   if (url) payload.url = url;
@@ -53,6 +57,11 @@ export async function API_createCourse(payload: ICourseCreatePayload) {
 
 export async function API_updateCourse(courseId: number, payload: Partial<ICourseUpdate>) {
   const { data } = await api.put<ICourses>(`/courses/${courseId}`, payload);
+  return data;
+}
+
+export async function API_deleteCourse(courseId: number) {
+  const { data } = await api.delete<{ detail: string }>(`/courses/${courseId}`);
   return data;
 }
 
@@ -129,5 +138,46 @@ export async function API_deleteQuestion(lessonId: number, questionId: number) {
     `/lessons/${lessonId}/questions/${questionId}`,
   );
   return data;
+}
+
+// ---------- Lesson file attachments ----------
+
+export async function API_getLessonFiles(lessonId: number) {
+  const { data } = await api.get<ILessonFile[]>(`/lessons/${lessonId}/files`);
+  return data;
+}
+
+export async function API_uploadLessonFile(lessonId: number, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.post<ILessonFile>(
+    `/lessons/${lessonId}/files`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return data;
+}
+
+export async function API_uploadLessonSubmissionFile(lessonId: number, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.post<ILessonFile>(
+    `/lessons/${lessonId}/submission-files`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return data;
+}
+
+export async function API_deleteLessonFile(fileId: number) {
+  const { data } = await api.delete<{ detail: string }>(
+    `/lessons/files/${fileId}`,
+  );
+  return data;
+}
+
+export function getLessonFileDownloadUrl(fileId: number): string {
+  const base = API_BASE_URL.replace(/\/?$/, "/");
+  return `${base}lessons/files/${fileId}/download`;
 }
 

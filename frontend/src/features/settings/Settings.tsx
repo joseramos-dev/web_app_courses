@@ -30,13 +30,14 @@ export function Settings() {
   const [pwdConfirm, setPwdConfirm] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
 
-  const canManagePreferences =
-    user?.role === "student" || user?.role === "admin";
+  const isStudent = user?.role === "student";
   const [prefs, setPrefs] = useState<IRecommendationPreferencesUpdate>({
     preferred_sites: [],
     preferred_categories: [],
     preferred_languages: [],
     preferred_course_types: [],
+    preferred_duration_buckets: [],
+    preferred_difficulties: [],
   });
   const [loadingPrefs, setLoadingPrefs] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
@@ -49,7 +50,7 @@ export function Settings() {
   }, [user]);
 
   useEffect(() => {
-    if (!canManagePreferences) return;
+    if (!isStudent) return;
 
     let cancelled = false;
     (async () => {
@@ -62,6 +63,8 @@ export function Settings() {
             preferred_categories: data.preferred_categories,
             preferred_languages: data.preferred_languages,
             preferred_course_types: data.preferred_course_types,
+            preferred_duration_buckets: data.preferred_duration_buckets,
+            preferred_difficulties: data.preferred_difficulties,
           });
         }
       } catch (e) {
@@ -75,7 +78,7 @@ export function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [canManagePreferences]);
+  }, [isStudent]);
 
   if (!user) return null;
 
@@ -165,7 +168,9 @@ export function Settings() {
       (prefs.preferred_sites?.length ?? 0) > 0 ||
       (prefs.preferred_categories?.length ?? 0) > 0 ||
       (prefs.preferred_languages?.length ?? 0) > 0 ||
-      (prefs.preferred_course_types?.length ?? 0) > 0;
+      (prefs.preferred_course_types?.length ?? 0) > 0 ||
+      (prefs.preferred_duration_buckets?.length ?? 0) > 0 ||
+      (prefs.preferred_difficulties?.length ?? 0) > 0;
     if (!hasAny) {
       toast.error("Selecciona al menos una preferencia");
       return;
@@ -182,6 +187,8 @@ export function Settings() {
         preferred_categories: updated.preferred_categories,
         preferred_languages: updated.preferred_languages,
         preferred_course_types: updated.preferred_course_types,
+        preferred_duration_buckets: updated.preferred_duration_buckets,
+        preferred_difficulties: updated.preferred_difficulties,
       });
       toast.success("Preferencias guardadas");
     }
@@ -190,134 +197,152 @@ export function Settings() {
   const inputCn = settingsInputClassName;
   const labelCn = settingsFieldLabelClassName;
   const btnCn = settingsPrimaryButtonClassName();
-  const sectionCn = settingsSectionCardClassName;
+  const cardCn = settingsSectionCardClassName({ noTopMargin: true });
   const titleCn = settingsSectionTitleClassName();
   const hintCn = settingsMutedHintClassName();
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
         Ajustes
       </h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Cuenta, recomendaciones y apariencia
+        {isStudent
+          ? "Cuenta, recomendaciones y apariencia"
+          : "Cuenta y apariencia"}
       </p>
 
-      <section className={sectionCn({ isFirst: true })}>
-        <h2 className={titleCn}>Nombre</h2>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={inputCn({ marginTop: "mt-2" })}
-        />
-        <button
-          type="button"
-          disabled={savingName}
-          onClick={() => void handleSaveName()}
-          className={btnCn}
-        >
-          {savingName ? "Guardando…" : "Guardar nombre"}
-        </button>
-      </section>
+      <div
+        className={`mt-8 grid grid-cols-1 gap-8 ${isStudent ? "lg:grid-cols-2 lg:items-start" : "max-w-3xl"}`}
+      >
+        <div className="space-y-6">
+          <section className={cardCn}>
+            <h2 className={titleCn}>Nombre</h2>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={inputCn({ marginTop: "mt-2" })}
+            />
+            <button
+              type="button"
+              disabled={savingName}
+              onClick={() => void handleSaveName()}
+              className={btnCn}
+            >
+              {savingName ? "Guardando…" : "Guardar nombre"}
+            </button>
+          </section>
 
-      <section className={sectionCn()}>
-        <h2 className={titleCn}>Email</h2>
-        <p className={hintCn}>Actual: {email}</p>
-        <label className={labelCn()}>Nuevo email</label>
-        <input
-          type="email"
-          value={emailNew}
-          onChange={(e) => setEmailNew(e.target.value)}
-          className={inputCn()}
-        />
-        <label className={labelCn()}>Contraseña actual (obligatoria)</label>
-        <input
-          type="password"
-          value={emailCurrentPwd}
-          onChange={(e) => setEmailCurrentPwd(e.target.value)}
-          autoComplete="current-password"
-          className={inputCn()}
-        />
-        <button
-          type="button"
-          disabled={savingEmail}
-          onClick={() => void handleSaveEmail()}
-          className={btnCn}
-        >
-          {savingEmail ? "Guardando…" : "Guardar email"}
-        </button>
-      </section>
+          <section className={cardCn}>
+            <h2 className={titleCn}>Email</h2>
+            <p className={hintCn}>Actual: {email}</p>
+            <label className={labelCn()}>Nuevo email</label>
+            <input
+              type="email"
+              value={emailNew}
+              onChange={(e) => setEmailNew(e.target.value)}
+              className={inputCn()}
+            />
+            <label className={labelCn()}>Contraseña actual (obligatoria)</label>
+            <input
+              type="password"
+              value={emailCurrentPwd}
+              onChange={(e) => setEmailCurrentPwd(e.target.value)}
+              autoComplete="current-password"
+              className={inputCn()}
+            />
+            <button
+              type="button"
+              disabled={savingEmail}
+              onClick={() => void handleSaveEmail()}
+              className={btnCn}
+            >
+              {savingEmail ? "Guardando…" : "Guardar email"}
+            </button>
+          </section>
 
-      <section className={sectionCn()}>
-        <h2 className={titleCn}>Contraseña</h2>
-        <label className={labelCn()}>Contraseña actual</label>
-        <input
-          type="password"
-          value={pwdCurrent}
-          onChange={(e) => setPwdCurrent(e.target.value)}
-          autoComplete="current-password"
-          className={inputCn()}
-        />
-        <label className={labelCn()}>Nueva contraseña</label>
-        <input
-          type="password"
-          value={pwdNew}
-          onChange={(e) => setPwdNew(e.target.value)}
-          autoComplete="new-password"
-          className={inputCn()}
-        />
-        <label className={labelCn()}>Confirmar nueva contraseña</label>
-        <input
-          type="password"
-          value={pwdConfirm}
-          onChange={(e) => setPwdConfirm(e.target.value)}
-          autoComplete="new-password"
-          className={inputCn()}
-        />
-        <button
-          type="button"
-          disabled={savingPwd}
-          onClick={() => void handleSavePassword()}
-          className={btnCn}
-        >
-          {savingPwd ? "Guardando…" : "Cambiar contraseña"}
-        </button>
-      </section>
-
-      {canManagePreferences ? (
-        <section id="recommendation-preferences" className={sectionCn()}>
-          <h2 className={titleCn}>Preferencias de recomendación</h2>
-          <p className={hintCn}>
-            Estas opciones alimentan el recomendador de cursos en tu dashboard y
-            en el catálogo.
-          </p>
-          {loadingPrefs ? (
-            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              Cargando preferencias…
-            </p>
-          ) : (
-            <>
-              <div className="mt-4">
-                <PreferencesSelector
-                  value={prefs}
-                  onChange={setPrefs}
-                  disabled={savingPrefs}
+          <section className={cardCn}>
+            <h2 className={titleCn}>Contraseña</h2>
+            <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-4">
+              <div>
+                <label className={labelCn()}>Contraseña actual</label>
+                <input
+                  type="password"
+                  value={pwdCurrent}
+                  onChange={(e) => setPwdCurrent(e.target.value)}
+                  autoComplete="current-password"
+                  className={inputCn()}
                 />
               </div>
-              <button
-                type="button"
-                disabled={savingPrefs}
-                onClick={() => void handleSavePreferences()}
-                className={btnCn}
-              >
-                {savingPrefs ? "Guardando…" : "Guardar preferencias"}
-              </button>
-            </>
-          )}
-        </section>
-      ) : null}
+              <div>
+                <label className={labelCn()}>Nueva contraseña</label>
+                <input
+                  type="password"
+                  value={pwdNew}
+                  onChange={(e) => setPwdNew(e.target.value)}
+                  autoComplete="new-password"
+                  className={inputCn()}
+                />
+              </div>
+            </div>
+            <label className={labelCn()}>Confirmar nueva contraseña</label>
+            <input
+              type="password"
+              value={pwdConfirm}
+              onChange={(e) => setPwdConfirm(e.target.value)}
+              autoComplete="new-password"
+              className={inputCn()}
+            />
+            <button
+              type="button"
+              disabled={savingPwd}
+              onClick={() => void handleSavePassword()}
+              className={btnCn}
+            >
+              {savingPwd ? "Guardando…" : "Cambiar contraseña"}
+            </button>
+          </section>
 
-      <SettingsAppearanceSection />
+          {!isStudent ? <SettingsAppearanceSection noTopMargin /> : null}
+        </div>
+
+        {isStudent ? (
+          <div className="space-y-6">
+            <section id="recommendation-preferences" className={cardCn}>
+              <h2 className={titleCn}>Preferencias de recomendación</h2>
+              <p className={hintCn}>
+                Estas opciones alimentan el recomendador de cursos en tu dashboard
+                y en el catálogo.
+              </p>
+              {loadingPrefs ? (
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                  Cargando preferencias…
+                </p>
+              ) : (
+                <>
+                  <div className="mt-4">
+                    <PreferencesSelector
+                      value={prefs}
+                      onChange={setPrefs}
+                      disabled={savingPrefs}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={savingPrefs}
+                    onClick={() => void handleSavePreferences()}
+                    className={btnCn}
+                  >
+                    {savingPrefs ? "Guardando…" : "Guardar preferencias"}
+                  </button>
+                </>
+              )}
+            </section>
+
+            <SettingsAppearanceSection noTopMargin />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

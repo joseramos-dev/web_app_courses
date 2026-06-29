@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Activity, BookOpen, UserCheck, Users } from "lucide-react";
+import { Activity, BookOpen, Star, TrendingUp, UserCheck, Users } from "lucide-react";
 import type { IUser } from "../../shared/interfaces/IUser";
 import type { IAdminDashboard } from "../../shared/interfaces/IDashboard";
+import { difficultyLabels } from "../../shared/types/CourseTypes";
 import { API_getAdminDashboard } from "./api";
 import { StatCard } from "./components/StatCard";
-import { MiniBarChart } from "./components/MiniBarChart";
+import { ActivityBarChart } from "../../shared/components/charts/ActivityBarChart";
+import { CohortComparisonChart } from "../../shared/components/charts/CohortComparisonChart";
+import { DistributionBarChart } from "../../shared/components/charts/DistributionBarChart";
+import { DistributionPieChart } from "../../shared/components/charts/DistributionPieChart";
+import {
+    formatCategoryLabel,
+    formatCohortMonth,
+} from "../../shared/components/charts/chartFormatters";
 
 const DAY_FORMATTER = new Intl.DateTimeFormat(undefined, {
     day: "2-digit",
@@ -49,6 +57,40 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
         );
     }, [data]);
 
+    const categoryChartData = useMemo(() => {
+        if (!data) return [];
+        return data.category_distribution.map((c) => ({
+            label: formatCategoryLabel(c.category),
+            value: c.enrollments_count,
+        }));
+    }, [data]);
+
+    const siteChartData = useMemo(() => {
+        if (!data) return [];
+        return data.site_distribution.map((s) => ({
+            label: s.site,
+            value: s.enrollments_count,
+        }));
+    }, [data]);
+
+    const difficultyChartData = useMemo(() => {
+        if (!data) return [];
+        return data.difficulty_distribution.map((d) => ({
+            label: difficultyLabels[d.difficulty],
+            value: d.enrollments_count,
+        }));
+    }, [data]);
+
+    const cohortChartData = useMemo(() => {
+        if (!data) return [];
+        return data.enrollment_cohorts.map((c) => ({
+            label: formatCohortMonth(c.cohort_month),
+            enrollments_count: c.enrollments_count,
+            avg_progress_percent: c.avg_progress_percent,
+            completion_rate: c.completion_rate,
+        }));
+    }, [data]);
+
     return (
         <div className="mx-auto max-w-6xl px-4 py-8">
             <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -80,7 +122,7 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
             ) : (
                 <>
                     {/* Stat cards globales */}
-                    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                         <StatCard
                             icon={<Users className="size-5" />}
                             label="Estudiantes"
@@ -103,6 +145,22 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                             label="Lecciones completadas"
                             value={String(data.total_lessons_completed)}
                             helper="Total acumulado en la plataforma"
+                        />
+                        <StatCard
+                            icon={<TrendingUp className="size-5" />}
+                            label="Tasa de finalización"
+                            value={`${Math.round(data.completion_rate * 100)}%`}
+                            helper={`${data.total_enrollments} matrículas totales`}
+                        />
+                        <StatCard
+                            icon={<Star className="size-5" />}
+                            label="Valoración media"
+                            value={
+                                data.avg_course_rating != null
+                                    ? data.avg_course_rating.toFixed(1)
+                                    : "—"
+                            }
+                            helper="Media de cursos valorados"
                         />
                     </section>
 
@@ -194,46 +252,15 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                 Distribución por categoría
                             </h2>
                             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                Reparto de matrículas por categoría de curso.
+                                Reparto de matrículas por categoría de curso
+                                {totalCategoryEnrollments > 0
+                                    ? ` (${totalCategoryEnrollments} total)`
+                                    : ""}
+                                .
                             </p>
-                            {data.category_distribution.length === 0 ? (
-                                <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
-                                    Aún no hay matrículas para repartir.
-                                </p>
-                            ) : (
-                                <table className="mt-3 min-w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
-                                            <th className="py-1">Categoría</th>
-                                            <th className="py-1">Matrículas</th>
-                                            <th className="py-1">%</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                                        {data.category_distribution.map((c) => {
-                                            const pct =
-                                                totalCategoryEnrollments > 0
-                                                    ? (c.enrollments_count /
-                                                          totalCategoryEnrollments) *
-                                                      100
-                                                    : 0;
-                                            return (
-                                                <tr key={c.category}>
-                                                    <td className="py-1.5 text-gray-900 dark:text-slate-100">
-                                                        {c.category}
-                                                    </td>
-                                                    <td className="py-1.5 text-gray-700 dark:text-slate-300">
-                                                        {c.enrollments_count}
-                                                    </td>
-                                                    <td className="py-1.5 text-gray-500 dark:text-slate-400">
-                                                        {pct.toFixed(1)}%
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            )}
+                            <div className="mt-4">
+                                <DistributionBarChart data={categoryChartData} height={180} />
+                            </div>
                         </div>
 
                         <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
@@ -244,12 +271,10 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                 Lecciones completadas por día (últimos 30).
                             </p>
                             <div className="mt-4">
-                                <MiniBarChart
+                                <ActivityBarChart
                                     height={140}
+                                    hideXLabels
                                     data={data.last_30_days.map((d) => ({
-                                        // 30 columns is too many for visible
-                                        // labels; only render every 5th day to
-                                        // keep the strip readable.
                                         label: "",
                                         value: d.lessons_completed,
                                         title: `${DAY_FORMATTER.format(new Date(d.date))}: ${d.lessons_completed} completadas`,
@@ -275,6 +300,51 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                             : ""}
                                     </span>
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Plataforma + dificultad */}
+                    <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                                Matrículas por plataforma
+                            </h2>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                Comparativa entre Coursera, Future Learn, Udacity y otras fuentes.
+                            </p>
+                            <div className="mt-2">
+                                <DistributionPieChart data={siteChartData} />
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                                Matrículas por dificultad
+                            </h2>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                Reparto según el nivel del curso matriculado.
+                            </p>
+                            <div className="mt-4">
+                                <DistributionBarChart
+                                    data={difficultyChartData}
+                                    height={180}
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Cohortes */}
+                    <section className="mt-8">
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                                Cohortes de matriculación
+                            </h2>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                Progreso colectivo y volumen de matrículas por mes (últimos 12 meses).
+                            </p>
+                            <div className="mt-4">
+                                <CohortComparisonChart data={cohortChartData} height={220} />
                             </div>
                         </div>
                     </section>

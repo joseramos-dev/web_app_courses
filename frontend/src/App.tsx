@@ -9,6 +9,7 @@ import { useAuth } from "./shared/povider/AuthContext";
 import { AdminPanel } from "./features/admin_panel/AdminPanel";
 import { CourseDetail } from "./features/course_detail/CourseDetail";
 import { CourseEdit } from "./features/course_edit/CourseEdit";
+import { CourseStudents } from "./features/course_students/CourseStudents";
 import { LessonNew } from "./features/course_edit/LessonNew";
 import { Dashboard } from "./features/dashboard/Dashboard";
 import { Lesson } from "./features/lesson/Lesson";
@@ -16,6 +17,7 @@ import { Settings } from "./features/settings/Settings";
 import { AuthModalProvider } from "./shared/context/AuthModalContext";
 import { RequireAdmin, RequireAuth, RequireStaff } from "./shared/components/RouteGuards";
 import { Footer } from "./shared/components/Footer";
+import { LandingPage } from "./features/landing/LandingPage";
 
 export const App = () => {
     const [authType, setAuthType] = useState<AuthType | null>(null);
@@ -49,7 +51,7 @@ export const App = () => {
                 ) : null}
                 <main className="flex w-full flex-1 flex-col">
                     <Routes>
-                        <Route path="/" element={<Navigate to="/courses" replace />} />
+                        <Route path="/" element={<LandingPage />} />
                         <Route path="/courses" element={<Courses />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/profile" element={<Navigate to="/settings" replace />} />
@@ -87,6 +89,14 @@ export const App = () => {
                             }
                         />
                         <Route
+                            path="/course/:courseId/students"
+                            element={
+                                <RequireStaff>
+                                    <CourseStudents />
+                                </RequireStaff>
+                            }
+                        />
+                        <Route
                             path="/course/:courseId/edit"
                             element={
                                 <RequireStaff>
@@ -102,7 +112,7 @@ export const App = () => {
                                 </RequireAuth>
                             }
                         />
-                        <Route path="*" element={<Navigate to="/courses" replace />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </main>
                 <Footer />

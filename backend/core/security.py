@@ -18,6 +18,7 @@ EXP_TOKEN = int(os.getenv("EXP_TOKEN", "30"))
 pwd_context = CryptContext(schemes=["bcrypt"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 def hash_password(password: str):

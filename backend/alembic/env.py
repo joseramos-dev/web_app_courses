@@ -11,11 +11,12 @@ import os
 from core.database import Base
 from modules.courses.model import CourseModel
 from modules.users.model import UserModel
-from modules.lessons.model import LessonModel, QuestionModel, AnswerOptionModel
+from modules.lessons.model import LessonModel, QuestionModel, AnswerOptionModel, LessonFileModel
 from modules.enrollments.model import EnrollmentModel
-from modules.progress.model import LessonProgressModel, StudyActivityModel
+from modules.progress.model import LessonProgressModel, StudyActivityModel, LessonAttemptModel, LessonSubmissionModel
 from modules.course_ratings.model import CourseRatingModel
 from modules.recommendations.model import RecommendationModel
+from modules.auth.model import RefreshTokenModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -26,6 +26,9 @@ export const ButtonsNavBar = (
         <>
             {/* Left Navigation - Desktop Only */}
             <nav className="hidden md:flex items-center gap-2 shrink-0">
+                <NavLink to="/" end className={navLink}>
+                    Inicio
+                </NavLink>
                 <NavLink to="/courses" className={navLink}>
                     Courses
                 </NavLink>

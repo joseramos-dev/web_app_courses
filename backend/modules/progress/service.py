@@ -13,6 +13,7 @@ from modules.lessons.model import (
 )
 from modules.lessons.schema import LessonAnswerSchema
 from modules.progress.model import (
+    LessonAttemptModel,
     LessonProgressModel,
     LessonProgressStatus,
     StudyActivityModel,
@@ -222,9 +223,18 @@ def complete_lesson(
     score: Optional[float] = None
     if lesson.lesson_type in (LessonType.TEST, LessonType.MULTIPLE_SELECTION):
         score = _grade_test(db, lesson, answers or [])
+        passed = score >= PASSING_SCORE
         lp.attempts = (lp.attempts or 0) + 1
         lp.best_score = max(lp.best_score or 0.0, score)
-        passed = score >= PASSING_SCORE
+        db.add(
+            LessonAttemptModel(
+                enrollment_id=enrollment.id,
+                lesson_id=lesson_id,
+                score=score,
+                passed=passed,
+                attempted_at=now,
+            )
+        )
     else:
         passed = True
 

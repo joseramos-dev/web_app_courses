@@ -7,7 +7,13 @@ import { API_getCourseDetailById } from "../course_detail/api";
 import type { ILesson, ILessonCreate, LessonType } from "./lessonTypes";
 import { API_createLesson, API_getLessonsByCourse } from "./api";
 
-const lessonTypes: LessonType[] = ["text", "video", "test", "multiple_selection"];
+const lessonTypes: LessonType[] = [
+  "text",
+  "video",
+  "test",
+  "multiple_selection",
+  "assignment",
+];
 
 export function LessonNew() {
   const { courseId: courseIdParam } = useParams();
@@ -26,6 +32,9 @@ export function LessonNew() {
   const [lessonType, setLessonType] = useState<LessonType>("text");
   const [body, setBody] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [maxScore, setMaxScore] = useState("100");
+  const [passingScore, setPassingScore] = useState("70");
+  const [allowsFileSubmission, setAllowsFileSubmission] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -85,6 +94,7 @@ export function LessonNew() {
 
   const isQuiz =
     lessonType === "test" || lessonType === "multiple_selection";
+  const isAssignment = lessonType === "assignment";
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -92,8 +102,12 @@ export function LessonNew() {
       title: lessonTitle.trim(),
       lesson_type: lessonType,
       position: nextPosition,
-      body: lessonType === "text" ? body : null,
+      body:
+        lessonType === "text" || lessonType === "assignment" ? body : null,
       video_url: lessonType === "video" ? videoUrl.trim() || null : null,
+      max_score: isAssignment ? Number(maxScore) || 100 : null,
+      passing_score: isAssignment ? Number(passingScore) || 70 : null,
+      allows_file_submission: isAssignment ? allowsFileSubmission : false,
     };
     try {
       setSubmitting(true);
@@ -202,6 +216,58 @@ export function LessonNew() {
                 className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
               />
             </label>
+          )}
+
+          {isAssignment && (
+            <>
+              <label className="flex flex-col gap-2 sm:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                  Enunciado
+                </div>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  rows={8}
+                  placeholder="Instrucciones de la tarea para el alumno…"
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                  Puntuación máxima
+                </div>
+                <input
+                  type="number"
+                  min={1}
+                  value={maxScore}
+                  onChange={(e) => setMaxScore(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                  Nota mínima para aprobar
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  value={passingScore}
+                  onChange={(e) => setPassingScore(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                />
+              </label>
+              <label className="flex items-center gap-2 sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={allowsFileSubmission}
+                  onChange={(e) => setAllowsFileSubmission(e.target.checked)}
+                  className="size-4 rounded border-gray-300 dark:border-slate-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-slate-200">
+                  Permitir adjuntar archivo
+                </span>
+              </label>
+            </>
           )}
 
           {lessonType === "video" && (

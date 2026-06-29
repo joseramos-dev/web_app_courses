@@ -5,7 +5,7 @@ import type {
     IRecommendationPreferencesUpdate,
 } from "../../shared/interfaces/IRecommendation";
 import type { IPaginatedCourses } from "./IQueryCourses";
-import type { CategoryTypes, CourseTypeTypes, LanguageTypes, SiteTypes } from "../../shared/types/CourseTypes";
+import type { CategoryTypes, CourseTypeTypes, DifficultyTypes, DurationBucketTypes, LanguageTypes, SiteTypes } from "../../shared/types/CourseTypes";
 import {
     sortByToApiParam,
     type sort_by_api_types,
@@ -23,6 +23,8 @@ export const get_courses = async (
         category?: CategoryTypes[];
         language?: LanguageTypes[];
         course_type?: CourseTypeTypes[];
+        duration_bucket?: DurationBucketTypes[];
+        difficulty?: DifficultyTypes[];
         sort_by?: sort_by_types;
         order?: sort_by_dir;
     }

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
     BookOpen,
     GraduationCap,
+    Plus,
     TrendingUp,
     Users,
 } from "lucide-react";
@@ -10,7 +11,7 @@ import type { IUser } from "../../shared/interfaces/IUser";
 import type { IInstructorDashboard } from "../../shared/interfaces/IDashboard";
 import { API_getInstructorDashboard } from "./api";
 import { StatCard } from "./components/StatCard";
-import { ProgressBar } from "./components/ProgressBar";
+import { CourseProgressChart } from "../../shared/components/charts/CourseProgressChart";
 import { formatRelativeTime } from "./components/formatRelativeTime";
 
 export const InstructorDashboard = ({ user }: { user: IUser }) => {
@@ -100,8 +101,9 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                             <div className="flex flex-wrap items-center gap-3">
                                 <Link
                                     to="/course/new"
-                                    className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-uned-primary px-4 py-2.5 text-sm font-semibold text-white shadow-md ring-2 ring-uned-primary/30 transition hover:bg-uned-primary-hover hover:shadow-lg dark:text-slate-900 dark:ring-uned-primary/40"
                                 >
+                                    <Plus className="size-4" aria-hidden />
                                     Crear curso
                                 </Link>
                                 <Link
@@ -130,6 +132,12 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                             Completados
                                         </th>
                                         <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                            Finalización
+                                        </th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                            Valoración
+                                        </th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
                                             Última actividad
                                         </th>
                                     </tr>
@@ -138,7 +146,7 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                     {data.courses.length === 0 ? (
                                         <tr>
                                             <td
-                                                colSpan={5}
+                                                colSpan={7}
                                                 className="px-4 py-8 text-center text-sm text-gray-500 dark:text-slate-400"
                                             >
                                                 Aún no tienes cursos. Puedes crear uno con
@@ -164,7 +172,7 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
                                                     <div className="w-32">
-                                                        <ProgressBar
+                                                        <CourseProgressChart
                                                             value={row.avg_progress_percent}
                                                             rightLabel={`${Math.round(row.avg_progress_percent)}%`}
                                                         />
@@ -172,6 +180,14 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
                                                     {row.completed_students}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
+                                                    {Math.round(row.completion_rate * 100)}%
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
+                                                    {row.avg_rating != null
+                                                        ? row.avg_rating.toFixed(1)
+                                                        : "—"}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
                                                     {formatRelativeTime(row.last_activity_at)}

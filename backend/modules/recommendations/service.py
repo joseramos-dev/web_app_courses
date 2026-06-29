@@ -1,74 +1,30 @@
-from typing import List, Set
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from modules.courses.model import Category, CourseModel, CourseType, Language, Site
-from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
+from modules.recommendations.aux_collaborative import (
+    MIN_ENROLLMENTS_FOR_COLLABORATIVE,
+    count_active_enrollments,
+    recommend_courses_collaborative,
+)
+from modules.recommendations.aux_content_based import (
+    build_hybrid_recommendations,
+    enrolled_course_ids,
+    fetch_candidate_courses,
+    has_any_preferences,
+    parse_profile_preferences,
+    score_courses_hybrid,
+)
+from modules.recommendations.aux_history_based import (
+    build_history_profile,
+    fetch_completed_courses,
+    fetch_completed_with_ratings,
+)
 from modules.recommendations.model import RecommendationModel
 from modules.recommendations.schema import (
-    CourseRecommendationSchema,
     ListCourseRecommendationsSchema,
-    RecommendationSourceType,
     RecommendationUpdateSchema,
 )
 from modules.users.model import UserModel
-
-_MAX_PREFERENCE_SCORE = 4
-
-
-def _enum_values(values: list | None, enum_cls) -> Set:
-    if not values:
-        return set()
-    return {v if isinstance(v, enum_cls) else enum_cls(v) for v in values}
-
-
-def _has_any_preferences(
-    sites: Set[Site],
-    categories: Set[Category],
-    languages: Set[Language],
-    course_types: Set[CourseType],
-) -> bool:
-    return bool(sites or categories or languages or course_types)
-
-
-def _score_course(
-    course: CourseModel,
-    sites: Set[Site],
-    categories: Set[Category],
-    languages: Set[Language],
-    course_types: Set[CourseType],
-) -> int:
-    score = 0
-    if course.site in sites:
-        score += 1
-    if course.category in categories:
-        score += 1
-    if course.language in languages:
-        score += 1
-    if course.course_type in course_types:
-        score += 1
-    return score
-
-
-def _recommendation_percent(score: int) -> float:
-    if score <= 0:
-        return 0.0
-    return round((score / _MAX_PREFERENCE_SCORE) * 100, 1)
-
-
-def _enrolled_course_ids(db: Session, user_id: int) -> Set[int]:
-    rows = (
-        db.query(EnrollmentModel.course_id)
-        .filter(
-            EnrollmentModel.user_id == user_id,
-            EnrollmentModel.status.in_(
-                [EnrollmentStatus.IN_PROGRESS, EnrollmentStatus.COMPLETED]
-            ),
-        )
-        .all()
-    )
-    return {row[0] for row in rows}
 
 
 def create_default_recommendation(db: Session, user_id: int) -> RecommendationModel:
@@ -86,6 +42,8 @@ def create_default_recommendation(db: Session, user_id: int) -> RecommendationMo
         preferred_categories=[],
         preferred_languages=[],
         preferred_course_types=[],
+        preferred_duration_buckets=[],
+        preferred_difficulties=[],
     )
     db.add(row)
     db.flush()
@@ -132,57 +90,67 @@ def update_preferences(
         ) from e
 
 
-#TODO: IMPLEMENTAR FILTRO COLABORATIVO
-#TODO: IMPLEMENTAR CON REDIS CACHE DE RECOMENDACIONES
-def recommend_courses(
+# TODO: IMPLEMENTAR CON REDIS CACHE DE RECOMENDACIONES
+def recommend_courses_content_based(
     db: Session, user_id: int, limit: int
 ) -> ListCourseRecommendationsSchema:
     profile = get_or_create_recommendation(db, user_id)
-    excluded = _enrolled_course_ids(db, user_id)
+    (
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+    ) = parse_profile_preferences(profile)
 
-    sites = _enum_values(profile.preferred_sites, Site)
-    categories = _enum_values(profile.preferred_categories, Category)
-    languages = _enum_values(profile.preferred_languages, Language)
-    course_types = _enum_values(profile.preferred_course_types, CourseType)
+    completed_courses = fetch_completed_courses(db, user_id)
+    history_profile = build_history_profile(completed_courses)
+    completed_with_ratings = fetch_completed_with_ratings(db, user_id)
 
-    has_preferences = _has_any_preferences(sites, categories, languages, course_types)
-    if not has_preferences:
+    if not has_any_preferences(
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+    ) and not completed_courses:
         return ListCourseRecommendationsSchema(recommendations=[])
 
-    query = db.query(CourseModel)
-    if excluded:
-        query = query.filter(CourseModel.id.notin_(excluded))
-    courses = query.all()
+    excluded = enrolled_course_ids(db, user_id)
+    courses = fetch_candidate_courses(db, excluded)
+    scored = score_courses_hybrid(
+        courses,
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+        history_profile,
+        completed_with_ratings,
+    )
 
-    scored: List[tuple[int, float, int]] = []
-    for course in courses:
-        score = _score_course(course, sites, categories, languages, course_types)
-        if score == 0:
-            continue
-        rating = float(course.rating) if course.rating is not None else 0.0
-        scored.append((score, rating, course.id))
+    if not scored:
+        return ListCourseRecommendationsSchema(recommendations=[])
 
-    scored.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    scored.sort(key=lambda item: (-item[0], -item[2], item[3]))
     top = scored[:limit]
 
-    if not top:
-        return ListCourseRecommendationsSchema(recommendations=[])
-
-    top_ids = [course_id for _, _, course_id in top]
-    course_rows = db.query(CourseModel).filter(CourseModel.id.in_(top_ids)).all()
-    course_by_id = {course.id: course for course in course_rows}
-
-    recommendations: List[CourseRecommendationSchema] = []
-    for score, rating, course_id in top:
-        course = course_by_id.get(course_id)
-        if course is None:
-            continue
-        recommendations.append(
-            CourseRecommendationSchema(
-                course=course,
-                recommendation_percent=_recommendation_percent(score),
-                source_type=RecommendationSourceType.PREFERENCES,
-            )
-        )
-
+    recommendations = build_hybrid_recommendations(db, top)
     return ListCourseRecommendationsSchema(recommendations=recommendations)
+
+
+def recommend_courses(
+    db: Session, user_id: int, limit: int
+) -> ListCourseRecommendationsSchema:
+    active_count = count_active_enrollments(db, user_id)
+    if active_count < MIN_ENROLLMENTS_FOR_COLLABORATIVE:
+        return recommend_courses_content_based(db, user_id, limit)
+
+    collaborative = recommend_courses_collaborative(db, user_id, limit)
+    if collaborative.recommendations:
+        return collaborative
+
+    return recommend_courses_content_based(db, user_id, limit)

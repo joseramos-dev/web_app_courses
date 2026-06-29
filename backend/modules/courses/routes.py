@@ -4,14 +4,22 @@ from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 from core.dependencies import PaginationParams, get_pagination, require_role, sort_map_column
 from core.database import get_db
+from core.config import ENABLE_DEV_ROUTES
 from modules.courses.schema import (
     CourseSchema,
     CoursePaginatedSchema,
     CourseUpdateSchema,
     CourseCreateSchema,
 )
-from modules.courses.service import populate_courses, get_course_detail, update_course, create_course
-from modules.courses.model import CourseModel, Site, Category, Language, CourseType
+from modules.courses.service import (
+    populate_courses,
+    get_course_detail,
+    update_course,
+    create_course,
+    delete_course,
+)
+from modules.courses.model import CourseModel, Site, Category, Language, CourseType, DurationBucket, Difficulty
+from modules.courses.duration_utils import duration_bucket_filter
 from modules.auth.service import get_current_user
 from modules.lessons.schema import LessonSchema, LessonsReorderSchema
 from modules.lessons.service import get_lessons_by_course, reorder_lessons
@@ -21,6 +29,26 @@ from modules.enrollments.service import get_enrollment
 from modules.course_ratings.model import CourseRatingModel
 from modules.course_ratings.schema import CourseRatingSchema, CourseRatingUpsertSchema
 from modules.course_ratings.service import upsert_course_rating
+from modules.courses.instructor_schema import (
+    InstructorCourseStudentsSchema,
+    InstructorStudentDetailSchema,
+)
+from modules.courses.instructor_service import (
+    assert_can_manage_course,
+    get_student_detail,
+    list_course_students,
+)
+from modules.progress.model import SubmissionStatus
+from modules.progress.submission_schema import (
+    GradeSubmissionResultSchema,
+    GradeSubmissionSchema,
+    SubmissionListSchema,
+    SubmissionSchema,
+)
+from modules.progress.submission_service import (
+    grade_submission,
+    list_course_submissions,
+)
 
 
 def _resolve_create_instructor_id(
@@ -64,6 +92,8 @@ def get_courses(
     category: Optional[List[Category]] = Query(None),
     language: Optional[List[Language]] = Query(None),
     course_type: Optional[List[CourseType]] = Query(None),
+    duration_bucket: Optional[List[DurationBucket]] = Query(None),
+    difficulty: Optional[List[Difficulty]] = Query(None),
 ):
     """
     Get all courses from database with support for multiple filter values
@@ -79,6 +109,10 @@ def get_courses(
         query = query.filter(CourseModel.site.in_(site))
     if course_type:
         query = query.filter(CourseModel.course_type.in_(course_type))
+    if duration_bucket:
+        query = duration_bucket_filter(query, duration_bucket)
+    if difficulty:
+        query = query.filter(CourseModel.difficulty.in_(difficulty))
     total = query.count()
     sort_column = sort_map_column(pag.sort_by)
     if pag.order == "asc":
@@ -171,6 +205,84 @@ def get_my_course_rating(
     return row
 
 
+@courses_router.get(
+    "/{course_id}/instructor/enrollments",
+    response_model=InstructorCourseStudentsSchema,
+    status_code=status.HTTP_200_OK,
+)
+def list_instructor_course_enrollments(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    user=Depends(get_current_user),
+):
+    """List enrolled students and course-level progress stats for the instructor."""
+    assert_can_manage_course(db, course_id, user)
+    return list_course_students(db, course_id)
+
+
+@courses_router.get(
+    "/{course_id}/instructor/enrollments/{user_id}",
+    response_model=InstructorStudentDetailSchema,
+    status_code=status.HTTP_200_OK,
+)
+def get_instructor_student_detail(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    user_id: int,
+    user=Depends(get_current_user),
+):
+    """Per-lesson progress for one student in a course (instructor or admin)."""
+    assert_can_manage_course(db, course_id, user)
+    return get_student_detail(db, course_id, user_id)
+
+
+@courses_router.get(
+    "/{course_id}/submissions",
+    response_model=SubmissionListSchema,
+    status_code=status.HTTP_200_OK,
+)
+def list_course_assignment_submissions(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    status_filter: Optional[SubmissionStatus] = Query(
+        None, alias="status", description="Filter by submission status"
+    ),
+    user=Depends(get_current_user),
+):
+    """List assignment submissions for a course (instructor or admin)."""
+    submissions = list_course_submissions(db, course_id, user, status_filter)
+    return SubmissionListSchema(submissions=submissions)
+
+
+@courses_router.patch(
+    "/{course_id}/submissions/{submission_id}/grade",
+    response_model=GradeSubmissionResultSchema,
+    status_code=status.HTTP_200_OK,
+)
+def grade_course_submission(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    submission_id: int,
+    payload: GradeSubmissionSchema,
+    user=Depends(get_current_user),
+):
+    """Grade or return an assignment submission (instructor or admin)."""
+    submission, lesson_completed = grade_submission(
+        db,
+        user.id,
+        course_id,
+        user,
+        submission_id,
+        payload.score,
+        payload.feedback,
+        payload.returned,
+    )
+    return GradeSubmissionResultSchema(
+        submission=submission,
+        lesson_completed=lesson_completed,
+    )
+
+
 @courses_router.get("/{course_id}", response_model=CourseSchema, status_code=status.HTTP_200_OK)
 def get_course_detail_by_id(
     db: Annotated[Session, Depends(get_db)],
@@ -224,6 +336,29 @@ def update_course_by_id(
     return update_course(db, course_id, payload)
 
 
+@courses_router.delete(
+    "/{course_id}",
+    status_code=status.HTTP_200_OK,
+)
+def delete_course_by_id(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    user=Depends(get_current_user),
+):
+    """
+    Delete a course and all dependent rows (lessons, enrollments, ratings, …)
+    via database ON DELETE CASCADE.
+    Allowed: admin OR instructor-owner (user.id == course.instructor_id).
+    """
+    course = get_course_detail(db, course_id)
+    if user.role != "admin" and (
+        course.instructor_id is None or user.id != course.instructor_id
+    ):
+        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+    delete_course(db, course_id)
+    return {"detail": "Course deleted"}
+
+
 @courses_router.get(
     "/{course_id}/lessons",
     response_model=list[LessonSchema],
@@ -263,13 +398,12 @@ def reorder_course_lessons(
         raise HTTPException(status_code=400, detail="Invalid lesson ids for reorder")
     return reordered
 
-# TODO: ONLY DURING DEVELOPMENT
-@courses_router.post("/populate_courses", status_code=status.HTTP_200_OK)
-def initiate_courses_db(
-    db: Annotated[Session, Depends(get_db)],
-    user = Depends(require_role(["admin"]))
+if ENABLE_DEV_ROUTES:
+
+    @courses_router.post("/populate_courses", status_code=status.HTTP_200_OK)
+    def initiate_courses_db(
+        db: Annotated[Session, Depends(get_db)],
+        user=Depends(require_role(["admin"])),
     ):
-    """
-    Populate courses from database
-    """
-    populate_courses(db)
+        """Development only: import courses from Kaggle CSV."""
+        populate_courses(db)

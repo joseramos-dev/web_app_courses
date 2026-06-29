@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from core.database import get_db
@@ -11,6 +12,7 @@ from modules.lessons.schema import (
     QuestionAdminSchema,
     QuestionCreateSchema,
     QuestionUpdateSchema,
+    LessonFileSchema,
 )
 from modules.lessons.service import (
     get_lessons as get_lessons_service,
@@ -24,6 +26,7 @@ from modules.lessons.service import (
     update_question as update_question_service,
     delete_question as delete_question_service,
 )
+from modules.lessons import file_service
 from modules.auth.service import get_current_user
 from modules.courses.service import get_course_detail
 from modules.lessons.model import LessonModel
@@ -156,6 +159,90 @@ def reorder_course_lessons(
     if reordered is None:
         raise HTTPException(status_code=400, detail="Invalid lesson ids for reorder")
     return reordered
+
+
+# ---------- Lesson files ----------
+
+@lessons_router.post(
+    "/{lesson_id}/files",
+    response_model=LessonFileSchema,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_lesson_file(
+    lesson_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
+    file: UploadFile = File(...),
+):
+    lesson = _require_lesson(db, lesson_id)
+    return await file_service.save_lesson_file(db, lesson, user, file)
+
+
+@lessons_router.post(
+    "/{lesson_id}/submission-files",
+    response_model=LessonFileSchema,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_assignment_submission_file(
+    lesson_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
+    file: UploadFile = File(...),
+):
+    """Student upload for assignment submissions (enrolled users only)."""
+    lesson = _require_lesson(db, lesson_id)
+    return await file_service.save_submission_file(db, lesson, user, file)
+
+
+@lessons_router.get(
+    "/{lesson_id}/files",
+    response_model=List[LessonFileSchema],
+    status_code=status.HTTP_200_OK,
+)
+def list_lesson_files(
+    lesson_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
+):
+    lesson = _require_lesson(db, lesson_id)
+    file_service.require_course_access(db, user, lesson)
+    return file_service.list_lesson_files(db, lesson_id)
+
+
+@lessons_router.get(
+    "/files/{file_id}/download",
+    status_code=status.HTTP_200_OK,
+)
+def download_lesson_file(
+    file_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
+):
+    file_record = file_service.get_file_by_id(db, file_id)
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File not found")
+    path = file_service.get_download_path(db, file_record, user)
+    return FileResponse(
+        path,
+        media_type=file_record.mime_type,
+        filename=file_record.original_filename,
+    )
+
+
+@lessons_router.delete(
+    "/files/{file_id}",
+    status_code=status.HTTP_200_OK,
+)
+def remove_lesson_file(
+    file_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
+):
+    file_record = file_service.get_file_by_id(db, file_id)
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File not found")
+    file_service.delete_lesson_file(db, file_record, user)
+    return {"detail": "File deleted"}
 
 
 # ---------- Questions ----------

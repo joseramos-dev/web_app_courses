@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 from datetime import datetime
-from modules.courses.model import Site, Category, Language, CourseType
+from modules.courses.model import Site, Category, Language, CourseType, Difficulty, DurationBucket
+from modules.courses.duration_utils import duration_bucket as compute_duration_bucket
 from typing import Optional, List
 
 class CourseSchema(BaseModel):
@@ -17,12 +18,18 @@ class CourseSchema(BaseModel):
     intro: Optional[str] = None
     rating: Optional[float] = None
     duration_seconds: Optional[int] = None
+    difficulty: Difficulty
     created_at: datetime
     updated_at: datetime
     instructor_id: Optional[int] = None
     instructor_name: Optional[str] = None
     lessons_count: int = 0
     ratings_count: int = 0
+
+    @computed_field
+    @property
+    def duration_bucket(self) -> Optional[DurationBucket]:
+        return compute_duration_bucket(self.duration_seconds)
 
 
 class CourseUpdateSchema(BaseModel):
@@ -37,6 +44,7 @@ class CourseUpdateSchema(BaseModel):
     subcategory: Optional[str] = None
     intro: Optional[str] = None
     duration_seconds: Optional[int] = None
+    difficulty: Optional[Difficulty] = None
     instructor_id: Optional[int] = None
 
 class CourseCreateSchema(BaseModel):
@@ -51,6 +59,7 @@ class CourseCreateSchema(BaseModel):
     subcategory: Optional[str] = None
     intro: Optional[str] = None
     duration_seconds: Optional[int] = None
+    difficulty: Difficulty = Difficulty.INTERMEDIATE
     instructor_id: Optional[int] = None
 
 class CoursePaginatedSchema(BaseModel):

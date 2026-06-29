@@ -1,4 +1,5 @@
 import type { ICourses } from "../../../shared/interfaces/ICourses";
+import { difficultyLabels, durationBucketLabels } from "../../../shared/types/CourseTypes";
 
 function formatDuration(durationSeconds: number | null) {
   if (!durationSeconds || durationSeconds <= 0) return "—";
@@ -69,7 +70,23 @@ export function DetailInfo({ course }: { course: ICourses }) {
             )
           }
         />
-        <InfoRow label="Duration" value={formatDuration(course.duration_seconds)} />
+        <InfoRow
+          label="Duración"
+          value={
+            <span className="inline-flex flex-wrap items-center justify-end gap-2">
+              <span>{formatDuration(course.duration_seconds)}</span>
+              {course.duration_bucket ? (
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+                  {durationBucketLabels[course.duration_bucket]}
+                </span>
+              ) : null}
+            </span>
+          }
+        />
+        <InfoRow
+          label="Dificultad"
+          value={difficultyLabels[course.difficulty]}
+        />
         <InfoRow
           label="Site"
           value={

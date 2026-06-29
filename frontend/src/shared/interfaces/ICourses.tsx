@@ -1,4 +1,4 @@
-import type { CategoryTypes, CourseTypeTypes, LanguageTypes, SiteTypes } from "../types/CourseTypes";
+import type { CategoryTypes, CourseTypeTypes, DifficultyTypes, DurationBucketTypes, LanguageTypes, SiteTypes } from "../types/CourseTypes";
 
 export interface ICourses {
     id: number;
@@ -13,6 +13,8 @@ export interface ICourses {
     rating: number | null;
     ratings_count: number;
     duration_seconds: number | null;
+    duration_bucket?: DurationBucketTypes | null;
+    difficulty: DifficultyTypes;
     created_at: string;
     updated_at: string;
     instructor_id: number | null;

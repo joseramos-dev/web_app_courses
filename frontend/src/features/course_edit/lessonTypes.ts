@@ -1,4 +1,9 @@
-export type LessonType = "text" | "video" | "test" | "multiple_selection";
+export type LessonType =
+  | "text"
+  | "video"
+  | "test"
+  | "multiple_selection"
+  | "assignment";
 
 export interface ILesson {
   id: number;
@@ -8,6 +13,9 @@ export interface ILesson {
   position: number;
   body?: string | null;
   video_url?: string | null;
+  max_score?: number | null;
+  passing_score?: number | null;
+  allows_file_submission?: boolean;
   /** API field name from backend */
   create_at?: string;
   update_at?: string;
@@ -21,6 +29,19 @@ export interface ILessonCreate {
   position: number;
   body?: string | null;
   video_url?: string | null;
+  max_score?: number | null;
+  passing_score?: number | null;
+  allows_file_submission?: boolean;
+}
+
+export interface ILessonFile {
+  id: number;
+  lesson_id: number;
+  original_filename: string;
+  mime_type: string;
+  size_bytes: number;
+  uploaded_by: number;
+  uploaded_at: string;
 }
 
 // ---------- Questions / answer options ----------

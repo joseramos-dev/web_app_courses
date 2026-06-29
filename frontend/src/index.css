@@ -17,6 +17,7 @@
   --uned-primary-hover: #166534;
   --uned-accent: #16a34a;
   --uned-accent-hover: #15803d;
+  --chart-track: #e5e7eb;
   --font-sans-stack: Arial, Helvetica, sans-serif;
   --font-display-stack: "Titillium Web", Arial, Helvetica, sans-serif;
 }
@@ -31,6 +32,7 @@
   --uned-primary-hover: #86efac;
   --uned-accent: #22c55e;
   --uned-accent-hover: #4ade80;
+  --chart-track: #475569;
 }
 
 @theme inline {

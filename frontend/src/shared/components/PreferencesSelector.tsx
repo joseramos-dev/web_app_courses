@@ -2,8 +2,12 @@ import { FilterDropDown } from "../../features/courses/components/FilterDropDown
 import type { IRecommendationPreferencesUpdate } from "../interfaces/IRecommendation";
 import {
     courseTypesDict,
+    difficultyLabels,
+    durationBucketShortLabels,
     type CategoryTypes,
     type CourseTypeTypes,
+    type DifficultyTypes,
+    type DurationBucketTypes,
     type LanguageTypes,
     type SiteTypes,
 } from "../types/CourseTypes";
@@ -19,7 +23,13 @@ function pickAllowed<T extends string>(values: string[], allowed: readonly strin
     return values.filter((v): v is T => allowed.includes(v));
 }
 
-const FIELDS = [
+const FIELDS: ReadonlyArray<{
+    key: keyof IRecommendationPreferencesUpdate;
+    label: string;
+    placeholder: string;
+    options: readonly string[];
+    optionLabels?: Record<string, string>;
+}> = [
     {
         key: "preferred_sites" as const,
         label: "Plataforma",
@@ -44,7 +54,21 @@ const FIELDS = [
         placeholder: "Elige tipos de curso…",
         options: courseTypesDict.CourseTypeTypes,
     },
-] as const;
+    {
+        key: "preferred_duration_buckets" as const,
+        label: "Duración preferida",
+        placeholder: "Elige duraciones…",
+        options: courseTypesDict.DurationBucketTypes,
+        optionLabels: durationBucketShortLabels,
+    },
+    {
+        key: "preferred_difficulties" as const,
+        label: "Dificultad preferida",
+        placeholder: "Elige niveles…",
+        options: courseTypesDict.DifficultyTypes,
+        optionLabels: difficultyLabels,
+    },
+];
 
 export function PreferencesSelector({
     value,
@@ -60,7 +84,13 @@ export function PreferencesSelector({
     ) => {
         if (disabled) return;
 
-        let typed: SiteTypes[] | CategoryTypes[] | LanguageTypes[] | CourseTypeTypes[];
+        let typed:
+            | SiteTypes[]
+            | CategoryTypes[]
+            | LanguageTypes[]
+            | CourseTypeTypes[]
+            | DurationBucketTypes[]
+            | DifficultyTypes[];
         switch (key) {
             case "preferred_sites":
                 typed = pickAllowed<SiteTypes>(selected, allowed);
@@ -74,20 +104,29 @@ export function PreferencesSelector({
             case "preferred_course_types":
                 typed = pickAllowed<CourseTypeTypes>(selected, allowed);
                 break;
+            case "preferred_duration_buckets":
+                typed = pickAllowed<DurationBucketTypes>(selected, allowed);
+                break;
+            case "preferred_difficulties":
+                typed = pickAllowed<DifficultyTypes>(selected, allowed);
+                break;
+            default:
+                return;
         }
 
         onChange({ ...value, [key]: typed });
     };
 
     return (
-        <div className="flex flex-col gap-4">
-            {FIELDS.map(({ key, label, placeholder, options }) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {FIELDS.map(({ key, label, placeholder, options, optionLabels }) => (
                 <div key={key}>
                     <span className={labelCn}>{label}</span>
                     <div className={`mt-2 ${disabled ? "pointer-events-none opacity-60" : ""}`}>
                         <FilterDropDown
                             label={placeholder}
                             options={[...options]}
+                            optionLabels={optionLabels}
                             value={(value[key] as string[] | undefined) ?? []}
                             onChange={(selected) => updateField(key, selected, options)}
                         />
