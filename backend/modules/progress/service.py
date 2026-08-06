@@ -1,8 +1,10 @@
 from datetime import date, datetime, timezone
 from typing import List, Optional, Tuple
 
-from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+from core.i18n import http_error
 
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
 from modules.lessons.model import (
@@ -30,7 +32,7 @@ def _now() -> datetime:
 def _require_lesson(db: Session, lesson_id: int) -> LessonModel:
     lesson = db.query(LessonModel).filter(LessonModel.id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+        raise http_error(404, "lesson_not_found")
     return lesson
 
 
@@ -46,9 +48,7 @@ def _require_enrollment(
         .first()
     )
     if not enrollment:
-        raise HTTPException(
-            status_code=404, detail="You are not enrolled in this course"
-        )
+        raise http_error(404, "not_enrolled_in_course")
     return enrollment
 
 
@@ -70,8 +70,25 @@ def _get_or_create_lesson_progress(
         lesson_id=lesson_id,
         status=LessonProgressStatus.NOT_STARTED,
     )
-    db.add(lp)
-    db.flush()
+    try:
+        # Nested transaction (SAVEPOINT): if a concurrent request already
+        # created this row (e.g. two lesson-start requests fired right after
+        # enrolling), only this insert is rolled back, not the whole
+        # transaction, so we can fall back to the row it created.
+        with db.begin_nested():
+            db.add(lp)
+            db.flush()
+    except IntegrityError:
+        lp = (
+            db.query(LessonProgressModel)
+            .filter(
+                LessonProgressModel.enrollment_id == enrollment_id,
+                LessonProgressModel.lesson_id == lesson_id,
+            )
+            .first()
+        )
+        if lp is None:
+            raise
     return lp
 
 
@@ -100,7 +117,21 @@ def _bump_study_activity(
             lessons_started=0,
             lessons_completed=0,
         )
-        db.add(row)
+        try:
+            with db.begin_nested():
+                db.add(row)
+                db.flush()
+        except IntegrityError:
+            row = (
+                db.query(StudyActivityModel)
+                .filter(
+                    StudyActivityModel.user_id == user_id,
+                    StudyActivityModel.activity_date == today,
+                )
+                .first()
+            )
+            if row is None:
+                raise
     if started:
         row.lessons_started = (row.lessons_started or 0) + 1
     if completed:
@@ -113,6 +144,12 @@ def _bump_study_activity(
 def _recalc_enrollment_progress(
     db: Session, enrollment: EnrollmentModel
 ) -> None:
+    # The session has autoflush disabled, so the caller's pending change
+    # (e.g. marking `lp.status = COMPLETED` just before calling this) is not
+    # yet visible to the COUNT query below. Without this flush, the lesson
+    # that was just completed is excluded from its own recalculation, so a
+    # course could never reach 100% / COMPLETED.
+    db.flush()
     total_lessons = (
         db.query(LessonModel)
         .filter(LessonModel.course_id == enrollment.course_id)
@@ -152,7 +189,7 @@ def get_lesson_progress(
         .first()
     )
     if not lp:
-        raise HTTPException(status_code=404, detail="No progress for this lesson")
+        raise http_error(404, "no_progress_for_lesson")
     return lp
 
 

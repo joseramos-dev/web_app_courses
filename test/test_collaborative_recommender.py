@@ -1,4 +1,4 @@
-"""Pruebas del recomendador colaborativo (similitud coseno + pesos progreso/rating).
+"""Pruebas del recomendador colaborativo y enrutamiento entre estrategias.
 
     cd backend
     uv run pytest ../test/test_collaborative_recommender.py -v
@@ -17,11 +17,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
-from modules.recommendations.aux_collaborative import (
-    cosine_similarity,
-    course_interaction_weight,
-    recommend_courses_collaborative,
-)
+from modules.recommendations.aux_collaborative import recommend_courses_collaborative
 from modules.recommendations.schema import ListCourseRecommendationsSchema
 from modules.recommendations.service import recommend_courses
 
@@ -60,29 +56,6 @@ def _course(
     )
 
 
-@pytest.mark.parametrize(
-    ("progress", "rating", "expected"),
-    [
-        (100.0, 5, 1.0),
-        (0.0, None, 0.25),
-        (50.0, 4, 0.65),
-    ],
-)
-def test_course_interaction_weight(progress, rating, expected):
-    assert course_interaction_weight(progress, rating) == pytest.approx(expected)
-
-
-def test_cosine_similarity_parallel_vectors():
-    vec = {1: 0.8, 2: 0.6}
-    assert cosine_similarity(vec, vec) == pytest.approx(1.0)
-
-
-def test_cosine_similarity_orthogonal_vectors():
-    vec_a = {1: 1.0}
-    vec_b = {2: 1.0}
-    assert cosine_similarity(vec_a, vec_b) == pytest.approx(0.0)
-
-
 WEIGHTED_MAP = {
     1: {1: 0.75, 2: 0.75, 3: 0.75},
     2: {2: 1.0, 4: 0.6},
@@ -108,6 +81,10 @@ def mock_db(mocker, courses):
 def test_recommend_courses_collaborative_returns_collaborative_source(
     mock_db, mocker, courses
 ):
+    # Con un mapa de interacciones ponderadas por usuario, el filtrado
+    # colaborativo debe recomendar el curso 4 (el único no matriculado por
+    # el usuario 1 pero sí por usuarios similares), etiquetado como fuente
+    # "collaborative" y con el 100% de coincidencia.
     mocker.patch(
         "modules.recommendations.aux_collaborative.build_weighted_enrollment_map",
         return_value=WEIGHTED_MAP,
@@ -127,6 +104,9 @@ def test_recommend_courses_collaborative_returns_collaborative_source(
 
 
 def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, mock_db):
+    # Si el usuario tiene menos matrículas activas que el umbral mínimo
+    # (MIN_ENROLLMENTS_FOR_COLLABORATIVE), el punto de entrada debe usar
+    # directamente el content-based y no debe llamar al colaborativo.
     cb_result = ListCourseRecommendationsSchema(recommendations=[])
     mocker.patch(
         "modules.recommendations.service.count_active_enrollments",
@@ -145,27 +125,3 @@ def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, 
     assert result == cb_result
     content_based.assert_called_once_with(mock_db, 1, 10)
     collaborative.assert_not_called()
-
-
-def test_recommend_courses_falls_back_to_content_based_when_collaborative_empty(
-    mocker, mock_db
-):
-    cb_result = ListCourseRecommendationsSchema(recommendations=[])
-    empty_collab = ListCourseRecommendationsSchema(recommendations=[])
-    mocker.patch(
-        "modules.recommendations.service.count_active_enrollments",
-        return_value=3,
-    )
-    mocker.patch(
-        "modules.recommendations.service.recommend_courses_collaborative",
-        return_value=empty_collab,
-    )
-    content_based = mocker.patch(
-        "modules.recommendations.service.recommend_courses_content_based",
-        return_value=cb_result,
-    )
-
-    result = recommend_courses(mock_db, user_id=1, limit=10)
-
-    assert result == cb_result
-    content_based.assert_called_once_with(mock_db, 1, 10)

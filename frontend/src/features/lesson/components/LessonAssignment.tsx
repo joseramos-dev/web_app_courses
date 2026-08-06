@@ -1,15 +1,20 @@
 import { useMemo, useState } from "react";
 import { FileText, Upload } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type { ILesson } from "../../course_edit/lessonTypes";
 import type { ISubmission, SubmissionStatus } from "../../../shared/interfaces/ISubmission";
 import { api } from "../../../shared/api/api";
 
-const STATUS_LABEL: Record<SubmissionStatus, string> = {
-    pending: "Pendiente de corrección",
-    graded: "Calificada",
-    returned: "Devuelta para revisión",
-};
+function getStatusLabel(
+    t: (key: string) => string,
+): Record<SubmissionStatus, string> {
+    return {
+        pending: t("lessonPage.assignment.statusLabel.pending"),
+        graded: t("lessonPage.assignment.statusLabel.graded"),
+        returned: t("lessonPage.assignment.statusLabel.returned"),
+    };
+}
 
 const STATUS_CLASS: Record<SubmissionStatus, string> = {
     pending:
@@ -33,6 +38,8 @@ export function LessonAssignment({
     submitting,
     onSubmit,
 }: Props) {
+    const { t } = useTranslation();
+    const statusLabel = getStatusLabel(t);
     const [content, setContent] = useState("");
     const [file, setFile] = useState<File | null>(null);
 
@@ -68,7 +75,7 @@ export function LessonAssignment({
             window.URL.revokeObjectURL(url);
         } catch (e) {
             console.error(e);
-            toast.error("No se pudo descargar el archivo enviado.");
+            toast.error(t("lessonPage.assignment.downloadFailed"));
         }
     };
 
@@ -77,7 +84,7 @@ export function LessonAssignment({
             <section className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
                     <FileText className="size-4" aria-hidden />
-                    Enunciado
+                    {t("lessonPage.assignment.statement")}
                 </div>
                 {lesson.body ? (
                     <pre className="mt-2 wrap-break-word font-sans text-sm leading-6 whitespace-pre-wrap text-gray-800 dark:text-slate-200">
@@ -85,12 +92,14 @@ export function LessonAssignment({
                     </pre>
                 ) : (
                     <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-                        El instructor aún no ha añadido instrucciones para esta tarea.
+                        {t("lessonPage.assignment.noInstructions")}
                     </p>
                 )}
                 <p className="mt-3 text-xs text-gray-500 dark:text-slate-400">
-                    Puntuación máxima: {maxScore} · Nota mínima para aprobar:{" "}
-                    {passingScore}
+                    {t("lessonPage.assignment.maxScore", {
+                        max: maxScore,
+                        passing: passingScore,
+                    })}
                 </p>
             </section>
 
@@ -99,33 +108,33 @@ export function LessonAssignment({
                     className={`rounded-xl border p-4 text-sm ${STATUS_CLASS[submission.status]}`}
                 >
                     <div className="font-semibold">
-                        Estado: {STATUS_LABEL[submission.status]}
+                        {t("lessonPage.assignment.status", { status: statusLabel[submission.status] })}
                     </div>
                     {submission.status === "graded" && submission.score != null ? (
                         <p className="mt-1">
-                            Nota: {submission.score}/{maxScore}
+                            {t("lessonPage.assignment.score", { score: submission.score, max: maxScore })}
                             {submission.score >= passingScore
-                                ? " — Aprobada"
-                                : " — No alcanza la nota mínima"}
+                                ? t("lessonPage.assignment.passed")
+                                : t("lessonPage.assignment.notPassed")}
                         </p>
                     ) : null}
                     {submission.feedback ? (
                         <div className="mt-2 rounded-lg border border-current/20 bg-white/40 p-3 dark:bg-slate-900/30">
                             <div className="text-xs font-semibold uppercase tracking-wide opacity-80">
-                                Comentarios del instructor
+                                {t("lessonPage.assignment.instructorFeedback")}
                             </div>
                             <p className="mt-1 whitespace-pre-wrap">{submission.feedback}</p>
                         </div>
                     ) : null}
                     {submission.file_id ? (
                         <p className="mt-2 text-xs">
-                            Archivo enviado:{" "}
+                            {t("lessonPage.assignment.fileSubmitted")}{" "}
                             <button
                                 type="button"
                                 onClick={() => void handleDownloadSubmissionFile()}
                                 className="font-medium underline"
                             >
-                                {submission.file_name ?? "Descargar adjunto"}
+                                {submission.file_name ?? t("lessonPage.assignment.downloadAttachment")}
                             </button>
                         </p>
                     ) : null}
@@ -136,18 +145,18 @@ export function LessonAssignment({
                 <section className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
                     <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {submission?.status === "returned"
-                            ? "Reenviar entrega"
-                            : "Tu entrega"}
+                            ? t("lessonPage.assignment.resubmit")
+                            : t("lessonPage.assignment.yourSubmission")}
                     </h2>
                     <label className="mt-3 flex flex-col gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                            Respuesta
+                            {t("lessonPage.assignment.answerLabel")}
                         </span>
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             rows={8}
-                            placeholder="Escribe tu respuesta o comentarios sobre la tarea…"
+                            placeholder={t("lessonPage.assignment.answerPlaceholder")}
                             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                         />
                     </label>
@@ -155,12 +164,12 @@ export function LessonAssignment({
                     {allowsFile ? (
                         <label className="mt-4 flex flex-col gap-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                                Archivo adjunto (opcional)
+                                {t("lessonPage.assignment.attachmentLabel")}
                             </span>
                             <div className="flex flex-wrap items-center gap-3">
                                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-700">
                                     <Upload className="size-4" aria-hidden />
-                                    Seleccionar archivo
+                                    {t("lessonPage.assignment.selectFile")}
                                     <input
                                         type="file"
                                         className="sr-only"
@@ -186,18 +195,18 @@ export function LessonAssignment({
                             className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:border-gray-200 disabled:bg-gray-200 disabled:text-gray-500 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent disabled:dark:border-slate-600 disabled:dark:bg-slate-700 disabled:dark:text-slate-500"
                         >
                             {submitting
-                                ? "Enviando…"
+                                ? t("lessonPage.assignment.sending")
                                 : submission?.status === "returned"
-                                  ? "Reenviar entrega"
-                                  : "Enviar entrega"}
+                                  ? t("lessonPage.assignment.resubmit")
+                                  : t("lessonPage.assignment.submit")}
                         </button>
                     </div>
                 </section>
             ) : submission ? (
                 <section className="rounded-xl border border-dashed border-gray-300 bg-surface-muted p-4 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
                     {submission.status === "pending"
-                        ? "Tu entrega está pendiente de corrección. El instructor te notificará cuando la revise."
-                        : "Esta entrega ya ha sido calificada."}
+                        ? t("lessonPage.assignment.pendingReview")
+                        : t("lessonPage.assignment.alreadyGraded")}
                     {submission.content ? (
                         <pre className="mt-3 wrap-break-word rounded-lg border border-gray-200 bg-white/60 p-3 font-sans text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-200">
                             {submission.content}

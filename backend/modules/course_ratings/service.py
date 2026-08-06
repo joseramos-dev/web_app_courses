@@ -1,5 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
+from core.i18n import http_error
 
 from modules.course_ratings.model import CourseRatingModel
 from modules.courses.service import get_course_detail
@@ -16,10 +17,7 @@ def upsert_course_rating(db: Session, user_id: int, course_id: int, score: int):
     completed = int(enrollment.completed_lessons_count or 0)
     # With lessons: require at least one completed. Empty course: enrolled students may rate.
     if lessons_count > 0 and completed < 1:
-        raise HTTPException(
-            status_code=403,
-            detail="Complete at least one lesson before rating this course.",
-        )
+        raise http_error(403, "complete_lesson_before_rating")
     row = (
         db.query(CourseRatingModel)
         .filter(

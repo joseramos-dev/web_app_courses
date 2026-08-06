@@ -1,5 +1,6 @@
+import { useTranslation } from "react-i18next";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
-import { difficultyLabels, durationBucketLabels } from "../../../shared/types/CourseTypes";
+import { getDifficultyLabels, getDurationBucketLabels } from "../../../shared/types/CourseTypes";
 
 function formatDuration(durationSeconds: number | null) {
   if (!durationSeconds || durationSeconds <= 0) return "—";
@@ -22,24 +23,27 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export function DetailInfo({ course }: { course: ICourses }) {
+  const { t } = useTranslation();
+  const difficultyLabels = getDifficultyLabels(t);
+  const durationBucketLabels = getDurationBucketLabels(t);
   return (
-    <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
+    <div className="w-full rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
       <div className="mb-3">
-        <div className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <div className="break-words text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">
           {course.category}
           {course.subcategory ? ` · ${course.subcategory}` : ""}
         </div>
-        <h1 className="mt-1 text-xl font-semibold text-gray-900 dark:text-slate-100">
+        <h1 className="mt-1 break-words text-xl font-semibold text-gray-900 dark:text-slate-100">
           {course.title}
         </h1>
         {course.intro ? (
-          <p className="mt-2 text-sm text-gray-600 dark:text-slate-300">{course.intro}</p>
+          <p className="mt-2 break-words text-sm text-gray-600 dark:text-slate-300">{course.intro}</p>
         ) : null}
       </div>
 
       <div className="divide-y divide-gray-200/80 dark:divide-slate-600">
         <InfoRow
-          label="Instructor"
+          label={t("courseDetail.instructor")}
           value={
             course.instructor_name
               ? course.instructor_name
@@ -48,13 +52,13 @@ export function DetailInfo({ course }: { course: ICourses }) {
                 : `#${course.instructor_id}`
           }
         />
-        <InfoRow label="Language" value={course.language} />
-        <InfoRow label="Course type" value={course.course_type} />
+        <InfoRow label={t("courseDetail.language")} value={course.language} />
+        <InfoRow label={t("courseDetail.courseType")} value={course.course_type} />
         <InfoRow
-          label="Valoración"
+          label={t("courseDetail.rating")}
           value={
             course.ratings_count === 0 ? (
-              "Sin valoraciones aún"
+              t("courseDetail.noRatingsYet")
             ) : (
               <span>
                 ⭐{" "}
@@ -63,15 +67,14 @@ export function DetailInfo({ course }: { course: ICourses }) {
                   : "—"}
                 <span className="font-normal text-gray-500 dark:text-slate-400">
                   {" "}
-                  ({course.ratings_count}{" "}
-                  {course.ratings_count === 1 ? "valoración" : "valoraciones"})
+                  ({t("courseDetail.ratingCount", { count: course.ratings_count })})
                 </span>
               </span>
             )
           }
         />
         <InfoRow
-          label="Duración"
+          label={t("courseDetail.duration")}
           value={
             <span className="inline-flex flex-wrap items-center justify-end gap-2">
               <span>{formatDuration(course.duration_seconds)}</span>
@@ -84,11 +87,11 @@ export function DetailInfo({ course }: { course: ICourses }) {
           }
         />
         <InfoRow
-          label="Dificultad"
+          label={t("courseDetail.difficulty")}
           value={difficultyLabels[course.difficulty]}
         />
         <InfoRow
-          label="Site"
+          label={t("courseDetail.platform")}
           value={
             <a
               className="font-medium text-uned-primary hover:text-uned-primary-hover hover:underline"
@@ -96,7 +99,7 @@ export function DetailInfo({ course }: { course: ICourses }) {
               target="_blank"
               rel="noreferrer"
             >
-              Open course
+              {t("courseDetail.openCourse")}
             </a>
           }
         />

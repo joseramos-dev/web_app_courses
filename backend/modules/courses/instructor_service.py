@@ -3,7 +3,7 @@ from datetime import date
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
-from fastapi import HTTPException
+from core.i18n import http_error
 
 from modules.courses.instructor_schema import (
     InstructorCourseStudentsSchema,
@@ -29,16 +29,13 @@ _TEST_LESSON_TYPES = (LessonType.TEST, LessonType.MULTIPLE_SELECTION)
 def assert_can_manage_course(db: Session, course_id: int, user) -> CourseModel:
     course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if course is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise http_error(404, "course_not_found")
     if user.role == UserRole.ADMIN:
         return course
     if user.role == UserRole.INSTRUCTOR:
         if course.instructor_id is not None and user.id == course.instructor_id:
             return course
-    raise HTTPException(
-        status_code=403,
-        detail="You don't have permission to manage this course",
-    )
+    raise http_error(403, "no_manage_permission")
 
 
 def _total_lessons(db: Session, course_id: int) -> int:
@@ -176,7 +173,7 @@ def list_course_students(
 ) -> InstructorCourseStudentsSchema:
     course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if course is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise http_error(404, "course_not_found")
 
     total_lessons = _total_lessons(db, course_id)
 
@@ -240,7 +237,7 @@ def get_student_detail(
         .first()
     )
     if row is None:
-        raise HTTPException(status_code=404, detail="Enrollment not found")
+        raise http_error(404, "enrollment_not_found")
 
     enrollment, student_name = row
     progress_by_lesson = {lp.lesson_id: lp for lp in enrollment.lesson_progress}

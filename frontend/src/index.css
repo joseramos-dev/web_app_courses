@@ -18,6 +18,14 @@
   --uned-accent: #16a34a;
   --uned-accent-hover: #15803d;
   --chart-track: #e5e7eb;
+  --chart-tooltip-border: rgb(203 213 225);
+  --chart-series-1: var(--uned-primary);
+  --chart-series-2: var(--uned-accent);
+  --chart-series-3: #0284c7;
+  --chart-series-4: #7c3aed;
+  --chart-series-5: #d97706;
+  --chart-series-6: #059669;
+  --chart-series-7: #dc2626;
   --font-sans-stack: Arial, Helvetica, sans-serif;
   --font-display-stack: "Titillium Web", Arial, Helvetica, sans-serif;
 }
@@ -33,6 +41,14 @@
   --uned-accent: #22c55e;
   --uned-accent-hover: #4ade80;
   --chart-track: #475569;
+  --chart-tooltip-border: rgb(71 85 105);
+  --chart-series-1: var(--uned-primary);
+  --chart-series-2: var(--uned-accent);
+  --chart-series-3: #38bdf8;
+  --chart-series-4: #a78bfa;
+  --chart-series-5: #fbbf24;
+  --chart-series-6: #34d399;
+  --chart-series-7: #f87171;
 }
 
 @theme inline {

@@ -1,0 +1,7 @@
+# Documentación de la memoria del TFG: se mantiene en local, no en GitHub.
+docs/
+LaText/
+
+# Bytecode de Python compilado por pytest al ejecutar los tests en test/.
+__pycache__/
+*.py[oc]

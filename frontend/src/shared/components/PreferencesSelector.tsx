@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { FilterDropDown } from "../../features/courses/components/FilterDropDown";
 import type { IRecommendationPreferencesUpdate } from "../interfaces/IRecommendation";
 import {
     courseTypesDict,
-    difficultyLabels,
-    durationBucketShortLabels,
+    getDifficultyLabels,
+    getDurationBucketShortLabels,
     type CategoryTypes,
     type CourseTypeTypes,
     type DifficultyTypes,
@@ -23,58 +25,62 @@ function pickAllowed<T extends string>(values: string[], allowed: readonly strin
     return values.filter((v): v is T => allowed.includes(v));
 }
 
-const FIELDS: ReadonlyArray<{
+function getFields(t: TFunction): ReadonlyArray<{
     key: keyof IRecommendationPreferencesUpdate;
     label: string;
     placeholder: string;
     options: readonly string[];
     optionLabels?: Record<string, string>;
-}> = [
-    {
-        key: "preferred_sites" as const,
-        label: "Plataforma",
-        placeholder: "Elige plataformas…",
-        options: courseTypesDict.SiteTypes,
-    },
-    {
-        key: "preferred_categories" as const,
-        label: "Categoría",
-        placeholder: "Elige categorías…",
-        options: courseTypesDict.CategoryTypes,
-    },
-    {
-        key: "preferred_languages" as const,
-        label: "Idioma",
-        placeholder: "Elige idiomas…",
-        options: courseTypesDict.LanguageTypes,
-    },
-    {
-        key: "preferred_course_types" as const,
-        label: "Tipo de curso",
-        placeholder: "Elige tipos de curso…",
-        options: courseTypesDict.CourseTypeTypes,
-    },
-    {
-        key: "preferred_duration_buckets" as const,
-        label: "Duración preferida",
-        placeholder: "Elige duraciones…",
-        options: courseTypesDict.DurationBucketTypes,
-        optionLabels: durationBucketShortLabels,
-    },
-    {
-        key: "preferred_difficulties" as const,
-        label: "Dificultad preferida",
-        placeholder: "Elige niveles…",
-        options: courseTypesDict.DifficultyTypes,
-        optionLabels: difficultyLabels,
-    },
-];
+}> {
+    return [
+        {
+            key: "preferred_sites" as const,
+            label: t("preferences.platform"),
+            placeholder: t("preferences.platformPlaceholder"),
+            options: courseTypesDict.SiteTypes,
+        },
+        {
+            key: "preferred_categories" as const,
+            label: t("preferences.category"),
+            placeholder: t("preferences.categoryPlaceholder"),
+            options: courseTypesDict.CategoryTypes,
+        },
+        {
+            key: "preferred_languages" as const,
+            label: t("preferences.language"),
+            placeholder: t("preferences.languagePlaceholder"),
+            options: courseTypesDict.LanguageTypes,
+        },
+        {
+            key: "preferred_course_types" as const,
+            label: t("preferences.courseType"),
+            placeholder: t("preferences.courseTypePlaceholder"),
+            options: courseTypesDict.CourseTypeTypes,
+        },
+        {
+            key: "preferred_duration_buckets" as const,
+            label: t("preferences.preferredDuration"),
+            placeholder: t("preferences.durationPlaceholder"),
+            options: courseTypesDict.DurationBucketTypes,
+            optionLabels: getDurationBucketShortLabels(t),
+        },
+        {
+            key: "preferred_difficulties" as const,
+            label: t("preferences.preferredDifficulty"),
+            placeholder: t("preferences.difficultyPlaceholder"),
+            options: courseTypesDict.DifficultyTypes,
+            optionLabels: getDifficultyLabels(t),
+        },
+    ];
+}
 
 export function PreferencesSelector({
     value,
     onChange,
     disabled = false,
 }: PreferencesSelectorProps) {
+    const { t } = useTranslation();
+    const FIELDS = getFields(t);
     const labelCn = settingsFieldLabelClassName();
 
     const updateField = (

@@ -10,7 +10,6 @@ import { AdminPanel } from "./features/admin_panel/AdminPanel";
 import { CourseDetail } from "./features/course_detail/CourseDetail";
 import { CourseEdit } from "./features/course_edit/CourseEdit";
 import { CourseStudents } from "./features/course_students/CourseStudents";
-import { LessonNew } from "./features/course_edit/LessonNew";
 import { Dashboard } from "./features/dashboard/Dashboard";
 import { Lesson } from "./features/lesson/Lesson";
 import { Settings } from "./features/settings/Settings";
@@ -80,14 +79,6 @@ export const App = () => {
                             }
                         />
                         <Route path="/course/:courseId" element={<CourseDetail />} />
-                        <Route
-                            path="/course/:courseId/edit/lesson/new"
-                            element={
-                                <RequireStaff>
-                                    <LessonNew />
-                                </RequireStaff>
-                            }
-                        />
                         <Route
                             path="/course/:courseId/students"
                             element={

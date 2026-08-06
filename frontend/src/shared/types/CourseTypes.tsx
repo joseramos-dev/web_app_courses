@@ -86,23 +86,36 @@ export type DurationBucketTypes = "short" | "medium" | "long";
 
 export type DifficultyTypes = "beginner" | "intermediate" | "advanced";
 
-export const durationBucketShortLabels: Record<DurationBucketTypes, string> = {
-    short: "Corto",
-    medium: "Medio",
-    long: "Largo",
-};
+/** `t` is the i18next translate function (from `useTranslation()`). */
+export function getDurationBucketShortLabels(
+    t: (key: string) => string,
+): Record<DurationBucketTypes, string> {
+    return {
+        short: t("domain.durationShort.short"),
+        medium: t("domain.durationShort.medium"),
+        long: t("domain.durationShort.long"),
+    };
+}
 
-export const durationBucketLabels: Record<DurationBucketTypes, string> = {
-    short: "Corto (< 10 h)",
-    medium: "Medio (10 h – 1 semana)",
-    long: "Largo (> 1 semana)",
-};
+export function getDurationBucketLabels(
+    t: (key: string) => string,
+): Record<DurationBucketTypes, string> {
+    return {
+        short: t("domain.duration.short"),
+        medium: t("domain.duration.medium"),
+        long: t("domain.duration.long"),
+    };
+}
 
-export const difficultyLabels: Record<DifficultyTypes, string> = {
-    beginner: "Principiante",
-    intermediate: "Intermedio",
-    advanced: "Avanzado",
-};
+export function getDifficultyLabels(
+    t: (key: string) => string,
+): Record<DifficultyTypes, string> {
+    return {
+        beginner: t("domain.difficulty.beginner"),
+        intermediate: t("domain.difficulty.intermediate"),
+        advanced: t("domain.difficulty.advanced"),
+    };
+}
 
 export const courseTypesDict = {
     SiteTypes: ["Coursera", "Future Learn", "Udacity", "Simplilearn", "Academy"],

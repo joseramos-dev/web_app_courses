@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from core.i18n import http_error
 from modules.courses.instructor_service import assert_can_manage_course
 from modules.enrollments.model import EnrollmentModel
 from modules.lessons.model import LessonFileModel, LessonModel, LessonType
@@ -26,10 +26,7 @@ from modules.users.model import UserModel
 def _require_assignment_lesson(db: Session, lesson_id: int) -> LessonModel:
     lesson = _require_lesson(db, lesson_id)
     if lesson.lesson_type != LessonType.ASSIGNMENT:
-        raise HTTPException(
-            status_code=400,
-            detail="This lesson is not an assignment",
-        )
+        raise http_error(400, "lesson_not_assignment")
     return lesson
 
 
@@ -78,7 +75,7 @@ def _validate_submission_file(
         .first()
     )
     if file_record is None:
-        raise HTTPException(status_code=400, detail="Invalid file for this submission")
+        raise http_error(400, "invalid_submission_file")
 
 
 def submit_assignment(
@@ -92,15 +89,9 @@ def submit_assignment(
     enrollment = _require_enrollment(db, user_id, lesson.course_id)
 
     if not body and not file_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Submission must include text or a file",
-        )
+        raise http_error(400, "submission_requires_content")
     if file_id and lesson.allows_file_submission is False:
-        raise HTTPException(
-            status_code=400,
-            detail="File submissions are not allowed for this assignment",
-        )
+        raise http_error(400, "file_submissions_not_allowed")
     if file_id:
         _validate_submission_file(db, user_id, lesson_id, file_id)
 
@@ -126,10 +117,7 @@ def submit_assignment(
         db.add(submission)
     else:
         if submission.status == SubmissionStatus.GRADED:
-            raise HTTPException(
-                status_code=400,
-                detail="This assignment has already been graded",
-            )
+            raise http_error(400, "assignment_already_graded")
         submission.body = body
         submission.file_id = file_id
         submission.status = SubmissionStatus.PENDING
@@ -169,7 +157,7 @@ def get_submission(
         .first()
     )
     if not submission:
-        raise HTTPException(status_code=404, detail="No submission for this lesson")
+        raise http_error(404, "no_submission_for_lesson")
     return submission
 
 
@@ -235,18 +223,15 @@ def grade_submission(
         .first()
     )
     if row is None:
-        raise HTTPException(status_code=404, detail="Submission not found")
+        raise http_error(404, "submission_not_found")
 
     submission, lesson, enrollment = row
     if lesson.lesson_type != LessonType.ASSIGNMENT:
-        raise HTTPException(status_code=400, detail="Lesson is not an assignment")
+        raise http_error(400, "lesson_not_assignment")
 
     max_score = lesson.max_score if lesson.max_score is not None else 100.0
     if score > max_score:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Score cannot exceed max_score ({max_score})",
-        )
+        raise http_error(400, "score_exceeds_max", max_score=max_score)
 
     now = _now()
     submission.score = score

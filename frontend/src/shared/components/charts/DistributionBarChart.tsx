@@ -8,12 +8,14 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { ChartDatum } from "./chartTheme";
 import {
     CHART_BAR_FILL,
     chartAxisTickStyle,
     chartGridProps,
     chartTooltipContentStyle,
+    chartTooltipCursor,
     chartTooltipLabelStyle,
     chartWrapperClassName,
 } from "./chartTheme";
@@ -57,11 +59,13 @@ export function DistributionBarChart({
     data,
     height = 160,
     showValues = false,
-    valueLabel = "matrículas",
+    valueLabel,
 }: Props) {
+    const { t } = useTranslation();
     if (data.length === 0) {
         return <ChartEmptyState />;
     }
+    const resolvedValueLabel = valueLabel ?? t("charts.enrollmentsUnit");
 
     const maxValue = Math.max(...data.map((d) => d.value));
     const yDomainMax = maxValue === 0 ? 1 : maxValue;
@@ -93,8 +97,8 @@ export function DistributionBarChart({
                         width={28}
                     />
                     <Tooltip
-                        cursor={{ fill: "currentColor", opacity: 0.08 }}
-                        content={<DistributionTooltip valueLabel={valueLabel} />}
+                        cursor={chartTooltipCursor}
+                        content={<DistributionTooltip valueLabel={resolvedValueLabel} />}
                     />
                     <Bar
                         dataKey="value"

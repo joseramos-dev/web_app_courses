@@ -7,11 +7,13 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import {
     CHART_BAR_FILL,
     chartAxisTickStyle,
     chartGridProps,
     chartTooltipContentStyle,
+    chartTooltipCursor,
     chartTooltipLabelStyle,
     chartWrapperClassName,
 } from "./chartTheme";
@@ -40,18 +42,19 @@ function LessonTooltip({
     active?: boolean;
     payload?: TooltipPayload[];
 }) {
+    const { t } = useTranslation();
     if (!active || !payload?.length) return null;
     const row = payload[0].payload;
     if (!row) return null;
     const heading = row.title ?? row.label;
     const rate =
         row.completionRate != null
-            ? `${Math.round(row.completionRate * 100)}% completaron`
+            ? t("charts.lesson.completedPercent", { value: Math.round(row.completionRate * 100) })
             : null;
     return (
         <div style={chartTooltipContentStyle} className="text-slate-800 dark:text-slate-100">
             <p style={chartTooltipLabelStyle}>{heading}</p>
-            <p className="mt-0.5">{row.value} alumnos completaron</p>
+            <p className="mt-0.5">{t("charts.lesson.studentsCompleted", { count: row.value })}</p>
             {rate ? <p className="mt-0.5 text-xs opacity-80">{rate}</p> : null}
         </div>
     );
@@ -92,7 +95,7 @@ export function LessonCompletionChart({ data, height = 240 }: Props) {
                         width={120}
                     />
                     <Tooltip
-                        cursor={{ fill: "currentColor", opacity: 0.08 }}
+                        cursor={chartTooltipCursor}
                         content={<LessonTooltip />}
                     />
                     <Bar

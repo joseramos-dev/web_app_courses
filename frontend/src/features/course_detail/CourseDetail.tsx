@@ -8,7 +8,8 @@ import {
 } from "./api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
 import type { ILesson } from "../course_edit/lessonTypes";
-import { lessonTypeLabels } from "../../shared/types/LessonTypes";
+import { useTranslation } from "react-i18next";
+import { getLessonTypeLabels } from "../../shared/types/LessonTypes";
 import type {
     IEnrollmentDetail,
     ILessonProgress,
@@ -37,11 +38,15 @@ const statusBadgeClass: Record<LessonProgressStatus, string> = {
         "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
-const statusBadgeLabel: Record<LessonProgressStatus, string> = {
-    completed: "Completada",
-    in_progress: "En curso",
-    not_started: "Sin empezar",
-};
+function getStatusBadgeLabel(
+    t: (key: string) => string,
+): Record<LessonProgressStatus, string> {
+    return {
+        completed: t("courseDetail.status.completed"),
+        in_progress: t("courseDetail.status.inProgress"),
+        not_started: t("courseDetail.status.notStarted"),
+    };
+}
 
 function StatusIcon({ status }: { status: LessonProgressStatus }) {
     if (status === "completed")
@@ -56,6 +61,9 @@ function StatusIcon({ status }: { status: LessonProgressStatus }) {
 }
 
 export const CourseDetail = () => {
+    const { t } = useTranslation();
+    const lessonTypeLabels = getLessonTypeLabels(t);
+    const statusBadgeLabel = getStatusBadgeLabel(t);
     const { courseId } = useParams();
     const location = useLocation();
     const { user } = useAuth();
@@ -114,7 +122,7 @@ export const CourseDetail = () => {
     useEffect(() => {
         const fetchCourseDetail = async () => {
             if (courseId == null || Number.isNaN(Number(courseId))) {
-                setError("Invalid course.");
+                setError(t("courseDetail.invalidCourse"));
                 setCourse(null);
                 setLessons([]);
                 setEnrollment(null);
@@ -138,7 +146,7 @@ export const CourseDetail = () => {
                 setEnrollment(enr);
             } catch (error) {
                 console.error("Error fetching course detail: ", error);
-                setError("Could not load course details.");
+                setError(t("courseDetail.loadError"));
                 setCourse(null);
                 setLessons([]);
                 setEnrollment(null);
@@ -147,7 +155,7 @@ export const CourseDetail = () => {
             }
         };
         void fetchCourseDetail();
-    }, [courseId, user, location.key, location.pathname, fromLessonBump]);
+    }, [courseId, user, location.key, location.pathname, fromLessonBump, t]);
 
     useEffect(() => {
         const id = courseId != null && !Number.isNaN(Number(courseId)) ? Number(courseId) : null;
@@ -191,7 +199,7 @@ export const CourseDetail = () => {
             (enrollment?.completed_lessons_count ?? 0) >= 1);
 
     return (
-        <div className="mx-auto max-w-4xl px-4 py-6">
+        <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12">
             <div className="mb-4 flex items-center justify-between gap-3">
                 <DetailBackButton />
                 <DetailActionButton
@@ -205,7 +213,7 @@ export const CourseDetail = () => {
 
             {isLoading ? (
                 <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                    Loading course...
+                    {t("courseDetail.loadingCourse")}
                 </div>
             ) : error ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
@@ -217,18 +225,20 @@ export const CourseDetail = () => {
                         <div className="mb-4 rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
                             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                                 <span className="font-medium text-gray-800 dark:text-slate-100">
-                                    Tu progreso
+                                    {t("courseDetail.yourProgress")}
                                 </span>
                                 <div className="flex flex-wrap items-center gap-2">
                                     {enrollment?.status === "completed" ? (
                                         <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
-                                            Curso completado
+                                            {t("courseDetail.courseCompletedBadge")}
                                         </span>
                                     ) : null}
                                     <span className="text-gray-600 dark:text-slate-400">
-                                        {Math.round(progressPercent)}% ·{" "}
-                                        {enrollment?.completed_lessons_count ?? 0}/
-                                        {sortedLessons.length} lecciones
+                                        {t("courseDetail.lessonsProgress", {
+                                            percent: Math.round(progressPercent),
+                                            completed: enrollment?.completed_lessons_count ?? 0,
+                                            total: sortedLessons.length,
+                                        })}
                                     </span>
                                 </div>
                             </div>
@@ -243,8 +253,8 @@ export const CourseDetail = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                        <div className="lg:col-span-2">
+                    <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-5">
+                        <div className="min-w-0 w-full lg:col-span-3">
                             <DetailInfo course={course} />
                             {user?.role === "student" && isEnrolled ? (
                                 canSubmitCourseRating ? (
@@ -255,20 +265,22 @@ export const CourseDetail = () => {
                                     />
                                 ) : (
                                     <p className="mt-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                        Completa al menos una lección para poder valorar el curso.
+                                        {t("courseDetail.completeAtLeastOneLesson")}
                                     </p>
                                 )
                             ) : null}
                         </div>
 
-                        <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
+                        <div className="min-w-0 w-full rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800 lg:col-span-2">
                             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                Lessons
+                                {t("courseDetail.lessonsPanelTitle")}
                             </h2>
                             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                 {sortedLessons.length === 0
-                                    ? "This course has no lessons yet."
-                                    : `${sortedLessons.length} lesson${sortedLessons.length === 1 ? "" : "s"}`}
+                                    ? t("courseDetail.noLessonsPanel")
+                                    : t("courseDetail.lessonCount", {
+                                          count: sortedLessons.length,
+                                      })}
                             </p>
 
                             <div className="mt-3 space-y-2">
@@ -308,11 +320,13 @@ export const CourseDetail = () => {
                                                         {showTestStats && progress.best_score != null ? (
                                                             <>
                                                                 {" · "}
-                                                                Mejor: {Math.round(progress.best_score)}% ·{" "}
-                                                                {progress.attempts}{" "}
-                                                                {progress.attempts === 1
-                                                                    ? "intento"
-                                                                    : "intentos"}
+                                                                {t("courseDetail.bestScore", {
+                                                                    score: Math.round(progress.best_score),
+                                                                })}
+                                                                {" · "}
+                                                                {t("courseDetail.attemptCount", {
+                                                                    count: progress.attempts,
+                                                                })}
                                                             </>
                                                         ) : null}
                                                     </div>
@@ -347,7 +361,7 @@ export const CourseDetail = () => {
                 </>
             ) : (
                 <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                    No course found.
+                    {t("courseDetail.noCourseFound")}
                 </div>
             )}
         </div>

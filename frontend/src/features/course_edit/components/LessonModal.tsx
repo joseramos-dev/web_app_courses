@@ -7,7 +7,9 @@ import {
   API_getLessonFiles,
   API_uploadLessonFile,
 } from "../api";
+import { useTranslation } from "react-i18next";
 import { QuestionsEditor } from "./QuestionsEditor";
+import { getLessonTypeLabels } from "../../../shared/types/LessonTypes";
 
 type Props = {
   isOpen: boolean;
@@ -15,6 +17,9 @@ type Props = {
   lesson: ILesson;
   onClose: () => void;
   onSubmit: (payload: ILessonCreate) => void;
+  /** Persists a not-yet-saved lesson on the spot (used to unlock the
+   * question editor for quizzes before the final "Save lesson" click). */
+  onPersistDraft?: (payload: ILessonCreate) => Promise<ILesson>;
 };
 
 const lessonTypes: LessonType[] = [
@@ -31,7 +36,10 @@ export function LessonModal({
   lesson,
   onClose,
   onSubmit,
+  onPersistDraft,
 }: Props) {
+  const { t } = useTranslation();
+  const lessonTypeLabels = getLessonTypeLabels(t);
   const [lessonTitle, setLessonTitle] = useState("");
   const [lessonType, setLessonType] = useState<LessonType>("text");
   const [position, setPosition] = useState<number>(lesson.position);
@@ -44,6 +52,7 @@ export function LessonModal({
   const [attachments, setAttachments] = useState<ILessonFile[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [isPersistingDraft, setIsPersistingDraft] = useState(false);
 
   const hasPersistedLesson = lesson.id > 0;
 
@@ -70,7 +79,7 @@ export function LessonModal({
         setAttachments(data);
       } catch (e) {
         console.error(e);
-        toast.error("No se pudieron cargar los materiales adjuntos.");
+        toast.error(t("courseEdit.toast.attachmentsLoadFailed"));
       } finally {
         setAttachmentsLoading(false);
       }
@@ -84,24 +93,24 @@ export function LessonModal({
       setUploadingFile(true);
       const uploaded = await API_uploadLessonFile(lesson.id, file);
       setAttachments((prev) => [...prev, uploaded]);
-      toast.success("Archivo subido.");
+      toast.success(t("courseEdit.toast.fileUploaded"));
     } catch (e) {
       console.error(e);
-      toast.error("No se pudo subir el archivo.");
+      toast.error(t("courseEdit.toast.fileUploadFailed"));
     } finally {
       setUploadingFile(false);
     }
   };
 
   const handleDeleteFile = async (fileId: number) => {
-    if (!confirm("¿Eliminar este archivo?")) return;
+    if (!confirm(t("courseEdit.lessonModal.deleteFileConfirm"))) return;
     try {
       await API_deleteLessonFile(fileId);
       setAttachments((prev) => prev.filter((f) => f.id !== fileId));
-      toast.success("Archivo eliminado.");
+      toast.success(t("courseEdit.toast.fileDeleted"));
     } catch (e) {
       console.error(e);
-      toast.error("No se pudo eliminar el archivo.");
+      toast.error(t("courseEdit.toast.fileDeleteFailed"));
     }
   };
 
@@ -116,6 +125,29 @@ export function LessonModal({
     [lessonTitle, position],
   );
 
+  const handleSaveAndAddQuestions = async () => {
+    if (!canSubmit || !onPersistDraft) return;
+    try {
+      setIsPersistingDraft(true);
+      await onPersistDraft({
+        title: lessonTitle.trim(),
+        lesson_type: lessonType,
+        position,
+        body: null,
+        video_url: null,
+        max_score: null,
+        passing_score: null,
+        allows_file_submission: false,
+      });
+      setShowQuestions(true);
+    } catch (e) {
+      console.error(e);
+      toast.error(t("courseEdit.toast.lessonSaveFailed"));
+    } finally {
+      setIsPersistingDraft(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const isQuiz =
@@ -124,12 +156,12 @@ export function LessonModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white p-5 shadow-xl dark:bg-slate-800">
+      <div className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-4 shadow-xl sm:p-5 lg:max-w-3xl dark:bg-slate-800">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-              Title, type, ordering and content.
+              {t("courseEdit.lessonModal.subtitle")}
             </p>
           </div>
           <button
@@ -137,14 +169,14 @@ export function LessonModal({
             onClick={onClose}
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
-            Close
+            {t("courseEdit.close")}
           </button>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 sm:col-span-2">
             <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-              Title
+              {t("courseEdit.lessonModal.fields.title")}
             </div>
             <input
               value={lessonTitle}
@@ -155,37 +187,39 @@ export function LessonModal({
 
           <label className="flex flex-col gap-2">
             <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-              Type
+              {t("courseEdit.lessonModal.fields.type")}
             </div>
             <select
               value={lessonType}
               onChange={(e) => setLessonType(e.target.value as LessonType)}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             >
-              {lessonTypes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {lessonTypes.map((lt) => (
+                <option key={lt} value={lt}>
+                  {lessonTypeLabels[lt] ?? lt}
                 </option>
               ))}
             </select>
           </label>
 
-          <label className="flex flex-col gap-2">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-              Position
-            </div>
-            <input
-              value={String(position)}
-              onChange={(e) => setPosition(Number(e.target.value))}
-              inputMode="numeric"
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
-            />
-          </label>
+          {hasPersistedLesson && (
+            <label className="flex flex-col gap-2">
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                {t("courseEdit.lessonModal.fields.position")}
+              </div>
+              <input
+                value={String(position)}
+                onChange={(e) => setPosition(Number(e.target.value))}
+                inputMode="numeric"
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+              />
+            </label>
+          )}
 
           {lessonType === "text" && (
             <label className="flex flex-col gap-2 sm:col-span-2">
               <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                Content (markdown)
+                {t("courseEdit.lessonModal.fields.contentMarkdown")}
               </div>
               <textarea
                 value={body}
@@ -200,19 +234,19 @@ export function LessonModal({
             <>
               <label className="flex flex-col gap-2 sm:col-span-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                  Enunciado
+                  {t("courseEdit.lessonModal.fields.assignmentStatement")}
                 </div>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={8}
-                  placeholder="Instrucciones de la tarea para el alumno…"
+                  placeholder={t("courseEdit.lessonModal.assignmentInstructionsPlaceholder")}
                   className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                 />
               </label>
               <label className="flex flex-col gap-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                  Puntuación máxima
+                  {t("courseEdit.lessonModal.fields.maxScore")}
                 </div>
                 <input
                   type="number"
@@ -224,7 +258,7 @@ export function LessonModal({
               </label>
               <label className="flex flex-col gap-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                  Nota mínima para aprobar
+                  {t("courseEdit.lessonModal.fields.passingScore")}
                 </div>
                 <input
                   type="number"
@@ -242,7 +276,7 @@ export function LessonModal({
                   className="size-4 rounded border-gray-300 dark:border-slate-600"
                 />
                 <span className="text-sm text-gray-700 dark:text-slate-200">
-                  Permitir adjuntar archivo
+                  {t("courseEdit.lessonModal.allowFileSubmission")}
                 </span>
               </label>
             </>
@@ -251,29 +285,44 @@ export function LessonModal({
           {lessonType === "video" && (
             <label className="flex flex-col gap-2 sm:col-span-2">
               <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                Video URL (YouTube / Vimeo)
+                {t("courseEdit.lessonModal.fields.videoUrl")}
               </div>
               <input
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
+                placeholder={t("courseEdit.lessonModal.videoUrlPlaceholder")}
                 className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
               />
             </label>
           )}
 
-          {isQuiz && (
+          {isQuiz && hasPersistedLesson && (
             <div className="sm:col-span-2">
               <button
                 type="button"
                 onClick={() => setShowQuestions(true)}
                 className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
-                Editar preguntas
+                {t("courseEdit.lessonModal.editQuestions")}
               </button>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                Las preguntas se gestionan en su propio editor; los cambios se
-                guardan al instante.
+                {t("courseEdit.lessonModal.questionsInstantSaveHint")}
+              </p>
+            </div>
+          )}
+
+          {isQuiz && !hasPersistedLesson && (
+            <div className="sm:col-span-2">
+              <button
+                type="button"
+                disabled={!canSubmit || isPersistingDraft}
+                onClick={() => void handleSaveAndAddQuestions()}
+                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                {isPersistingDraft ? t("common.saving") : t("courseEdit.lessonModal.saveAndAddQuestions")}
+              </button>
+              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                {t("courseEdit.lessonModal.saveDraftHint")}
               </p>
             </div>
           )}
@@ -281,19 +330,19 @@ export function LessonModal({
           {hasPersistedLesson && (
             <div className="sm:col-span-2">
               <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                Materiales adjuntos
+                {t("courseEdit.lessonModal.attachmentsTitle")}
               </div>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                PDFs y otros recursos descargables para los estudiantes.
+                {t("courseEdit.lessonModal.attachmentsSubtitle")}
               </p>
 
               {attachmentsLoading ? (
                 <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
-                  Cargando archivos…
+                  {t("courseEdit.lessonModal.loadingAttachments")}
                 </p>
               ) : attachments.length === 0 ? (
                 <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
-                  Aún no hay archivos adjuntos.
+                  {t("courseEdit.lessonModal.noAttachments")}
                 </p>
               ) : (
                 <ul className="mt-3 space-y-2">
@@ -316,7 +365,9 @@ export function LessonModal({
                         type="button"
                         onClick={() => void handleDeleteFile(file.id)}
                         className="rounded-md p-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-                        aria-label={`Eliminar ${file.original_filename}`}
+                        aria-label={t("courseEdit.lessonModal.deleteFileAria", {
+                          filename: file.original_filename,
+                        })}
                       >
                         <Trash2 className="size-4" aria-hidden />
                       </button>
@@ -326,7 +377,7 @@ export function LessonModal({
               )}
 
               <label className="mt-3 inline-flex cursor-pointer items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 has-disabled:cursor-not-allowed has-disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
-                {uploadingFile ? "Subiendo…" : "Subir archivo"}
+                {uploadingFile ? t("courseEdit.lessonModal.uploading") : t("courseEdit.lessonModal.uploadFile")}
                 <input
                   type="file"
                   className="sr-only"
@@ -348,7 +399,7 @@ export function LessonModal({
             onClick={onClose}
             className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
-            Cancel
+            {t("courseEdit.cancel")}
           </button>
           <button
             type="button"
@@ -371,7 +422,7 @@ export function LessonModal({
             }}
             className="rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:border-gray-200 disabled:bg-gray-200 disabled:text-gray-500 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent disabled:dark:border-slate-600 disabled:dark:bg-slate-700 disabled:dark:text-slate-500"
           >
-            Save lesson
+            {hasPersistedLesson ? t("courseEdit.lessonModal.saveLesson") : t("courseEdit.lessonModal.createLesson")}
           </button>
         </div>
       </div>

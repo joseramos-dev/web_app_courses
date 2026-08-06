@@ -18,4 +18,8 @@ class UserModel(Base):
     role = Column(SqlEnum(UserRole), nullable=False)
     time_creation = Column(DateTime(timezone=True), server_default=now())
 
+    # Login lockout tracking (reset on successful login).
+    failed_login_attempts = Column(Integer, nullable=False, default=0, server_default="0")
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+
 

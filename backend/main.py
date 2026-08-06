@@ -3,6 +3,7 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import get_cors_origins
+from core.i18n_middleware import I18nMiddleware
 from modules.auth.routes import auth_router
 from modules.users.routes import users_router
 from modules.courses.routes import courses_router
@@ -14,6 +15,7 @@ from modules.recommendations.routes import recommendations_router
 
 app = FastAPI()
 
+app.add_middleware(I18nMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),

@@ -1,9 +1,10 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from core.i18n import http_error
 from modules.auth.service import get_current_user
 from modules.enrollments.model import EnrollmentStatus
 from modules.enrollments.schema import (
@@ -43,9 +44,7 @@ def enroll_in_course(
     enrollments) if one is already present.
     """
     if user.role != "student":
-        raise HTTPException(
-            status_code=403, detail="Only students can enroll in courses"
-        )
+        raise http_error(403, "only_students_enroll")
     return enroll_user_in_course(db, user.id, course_id)
 
 
@@ -75,7 +74,7 @@ def get_my_enrollment_for_course(
     """
     enrollment = get_enrollment_with_lesson_progress(db, user.id, course_id)
     if not enrollment:
-        raise HTTPException(status_code=404, detail="Not enrolled in this course")
+        raise http_error(404, "not_enrolled_in_course")
     return enrollment
 
 
@@ -91,30 +90,21 @@ def complete_enrollment_without_lessons(
 ):
     """Mark enrollment completed when the course has no lessons (100% progress)."""
     if user.role != UserRole.STUDENT:
-        raise HTTPException(
-            status_code=403,
-            detail="Only students can complete enrollments this way",
-        )
+        raise http_error(403, "only_students_complete_enrollment")
     enrollment = get_enrollment(db, user.id, course_id)
     if not enrollment:
-        raise HTTPException(status_code=404, detail="Not enrolled in this course")
+        raise http_error(404, "not_enrolled_in_course")
     if enrollment.status == EnrollmentStatus.DROPPED:
-        raise HTTPException(
-            status_code=400,
-            detail="Enrollment is not active; enroll again first.",
-        )
+        raise http_error(400, "enrollment_not_active")
     lesson_count = (
         db.query(LessonModel)
         .filter(LessonModel.course_id == course_id)
         .count()
     )
     if lesson_count > 0:
-        raise HTTPException(
-            status_code=400,
-            detail="This course has lessons; complete them through each lesson.",
-        )
+        raise http_error(400, "course_has_lessons")
     finalize_enrollment_if_course_has_no_lessons(db, enrollment)
     out = get_enrollment_with_lesson_progress(db, user.id, course_id)
     if not out:
-        raise HTTPException(status_code=404, detail="Not enrolled in this course")
+        raise http_error(404, "not_enrolled_in_course")
     return out

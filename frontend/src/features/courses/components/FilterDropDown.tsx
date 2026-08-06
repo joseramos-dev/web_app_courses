@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface FilterDropDownProps {
     label?: string;
@@ -16,12 +17,14 @@ interface FilterDropDownProps {
 }
 
 export const FilterDropDown = ({
-    label = 'Select items...',
+    label,
     options,
     optionLabels,
     value,
     onChange,
 }: FilterDropDownProps) => {
+    const { t } = useTranslation();
+    const resolvedLabel = label ?? t("courses.filterDropdown.selectPlaceholder");
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [internalSelected, setInternalSelected] = useState<string[]>([]);
@@ -76,7 +79,7 @@ export const FilterDropDown = ({
 
     // Get display text
     const getDisplayText = () => {
-        if (selected.length === 0) return label;
+        if (selected.length === 0) return resolvedLabel;
         if (selected.length === 1) return displayLabel(selected[0]);
         return `${displayLabel(selected[0])} +${selected.length - 1}`;
     };
@@ -106,7 +109,7 @@ export const FilterDropDown = ({
                     <div className="p-3 border-b border-gray-200">
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder={t("courses.filterDropdown.searchPlaceholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
@@ -124,7 +127,7 @@ export const FilterDropDown = ({
                                 onChange={handleSelectAll}
                                 className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-gray-400"
                             />
-                            <span className="ml-3 text-gray-800 font-medium">Select All</span>
+                            <span className="ml-3 text-gray-800 font-medium">{t("courses.filterDropdown.selectAll")}</span>
                         </label>
 
                         {/* Individual options */}
@@ -146,7 +149,7 @@ export const FilterDropDown = ({
                             ))
                         ) : (
                             <div className="px-4 py-3 text-center text-gray-500">
-                                No options found
+                                {t("courses.filterDropdown.noOptions")}
                             </div>
                         )}
                     </div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { IQuestionPublic } from "../../course_edit/lessonTypes";
 import type { ILessonAnswer } from "../api";
 
@@ -19,6 +20,7 @@ export function LessonQuiz({
     onSubmit,
     lastScore,
 }: Props) {
+    const { t } = useTranslation();
     // selected[questionId] = Set<optionId>
     const [selected, setSelected] = useState<Record<number, Set<number>>>(() => {
         const initial: Record<number, Set<number>> = {};
@@ -57,7 +59,7 @@ export function LessonQuiz({
     if (questions.length === 0) {
         return (
             <div className="space-y-4 rounded-xl border border-dashed border-gray-300 bg-surface-muted p-6 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                <p>Esta lección no tiene preguntas. Puedes marcarla como completada para seguir.</p>
+                <p>{t("lessonPage.quiz.noQuestions")}</p>
                 <div className="flex justify-end">
                     <button
                         type="button"
@@ -65,7 +67,7 @@ export function LessonQuiz({
                         onClick={() => onSubmit([])}
                         className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 disabled:bg-green-300 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
                     >
-                        {submitting ? "Marcando…" : "Marcar lección como completada"}
+                        {submitting ? t("lessonPage.quiz.marking") : t("lessonPage.quiz.markComplete")}
                     </button>
                 </div>
             </div>
@@ -81,8 +83,8 @@ export function LessonQuiz({
                             : "border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-950/40 dark:text-yellow-200"
                         }`}
                 >
-                    Tu última puntuación: {Math.round(lastScore)}%
-                    {lastScore < 70 && " — necesitas al menos 70% para superar la lección."}
+                    {t("lessonPage.quiz.lastScore", { score: Math.round(lastScore) })}
+                    {lastScore < 70 && t("lessonPage.quiz.needMinScore")}
                 </div>
             )}
 
@@ -92,7 +94,7 @@ export function LessonQuiz({
                     className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800"
                 >
                     <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                        Pregunta {idx + 1}
+                        {t("lessonPage.quiz.question", { number: idx + 1 })}
                     </div>
                     <div className="mt-1 text-sm font-medium text-gray-900 dark:text-slate-100">
                         {q.prompt}
@@ -131,7 +133,7 @@ export function LessonQuiz({
                     onClick={handleSubmit}
                     className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:border-gray-200 disabled:bg-gray-200 disabled:text-gray-500 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent disabled:dark:border-slate-600 disabled:dark:bg-slate-700 disabled:dark:text-slate-500"
                 >
-                    {submitting ? "Enviando…" : "Enviar respuestas"}
+                    {submitting ? t("lessonPage.quiz.sending") : t("lessonPage.quiz.submitAnswers")}
                 </button>
             </div>
         </div>

@@ -1,19 +1,19 @@
 from enum import Enum
 
-from fastapi import Depends, HTTPException, Query
-
-from modules.courses.model import CourseModel
-from modules.auth.service import get_current_user
-
+from fastapi import Depends, Query
 from pydantic import BaseModel
+
+from core.i18n import http_error
+from modules.auth.service import get_current_user
+from modules.courses.model import CourseModel
 
 
 def require_role(required_roles: list[str]):
     def role_checker(user=Depends(get_current_user)):
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise http_error(404, "user_not_found")
         if user.role not in required_roles:
-            raise HTTPException(status_code=403, detail="You haven't enough privileges")
+            raise http_error(403, "insufficient_privileges")
         return user
 
     return role_checker

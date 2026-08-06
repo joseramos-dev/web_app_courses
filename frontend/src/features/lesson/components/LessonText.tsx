@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
 export function LessonText({ body }: { body: string | null | undefined }) {
+    const { t } = useTranslation();
     if (!body) {
         return (
             <div className="rounded-xl border border-dashed border-gray-300 bg-surface-muted p-6 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                Esta lección aún no tiene contenido.
+                {t("lessonPage.textEmpty")}
             </div>
         );
     }

@@ -1,20 +1,22 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../shared/context/ThemeContext";
 import { settingsMutedHintClassName } from "./settingsMutedHintClassName";
 import { settingsSectionCardClassName } from "./settingsSectionCardClassName";
 import { settingsSectionTitleClassName } from "./settingsSectionTitleClassName";
 
 export function SettingsAppearanceSection({ noTopMargin }: { noTopMargin?: boolean } = {}) {
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
 
   return (
     <section className={settingsSectionCardClassName({ noTopMargin })}>
-      <h2 className={settingsSectionTitleClassName()}>Apariencia</h2>
+      <h2 className={settingsSectionTitleClassName()}>{t("settings.appearance.title")}</h2>
       <p className={settingsMutedHintClassName()}>
-        El modo se guarda en este dispositivo.
+        {t("settings.appearance.hint")}
       </p>
       <div className="mt-4 flex items-center justify-between gap-4">
         <span className="text-sm text-slate-700 dark:text-slate-300">
-          Modo oscuro
+          {t("settings.appearance.darkMode")}
         </span>
         <button
           type="button"

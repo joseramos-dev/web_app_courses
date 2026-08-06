@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../shared/povider/AuthContext";
 import { get_preferences, patch_preferences } from "../courses/api";
 import type { IRecommendationPreferencesUpdate } from "../../shared/interfaces/IRecommendation";
@@ -15,6 +16,7 @@ import { settingsSectionCardClassName } from "./components/settingsSectionCardCl
 import { settingsSectionTitleClassName } from "./components/settingsSectionTitleClassName";
 
 export function Settings() {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
 
   const [name, setName] = useState("");
@@ -69,7 +71,7 @@ export function Settings() {
         }
       } catch (e) {
         console.error("Error loading preferences:", e);
-        if (!cancelled) toast.error("No se pudieron cargar las preferencias.");
+        if (!cancelled) toast.error(t("settings.toast.loadPreferencesFailed"));
       } finally {
         if (!cancelled) setLoadingPrefs(false);
       }
@@ -78,43 +80,43 @@ export function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [isStudent]);
+  }, [isStudent, t]);
 
   if (!user) return null;
 
   const handleSaveName = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      toast.error("El nombre no puede estar vacío");
+      toast.error(t("settings.toast.nameEmpty"));
       return;
     }
     if (trimmed === user.name) {
-      toast("Sin cambios en el nombre");
+      toast(t("settings.toast.nameUnchanged"));
       return;
     }
     const updated = await runWithToastSaving(
       setSavingName,
       () => API_patchMe({ name: trimmed }),
-      "No se pudo actualizar el nombre",
+      t("settings.toast.nameUpdateFailed"),
     );
     if (updated) {
       updateUser(updated);
-      toast.success("Nombre actualizado");
+      toast.success(t("settings.toast.nameUpdated"));
     }
   };
 
   const handleSaveEmail = async () => {
     const trimmed = emailNew.trim();
     if (!trimmed) {
-      toast.error("El email no puede estar vacío");
+      toast.error(t("settings.toast.emailEmpty"));
       return;
     }
     if (trimmed === user.email) {
-      toast("Sin cambios en el email");
+      toast(t("settings.toast.emailUnchanged"));
       return;
     }
     if (!emailCurrentPwd) {
-      toast.error("Introduce tu contraseña actual para cambiar el email");
+      toast.error(t("settings.toast.emailPasswordRequired"));
       return;
     }
     const updated = await runWithToastSaving(
@@ -124,26 +126,26 @@ export function Settings() {
           email: trimmed,
           current_password: emailCurrentPwd,
         }),
-      "No se pudo actualizar el email",
+      t("settings.toast.emailUpdateFailed"),
     );
     if (updated) {
       updateUser(updated);
       setEmailCurrentPwd("");
-      toast.success("Email actualizado");
+      toast.success(t("settings.toast.emailUpdated"));
     }
   };
 
   const handleSavePassword = async () => {
     if (!pwdCurrent) {
-      toast.error("Introduce tu contraseña actual");
+      toast.error(t("settings.toast.passwordCurrentRequired"));
       return;
     }
     if (pwdNew.length < 6) {
-      toast.error("La nueva contraseña debe tener al menos 6 caracteres");
+      toast.error(t("settings.toast.passwordTooShort"));
       return;
     }
     if (pwdNew !== pwdConfirm) {
-      toast.error("Las contraseñas nuevas no coinciden");
+      toast.error(t("settings.toast.passwordMismatch"));
       return;
     }
     const ok = await runWithToastSaving(
@@ -153,13 +155,13 @@ export function Settings() {
           current_password: pwdCurrent,
           new_password: pwdNew,
         }),
-      "No se pudo actualizar la contraseña",
+      t("settings.toast.passwordUpdateFailed"),
     );
     if (ok !== undefined) {
       setPwdCurrent("");
       setPwdNew("");
       setPwdConfirm("");
-      toast.success("Contraseña actualizada");
+      toast.success(t("settings.toast.passwordUpdated"));
     }
   };
 
@@ -172,14 +174,14 @@ export function Settings() {
       (prefs.preferred_duration_buckets?.length ?? 0) > 0 ||
       (prefs.preferred_difficulties?.length ?? 0) > 0;
     if (!hasAny) {
-      toast.error("Selecciona al menos una preferencia");
+      toast.error(t("settings.toast.preferencesEmpty"));
       return;
     }
 
     const updated = await runWithToastSaving(
       setSavingPrefs,
       () => patch_preferences(prefs),
-      "No se pudieron guardar las preferencias",
+      t("settings.toast.preferencesSaveFailed"),
     );
     if (updated) {
       setPrefs({
@@ -190,7 +192,7 @@ export function Settings() {
         preferred_duration_buckets: updated.preferred_duration_buckets,
         preferred_difficulties: updated.preferred_difficulties,
       });
-      toast.success("Preferencias guardadas");
+      toast.success(t("settings.toast.preferencesSaved"));
     }
   };
 
@@ -204,12 +206,12 @@ export function Settings() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-        Ajustes
+        {t("settings.title")}
       </h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         {isStudent
-          ? "Cuenta, recomendaciones y apariencia"
-          : "Cuenta y apariencia"}
+          ? t("settings.subtitleStudent")
+          : t("settings.subtitleDefault")}
       </p>
 
       <div
@@ -217,7 +219,7 @@ export function Settings() {
       >
         <div className="space-y-6">
           <section className={cardCn}>
-            <h2 className={titleCn}>Nombre</h2>
+            <h2 className={titleCn}>{t("settings.name.title")}</h2>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -229,21 +231,21 @@ export function Settings() {
               onClick={() => void handleSaveName()}
               className={btnCn}
             >
-              {savingName ? "Guardando…" : "Guardar nombre"}
+              {savingName ? t("common.saving") : t("settings.name.save")}
             </button>
           </section>
 
           <section className={cardCn}>
-            <h2 className={titleCn}>Email</h2>
-            <p className={hintCn}>Actual: {email}</p>
-            <label className={labelCn()}>Nuevo email</label>
+            <h2 className={titleCn}>{t("settings.email.title")}</h2>
+            <p className={hintCn}>{t("settings.email.current", { email })}</p>
+            <label className={labelCn()}>{t("settings.email.newLabel")}</label>
             <input
               type="email"
               value={emailNew}
               onChange={(e) => setEmailNew(e.target.value)}
               className={inputCn()}
             />
-            <label className={labelCn()}>Contraseña actual (obligatoria)</label>
+            <label className={labelCn()}>{t("settings.email.currentPasswordLabel")}</label>
             <input
               type="password"
               value={emailCurrentPwd}
@@ -257,15 +259,15 @@ export function Settings() {
               onClick={() => void handleSaveEmail()}
               className={btnCn}
             >
-              {savingEmail ? "Guardando…" : "Guardar email"}
+              {savingEmail ? t("common.saving") : t("settings.email.save")}
             </button>
           </section>
 
           <section className={cardCn}>
-            <h2 className={titleCn}>Contraseña</h2>
+            <h2 className={titleCn}>{t("settings.password.title")}</h2>
             <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-4">
               <div>
-                <label className={labelCn()}>Contraseña actual</label>
+                <label className={labelCn()}>{t("settings.password.currentLabel")}</label>
                 <input
                   type="password"
                   value={pwdCurrent}
@@ -275,7 +277,7 @@ export function Settings() {
                 />
               </div>
               <div>
-                <label className={labelCn()}>Nueva contraseña</label>
+                <label className={labelCn()}>{t("settings.password.newLabel")}</label>
                 <input
                   type="password"
                   value={pwdNew}
@@ -285,7 +287,7 @@ export function Settings() {
                 />
               </div>
             </div>
-            <label className={labelCn()}>Confirmar nueva contraseña</label>
+            <label className={labelCn()}>{t("settings.password.confirmLabel")}</label>
             <input
               type="password"
               value={pwdConfirm}
@@ -299,7 +301,7 @@ export function Settings() {
               onClick={() => void handleSavePassword()}
               className={btnCn}
             >
-              {savingPwd ? "Guardando…" : "Cambiar contraseña"}
+              {savingPwd ? t("common.saving") : t("settings.password.save")}
             </button>
           </section>
 
@@ -309,14 +311,13 @@ export function Settings() {
         {isStudent ? (
           <div className="space-y-6">
             <section id="recommendation-preferences" className={cardCn}>
-              <h2 className={titleCn}>Preferencias de recomendación</h2>
+              <h2 className={titleCn}>{t("settings.recommendations.title")}</h2>
               <p className={hintCn}>
-                Estas opciones alimentan el recomendador de cursos en tu dashboard
-                y en el catálogo.
+                {t("settings.recommendations.hint")}
               </p>
               {loadingPrefs ? (
                 <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                  Cargando preferencias…
+                  {t("settings.recommendations.loading")}
                 </p>
               ) : (
                 <>
@@ -333,7 +334,7 @@ export function Settings() {
                     onClick={() => void handleSavePreferences()}
                     className={btnCn}
                   >
-                    {savingPrefs ? "Guardando…" : "Guardar preferencias"}
+                    {savingPrefs ? t("common.saving") : t("settings.recommendations.save")}
                   </button>
                 </>
               )}

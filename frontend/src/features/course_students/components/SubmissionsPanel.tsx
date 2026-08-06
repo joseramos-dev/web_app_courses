@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type {
     ISubmission,
     SubmissionStatus,
@@ -8,12 +9,6 @@ import type {
 import { API_getCourseSubmissions } from "../../progress/submissionApi";
 import { formatRelativeTime } from "../../dashboard/components/formatRelativeTime";
 import { GradeSubmissionModal } from "./GradeSubmissionModal";
-
-const STATUS_LABEL: Record<SubmissionStatus, string> = {
-    pending: "Pendiente",
-    graded: "Calificada",
-    returned: "Devuelta",
-};
 
 const STATUS_CLASS: Record<SubmissionStatus, string> = {
     pending:
@@ -24,11 +19,23 @@ const STATUS_CLASS: Record<SubmissionStatus, string> = {
         "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200",
 };
 
+function getStatusLabel(
+    t: (key: string) => string,
+): Record<SubmissionStatus, string> {
+    return {
+        pending: t("courseStudents.submissions.status.pending"),
+        graded: t("courseStudents.submissions.status.graded"),
+        returned: t("courseStudents.submissions.status.returned"),
+    };
+}
+
 type Props = {
     courseId: number;
 };
 
 export function SubmissionsPanel({ courseId }: Props) {
+    const { t, i18n } = useTranslation();
+    const statusLabel = getStatusLabel(t);
     const [submissions, setSubmissions] = useState<ISubmission[]>([]);
     const [pendingCount, setPendingCount] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -45,13 +52,13 @@ export function SubmissionsPanel({ courseId }: Props) {
             setPendingCount(data.pending_count);
         } catch (e) {
             console.error(e);
-            toast.error("No se pudieron cargar las entregas.");
+            toast.error(t("courseStudents.submissions.loadError"));
             setSubmissions([]);
             setPendingCount(0);
         } finally {
             setLoading(false);
         }
-    }, [courseId]);
+    }, [courseId, t]);
 
     useEffect(() => {
         void loadSubmissions();
@@ -78,14 +85,14 @@ export function SubmissionsPanel({ courseId }: Props) {
                     <div className="flex items-center gap-2">
                         <ClipboardList className="size-5 text-gray-500 dark:text-slate-400" />
                         <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                            Entregas de tareas
+                            {t("courseStudents.submissions.title")}
                         </h2>
                     </div>
                     <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                        Revisa y califica las entregas de lecciones tipo tarea.
+                        {t("courseStudents.submissions.intro")}
                         {pendingCount > 0
-                            ? ` ${pendingCount} pendiente${pendingCount !== 1 ? "s" : ""}.`
-                            : " No hay entregas pendientes."}
+                            ? t("courseStudents.submissions.pendingSuffix", { count: pendingCount })
+                            : t("courseStudents.submissions.noPendingSuffix")}
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -98,7 +105,7 @@ export function SubmissionsPanel({ courseId }: Props) {
                                 : "border border-gray-200 bg-white text-gray-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                         }`}
                     >
-                        Pendientes
+                        {t("courseStudents.submissions.filterPending")}
                     </button>
                     <button
                         type="button"
@@ -109,42 +116,42 @@ export function SubmissionsPanel({ courseId }: Props) {
                                 : "border border-gray-200 bg-white text-gray-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                         }`}
                     >
-                        Todas
+                        {t("courseStudents.submissions.filterAll")}
                     </button>
                 </div>
             </div>
 
             {loading ? (
                 <p className="p-8 text-center text-sm text-gray-500 dark:text-slate-400">
-                    Cargando entregas…
+                    {t("courseStudents.submissions.loading")}
                 </p>
             ) : visibleSubmissions.length === 0 ? (
                 <p className="p-8 text-center text-sm text-gray-500 dark:text-slate-400">
                     {filter === "pending"
-                        ? "No hay entregas pendientes de corrección."
-                        : "Aún no hay entregas en este curso."}
+                        ? t("courseStudents.submissions.noPending")
+                        : t("courseStudents.submissions.noSubmissions")}
                 </p>
             ) : (
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
                     <thead className="bg-gray-50 dark:bg-slate-700/50">
                         <tr>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Alumno
+                                {t("courseStudents.submissions.table.student")}
                             </th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Lección
+                                {t("courseStudents.submissions.table.lesson")}
                             </th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Enviada
+                                {t("courseStudents.submissions.table.submitted")}
                             </th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Estado
+                                {t("courseStudents.submissions.table.status")}
                             </th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Nota
+                                {t("courseStudents.submissions.table.score")}
                             </th>
                             <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Acción
+                                {t("courseStudents.submissions.table.action")}
                             </th>
                         </tr>
                     </thead>
@@ -158,16 +165,16 @@ export function SubmissionsPanel({ courseId }: Props) {
                                     {submission.lesson_position != null
                                         ? `#${submission.lesson_position} · `
                                         : ""}
-                                    {submission.lesson_title ?? "Lección"}
+                                    {submission.lesson_title ?? t("courseStudents.submissions.defaultLesson")}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
-                                    {formatRelativeTime(submission.submitted_at)}
+                                    {formatRelativeTime(submission.submitted_at, i18n.language)}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                     <span
                                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_CLASS[submission.status]}`}
                                     >
-                                        {STATUS_LABEL[submission.status]}
+                                        {statusLabel[submission.status]}
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
@@ -182,8 +189,8 @@ export function SubmissionsPanel({ courseId }: Props) {
                                         className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm hover:bg-gray-50 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                     >
                                         {submission.status === "pending"
-                                            ? "Corregir"
-                                            : "Ver / editar"}
+                                            ? t("courseStudents.submissions.review")
+                                            : t("courseStudents.submissions.viewEdit")}
                                     </button>
                                 </td>
                             </tr>

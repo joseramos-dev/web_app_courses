@@ -3,10 +3,10 @@ import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from core.security import create_access_token
+from core.i18n import http_error
 from modules.auth.model import RefreshTokenModel
 from modules.users.model import UserModel
 from modules.users.service import get_user
@@ -53,7 +53,7 @@ def _get_valid_refresh_row(db: Session, raw_token: str) -> RefreshTokenModel:
         .first()
     )
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        raise http_error(401, "invalid_refresh_token")
 
     expires_at = row.expires_at
     if expires_at.tzinfo is None:
@@ -61,7 +61,7 @@ def _get_valid_refresh_row(db: Session, raw_token: str) -> RefreshTokenModel:
     if expires_at <= datetime.now(timezone.utc):
         row.revoked_at = datetime.now(timezone.utc)
         db.commit()
-        raise HTTPException(status_code=401, detail="Refresh token expired")
+        raise http_error(401, "refresh_token_expired")
 
     return row
 
@@ -70,7 +70,7 @@ def rotate_refresh_token(db: Session, raw_token: str) -> dict[str, str]:
     row = _get_valid_refresh_row(db, raw_token)
     user = get_user(db, row.user_id)
     if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise http_error(401, "user_not_found")
 
     row.revoked_at = datetime.now(timezone.utc)
     access_token = create_access_token(user.id, user.role)

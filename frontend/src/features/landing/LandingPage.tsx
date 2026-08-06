@@ -12,29 +12,32 @@ import { API_getPublicStats } from "../dashboard/api";
 import { StatCard } from "../dashboard/components/StatCard";
 import { ActivityBarChart } from "../../shared/components/charts/ActivityBarChart";
 import { DistributionBarChart } from "../../shared/components/charts/DistributionBarChart";
+import { useTranslation } from "react-i18next";
 import { formatCategoryLabel } from "../../shared/components/charts/chartFormatters";
 import type { IPublicStats } from "../../shared/interfaces/IDashboard";
 import { useAuth } from "../../shared/povider/AuthContext";
 import { useAuthModal } from "../../shared/context/AuthModalContext";
 import {
-    lessonTypeLabels,
-    publicStatsPeriodLabels,
+    getLessonTypeLabels,
+    getPublicStatsPeriodLabels,
     type PublicStatsPeriod,
 } from "../../shared/types/LessonTypes";
 import type { LessonType } from "../course_edit/lessonTypes";
 
-const DAY_FORMATTER = new Intl.DateTimeFormat(undefined, {
-    day: "2-digit",
-    month: "short",
-});
-
-const PERIOD_HELPERS: Record<PublicStatsPeriod, string> = {
-    day: "Hoy",
-    week: "Últimos 7 días",
-    month: "Últimos 30 días",
+const PERIOD_HELPER_KEY: Record<PublicStatsPeriod, string> = {
+    day: "landing.period.day",
+    week: "landing.period.week",
+    month: "landing.period.month",
 };
 
 export function LandingPage() {
+    const { t, i18n } = useTranslation();
+    const lessonTypeLabels = getLessonTypeLabels(t);
+    const publicStatsPeriodLabels = getPublicStatsPeriodLabels(t);
+    const dayFormatter = useMemo(
+        () => new Intl.DateTimeFormat(i18n.language, { day: "2-digit", month: "short" }),
+        [i18n.language],
+    );
     const { user } = useAuth();
     const { openLogin, openRegister } = useAuthModal();
     const [period, setPeriod] = useState<PublicStatsPeriod>("week");
@@ -53,7 +56,7 @@ export function LandingPage() {
             } catch (e) {
                 console.error("Error loading public stats:", e);
                 if (!cancelled)
-                    setError("No se pudieron cargar las estadísticas de la plataforma.");
+                    setError(t("landing.loadStatsError"));
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -61,7 +64,7 @@ export function LandingPage() {
         return () => {
             cancelled = true;
         };
-    }, [period]);
+    }, [period, t]);
 
     const totalCategoryEnrollments = useMemo(() => {
         if (!data) return 0;
@@ -74,10 +77,10 @@ export function LandingPage() {
     const categoryChartData = useMemo(() => {
         if (!data) return [];
         return data.category_distribution.map((c) => ({
-            label: formatCategoryLabel(c.category),
+            label: formatCategoryLabel(c.category, t),
             value: c.enrollments_count,
         }));
-    }, [data]);
+    }, [data, t]);
 
     const lessonTypeChartData = useMemo(() => {
         if (!data) return [];
@@ -87,38 +90,36 @@ export function LandingPage() {
                 row.lesson_type,
             value: row.completed_count,
         }));
-    }, [data]);
+    }, [data, lessonTypeLabels]);
 
     const activityChartData = useMemo(() => {
         if (!data) return [];
         return data.activity_series.map((d) => ({
             label: "",
             value: d.lessons_completed,
-            title: `${DAY_FORMATTER.format(new Date(d.date))}: ${d.lessons_completed} completadas`,
+            title: `${dayFormatter.format(new Date(d.date))}: ${t("charts.completed", { count: d.lessons_completed })}`,
         }));
-    }, [data]);
+    }, [data, dayFormatter, t]);
 
     return (
         <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
             <section className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-uned-primary/10 via-white to-slate-50 px-6 py-10 dark:border-slate-600 dark:from-uned-primary/20 dark:via-slate-900 dark:to-slate-800 sm:px-10">
                 <div className="relative z-10 max-w-2xl">
                     <p className="text-sm font-medium uppercase tracking-wide text-uned-primary">
-                        Plataforma de aprendizaje online
+                        {t("landing.badge")}
                     </p>
                     <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-gray-900 dark:text-slate-100 sm:text-4xl">
-                        Descubre qué se aprende en Kursa
+                        {t("landing.title")}
                     </h1>
                     <p className="mt-3 text-base text-gray-600 dark:text-slate-300">
-                        Estadísticas agregadas de la comunidad: cursos más
-                        populares, categorías con más matrículas y actividad
-                        reciente en la plataforma.
+                        {t("landing.subtitle")}
                     </p>
                     <div className="mt-6 flex flex-wrap gap-3">
                         <Link
                             to="/courses"
                             className="inline-flex items-center gap-2 rounded-lg bg-uned-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-uned-primary/90"
                         >
-                            Explorar cursos
+                            {t("landing.exploreCourses")}
                             <ArrowRight className="size-4" />
                         </Link>
                         {!user && (
@@ -128,14 +129,14 @@ export function LandingPage() {
                                     onClick={openRegister}
                                     className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                 >
-                                    Registrarse
+                                    {t("nav.register")}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={openLogin}
                                     className="inline-flex items-center rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
                                 >
-                                    Iniciar sesión
+                                    {t("nav.login")}
                                 </button>
                             </>
                         )}
@@ -145,7 +146,7 @@ export function LandingPage() {
                                 className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                             >
                                 <GraduationCap className="size-4" />
-                                Mi dashboard
+                                {t("landing.myDashboard")}
                             </Link>
                         )}
                     </div>
@@ -156,16 +157,16 @@ export function LandingPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                            Actividad de la plataforma
+                            {t("landing.activityTitle")}
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-slate-400">
-                            {PERIOD_HELPERS[period]}
+                            {t(PERIOD_HELPER_KEY[period])}
                         </p>
                     </div>
                     <div
                         className="inline-flex rounded-lg border border-gray-200 bg-white p-1 dark:border-slate-600 dark:bg-slate-800"
                         role="tablist"
-                        aria-label="Periodo de estadísticas"
+                        aria-label={t("landing.periodAriaLabel")}
                     >
                         {(Object.keys(publicStatsPeriodLabels) as PublicStatsPeriod[]).map(
                             (key) => (
@@ -192,36 +193,36 @@ export function LandingPage() {
 
             {loading ? (
                 <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                    Cargando estadísticas...
+                    {t("landing.loadingStats")}
                 </div>
             ) : error || !data ? (
                 <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error ?? "No hay datos disponibles."}
+                    {error ?? t("dashboard.noData")}
                 </div>
             ) : (
                 <>
                     <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <StatCard
                             icon={<BookOpen className="size-5" />}
-                            label="Cursos en catálogo"
+                            label={t("landing.stats.coursesInCatalog")}
                             value={String(data.courses_count)}
                         />
                         <StatCard
                             icon={<TrendingUp className="size-5" />}
-                            label="Matrículas totales"
+                            label={t("landing.stats.totalEnrollments")}
                             value={String(data.total_enrollments)}
                         />
                         <StatCard
                             icon={<UserCheck className="size-5" />}
-                            label="Matrículas activas"
+                            label={t("landing.stats.activeEnrollments")}
                             value={String(data.active_enrollments_count)}
-                            helper="Cursos en progreso"
+                            helper={t("landing.stats.activeEnrollmentsHelper")}
                         />
                         <StatCard
                             icon={<Activity className="size-5" />}
-                            label="Lecciones completadas"
+                            label={t("landing.stats.lessonsCompleted")}
                             value={String(data.lessons_completed_in_period)}
-                            helper={PERIOD_HELPERS[period].toLowerCase()}
+                            helper={t(PERIOD_HELPER_KEY[period]).toLowerCase()}
                         />
                     </section>
 
@@ -229,15 +230,15 @@ export function LandingPage() {
                         <div className="rounded-xl border border-gray-200 bg-white dark:border-slate-600 dark:bg-slate-800">
                             <div className="border-b border-gray-200 px-4 py-3 dark:border-slate-600">
                                 <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                                    Cursos más populares
+                                    {t("landing.popularCoursesTitle")}
                                 </h2>
                                 <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    Ranking por número de matrículas
+                                    {t("landing.popularCoursesSubtitle")}
                                 </p>
                             </div>
                             {data.top_courses.length === 0 ? (
                                 <div className="px-4 py-8 text-center text-sm text-gray-500 dark:text-slate-400">
-                                    Aún no hay matrículas registradas.
+                                    {t("landing.noEnrollmentsYet")}
                                 </div>
                             ) : (
                                 <ol className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -268,14 +269,14 @@ export function LandingPage() {
 
                         <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
                             <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                                Matrículas por categoría
+                                {t("landing.categoryTitle")}
                             </h2>
                             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                Secciones con más registros
                                 {totalCategoryEnrollments > 0
-                                    ? ` (${totalCategoryEnrollments} total)`
-                                    : ""}
-                                .
+                                    ? t("landing.categorySubtitleWithTotal", {
+                                          total: totalCategoryEnrollments,
+                                      })
+                                    : t("landing.categorySubtitleNoTotal")}
                             </p>
                             <div className="mt-4">
                                 <DistributionBarChart
@@ -291,7 +292,7 @@ export function LandingPage() {
                                             to={`/courses?category=${encodeURIComponent(c.category)}`}
                                             className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600 transition hover:border-uned-primary hover:text-uned-primary dark:border-slate-600 dark:text-slate-300"
                                         >
-                                            {formatCategoryLabel(c.category)}
+                                            {formatCategoryLabel(c.category, t)}
                                         </Link>
                                     ))}
                                 </div>
@@ -302,10 +303,10 @@ export function LandingPage() {
                     <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
                             <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                                Lecciones completadas por día
+                                {t("landing.lessonsPerDayTitle")}
                             </h2>
                             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                Actividad global en el periodo seleccionado.
+                                {t("landing.lessonsPerDaySubtitle")}
                             </p>
                             <div className="mt-4">
                                 <ActivityBarChart
@@ -316,12 +317,12 @@ export function LandingPage() {
                                 {data.activity_series.length > 1 && (
                                     <div className="mt-1 flex justify-between text-[10px] text-gray-400 dark:text-slate-500">
                                         <span>
-                                            {DAY_FORMATTER.format(
+                                            {dayFormatter.format(
                                                 new Date(data.activity_series[0].date),
                                             )}
                                         </span>
                                         <span>
-                                            {DAY_FORMATTER.format(
+                                            {dayFormatter.format(
                                                 new Date(
                                                     data.activity_series[
                                                         data.activity_series.length - 1
@@ -336,10 +337,12 @@ export function LandingPage() {
 
                         <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800">
                             <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                                Completados por tipo de lección
+                                {t("landing.completedByTypeTitle")}
                             </h2>
                             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                Desglose en {PERIOD_HELPERS[period].toLowerCase()}.
+                                {t("landing.completedByTypeSubtitle", {
+                                    period: t(PERIOD_HELPER_KEY[period]).toLowerCase(),
+                                })}
                             </p>
                             <div className="mt-4">
                                 <DistributionBarChart

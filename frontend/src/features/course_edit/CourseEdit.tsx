@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   useNavigate,
   useNavigationType,
@@ -15,6 +16,7 @@ import { CourseEditForm } from "./components/CourseEditForm";
 import { LessonsEditor } from "./components/LessonsEditor";
 import type { ILesson, ILessonCreate } from "./lessonTypes";
 import {
+  API_createLesson,
   API_deleteCourse,
   API_deleteLesson,
   API_getLessonsByCourse,
@@ -49,6 +51,7 @@ function emptyDraft(user: IUser): ICourses {
 }
 
 export function CourseEdit() {
+  const { t } = useTranslation();
   const { courseId: courseIdParam } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -91,7 +94,7 @@ export function CourseEdit() {
         setDraft(detail);
       } catch (e) {
         console.error("Error fetching course detail: ", e);
-        setError("Could not load course.");
+        setError(t("courseEdit.loadError"));
         setCourse(null);
         setDraft(null);
       } finally {
@@ -153,18 +156,18 @@ export function CourseEdit() {
     if (isCreateMode) {
       if (!mayAccessCreate) return;
       if (!draft.title.trim()) {
-        toast.error("El título es obligatorio");
+        toast.error(t("courseEdit.toast.titleRequired"));
         return;
       }
       try {
         const created = await API_createCourse(
           buildCourseCreatePayload(draft, user.role === "admin"),
         );
-        toast.success("Curso creado");
+        toast.success(t("courseEdit.toast.courseCreated"));
         navigate(`/course/${created.id}/edit`, { replace: true });
       } catch (e) {
         console.error(e);
-        toast.error("No se pudo crear el curso");
+        toast.error(t("courseEdit.toast.createFailed"));
       }
       return;
     }
@@ -173,18 +176,18 @@ export function CourseEdit() {
       const updated = await API_updateCourse(Number(courseId), draft);
       setCourse(updated);
       setDraft(updated);
-      toast.success("Course saved");
+      toast.success(t("courseEdit.toast.courseSaved"));
       leaveEditor({ to: `/course/${updated.id}` });
     } catch (e) {
       console.error(e);
-      toast.error("Could not save course");
+      toast.error(t("courseEdit.toast.saveFailed"));
     }
   };
 
   const handleDeleteCourse = async () => {
     if (isCreateMode || !canEdit || !courseId || courseId === "new" || !course) return;
     const confirmed = window.confirm(
-      `¿Eliminar el curso "${course.title}"? Se borrarán también lecciones, matrículas, progreso y valoraciones. Esta acción no se puede deshacer.`,
+      t("courseEdit.deleteCourseConfirm", { title: course.title }),
     );
     if (!confirmed) return;
     try {
@@ -194,7 +197,7 @@ export function CourseEdit() {
       navigate("/courses", { replace: true });
     } catch (e) {
       console.error(e);
-      toast.error("No se pudo eliminar el curso");
+      toast.error(t("courseEdit.toast.deleteFailed"));
     } finally {
       setIsDeleting(false);
     }
@@ -202,9 +205,9 @@ export function CourseEdit() {
 
   if (!isCreateMode && isLoading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          Loading course...
+          {t("courseEdit.loadingCourse")}
         </div>
       </div>
     );
@@ -212,7 +215,7 @@ export function CourseEdit() {
 
   if (!isCreateMode && error) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
@@ -222,9 +225,9 @@ export function CourseEdit() {
 
   if (!isCreateMode && !course) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          No course found.
+          {t("courseEdit.noCourseFound")}
         </div>
       </div>
     );
@@ -232,9 +235,9 @@ export function CourseEdit() {
 
   if (!isCreateMode && !canEdit) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
-          You don’t have permission to edit this course.
+          {t("courseEdit.noPermission")}
         </div>
       </div>
     );
@@ -242,23 +245,23 @@ export function CourseEdit() {
 
   if (!draft) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          Loading editor...
+          {t("courseEdit.loadingEditor")}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => leaveEditor()}
           className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:shadow-md dark:hover:bg-slate-700"
         >
-          Back
+          {t("courseEdit.back")}
         </button>
 
         <div className="flex items-center gap-2">
@@ -269,7 +272,7 @@ export function CourseEdit() {
               disabled={isDeleting}
               className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-red-950/40"
             >
-              {isDeleting ? "Eliminando…" : "Eliminar curso"}
+              {isDeleting ? t("courseEdit.deleting") : t("courseEdit.deleteCourse")}
             </button>
           ) : null}
           <button
@@ -278,13 +281,13 @@ export function CourseEdit() {
             disabled={!canEdit || (isCreateMode && !draft.title.trim())}
             className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:border-gray-200 disabled:bg-gray-200 disabled:text-gray-500 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:shadow-md dark:hover:bg-uned-accent disabled:dark:border-slate-600 disabled:dark:bg-slate-700 disabled:dark:text-slate-500"
           >
-            {isCreateMode ? "Crear curso" : "Save"}
+            {isCreateMode ? t("courseEdit.createCourse") : t("courseEdit.save")}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
           <CourseEditForm
             value={draft}
             onChange={setDraft}
@@ -293,27 +296,38 @@ export function CourseEdit() {
           />
         </div>
         {isCreateMode ? null : (
-          <LessonsEditor
-            courseId={Number(courseId)}
-            lessons={lessons}
-            disabled={!canEdit}
-            onUpdate={async (lessonId: number, payload: ILessonCreate) => {
-              const updated = await API_updateLesson(lessonId, payload);
-              setLessons((cur) => cur.map((l) => (l.id === lessonId ? updated : l)));
-              toast.success("Lesson updated");
-            }}
-            onDelete={async (lessonId: number) => {
-              await API_deleteLesson(lessonId);
-              setLessons((cur) => cur.filter((l) => l.id !== lessonId));
-              toast.success("Lesson deleted");
-            }}
-            onReorder={async (orderedLessonIds: number[]) => {
-              if (!courseId || courseId === "new") return;
-              const next = await API_reorderLessons(Number(courseId), orderedLessonIds);
-              setLessons(next);
-              toast.success("Lessons reordered");
-            }}
-          />
+          <div className="lg:col-span-2">
+            <LessonsEditor
+              courseId={Number(courseId)}
+              lessons={lessons}
+              disabled={!canEdit}
+              onCreate={async (payload: ILessonCreate) => {
+                if (!courseId || courseId === "new") {
+                  throw new Error("Cannot create a lesson without a course id");
+                }
+                const created = await API_createLesson(Number(courseId), payload);
+                setLessons((cur) => [...cur, created]);
+                toast.success(t("courseEdit.toast.lessonCreated"));
+                return created;
+              }}
+              onUpdate={async (lessonId: number, payload: ILessonCreate) => {
+                const updated = await API_updateLesson(lessonId, payload);
+                setLessons((cur) => cur.map((l) => (l.id === lessonId ? updated : l)));
+                toast.success(t("courseEdit.toast.lessonUpdated"));
+              }}
+              onDelete={async (lessonId: number) => {
+                await API_deleteLesson(lessonId);
+                setLessons((cur) => cur.filter((l) => l.id !== lessonId));
+                toast.success(t("courseEdit.toast.lessonDeleted"));
+              }}
+              onReorder={async (orderedLessonIds: number[]) => {
+                if (!courseId || courseId === "new") return;
+                const next = await API_reorderLessons(Number(courseId), orderedLessonIds);
+                setLessons(next);
+                toast.success(t("courseEdit.toast.lessonsReordered"));
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

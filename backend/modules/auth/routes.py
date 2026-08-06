@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -15,8 +15,7 @@ from modules.auth.refresh_service import (
 )
 from modules.users.schema import UserSchema, UserSelfUpdateSchema
 from modules.users.service import update_self_user
-from modules.auth.service import get_current_user, get_user_by_name_or_email
-from core.security import verify_password
+from modules.auth.service import authenticate_user, get_current_user
 
 
 auth_router = APIRouter(tags=["auth"])
@@ -27,9 +26,7 @@ def token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    user = get_user_by_name_or_email(db, form_data.username)
-    if not verify_password(form_data.password, user.hash_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    user = authenticate_user(db, form_data.username, form_data.password)
     return create_token_pair(db, user)
 
 

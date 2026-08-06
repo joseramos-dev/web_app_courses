@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
-
-const FOOTER_LINKS = [
-    { to: "/courses", label: "Cursos" },
-    { to: "/dashboard", label: "Dashboard" },
-] as const;
+import { useTranslation } from "react-i18next";
 
 /** Bloque informativo y enlaces: pie global (fondo cabecera UNED) */
 export function FooterContentBar() {
+    const { t } = useTranslation();
+    const footerLinks = [
+        { to: "/courses", label: t("nav.courses") },
+        { to: "/dashboard", label: t("nav.dashboard") },
+    ] as const;
+
     return (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -14,15 +16,14 @@ export function FooterContentBar() {
                     kursa
                 </p>
                 <p className="mt-1 max-w-md text-xs leading-relaxed text-header-foreground/80">
-                    Proyecto académico (TFG). La identidad cromática se inspira en la web
-                    pública de la UNED, sin uso de su logotipo ni recursos oficiales.
+                    {t("footer.description")}
                 </p>
             </div>
             <nav
                 className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-header-foreground/90"
-                aria-label="Pie de página"
+                aria-label={t("footer.navAriaLabel")}
             >
-                {FOOTER_LINKS.map(({ to, label }) => (
+                {footerLinks.map(({ to, label }) => (
                     <Link key={to} to={to} className="hover:text-header-foreground hover:underline">
                         {label}
                     </Link>
@@ -41,12 +42,13 @@ export function FooterContentBar() {
 }
 
 export function Footer() {
+    const { t } = useTranslation();
     return (
         <footer className="mt-auto border-t border-header-border bg-header text-header-foreground">
             <div className="mx-auto max-w-6xl px-4 py-6">
                 <FooterContentBar />
                 <p className="mt-6 text-center text-[11px] text-header-foreground/65">
-                    © {new Date().getFullYear()} · Proyecto académico
+                    © {new Date().getFullYear()} · {t("footer.academicProject")}
                 </p>
             </div>
         </footer>

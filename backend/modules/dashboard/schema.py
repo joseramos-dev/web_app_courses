@@ -129,6 +129,17 @@ class InstructorCourseRowSchema(BaseModel):
     last_activity_at: Optional[datetime] = None
 
 
+class PendingSubmissionRowSchema(BaseModel):
+    id: int
+    course_id: int
+    course_title: str
+    lesson_id: int
+    lesson_title: str
+    student_user_id: int
+    student_name: str
+    submitted_at: datetime
+
+
 class InstructorDashboardSchema(BaseModel):
     courses_count: int
     total_students: int
@@ -137,6 +148,8 @@ class InstructorDashboardSchema(BaseModel):
     courses: List[InstructorCourseRowSchema]
     top_active_students: List[TopStudentSchema]
     top_completed_lessons: List[TopLessonSchema]
+    pending_submissions_count: int
+    pending_submissions: List[PendingSubmissionRowSchema]
 
 
 # ---------- Admin ----------

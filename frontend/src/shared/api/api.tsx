@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import qs from "qs";
+import i18n from "../../i18n";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL?.replace(/\/?$/, "/") ??
@@ -24,6 +25,18 @@ const apiArray = axios.create({
     return qs.stringify(params, { arrayFormat: "repeat" });
   },
 });
+
+const LANGUAGE_INSTANCES = [api, apiAuth, apiArray];
+
+function setAcceptLanguage(lng: string) {
+  const value = lng.split("-")[0];
+  for (const instance of LANGUAGE_INSTANCES) {
+    instance.defaults.headers.common["Accept-Language"] = value;
+  }
+}
+
+setAcceptLanguage(i18n.language ?? "es");
+i18n.on("languageChanged", setAcceptLanguage);
 
 export function setAuthHeader(accessToken: string | null) {
   const value = accessToken ? `Bearer ${accessToken}` : undefined;
@@ -77,11 +90,12 @@ function attachRefreshInterceptor(instance: typeof api) {
         return Promise.reject(error);
       }
 
-      const detail = (error.response?.data as { detail?: string } | undefined)
-        ?.detail;
+      const errorCode = error.response?.headers?.["x-error-code"] as
+        | string
+        | undefined;
       if (
-        detail === "Invalid current password" ||
-        detail === "Invalid credentials"
+        errorCode === "INVALID_CURRENT_PASSWORD" ||
+        errorCode === "INVALID_CREDENTIALS"
       ) {
         return Promise.reject(error);
       }

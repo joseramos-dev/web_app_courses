@@ -3,11 +3,14 @@ import { useAuth } from "../povider/AuthContext";
 import type { AuthType } from "../types/AuthTypes";
 import { LogOut, Menu, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export const ButtonsNavBarMobile = (
     { isAdmin, setAuthType }: { isAdmin: boolean, setAuthType: (authType: AuthType) => void }
 ) => {
     const { user, logout } = useAuth();
+    const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleLogout = () => {
@@ -45,25 +48,31 @@ export const ButtonsNavBarMobile = (
                         className={navLink}
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Inicio
+                        {t("nav.home")}
                     </NavLink>
                     <NavLink
                         to="/courses"
                         className={navLink}
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Courses
+                        {t("nav.courses")}
                     </NavLink>
                     <NavLink
                         to="/dashboard"
                         className={navLink}
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Dashboard
+                        {t("nav.dashboard")}
                     </NavLink>
-                    {isAdmin && <NavLink to="/admin" className={navLink} onClick={() => setIsMenuOpen(false)}>Admin</NavLink>}
+                    {isAdmin && <NavLink to="/admin" className={navLink} onClick={() => setIsMenuOpen(false)}>{t("nav.admin")}</NavLink>}
                     {/* Divider */}
-                    <div className="border-t border-black/10" />
+                    <div className="border-t border-black/10 dark:border-white/10" />
+
+                    {/* Language Section */}
+                    <LanguageSwitcher variant="mobile" />
+
+                    {/* Divider */}
+                    <div className="border-t border-black/10 dark:border-white/10" />
 
                     {/* Auth Section */}
                     {user ? (
@@ -73,14 +82,14 @@ export const ButtonsNavBarMobile = (
                                 onClick={() => setIsMenuOpen(false)}
                                 className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
-                                Settings
+                                {t("nav.settings")}
                             </Link>
                             <button
                                 onClick={handleLogout}
                                 className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
                                 <LogOut className="size-4" />
-                                Logout
+                                {t("nav.logout")}
                             </button>
                         </>
                     ) : (
@@ -92,7 +101,7 @@ export const ButtonsNavBarMobile = (
                                 }}
                                 className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
-                                Iniciar sesión
+                                {t("nav.login")}
                             </button>
                             <button
                                 onClick={() => {
@@ -101,7 +110,7 @@ export const ButtonsNavBarMobile = (
                                 }}
                                 className="mx-2 mb-2 mt-1 w-[calc(100%-1rem)] rounded-lg bg-uned-accent px-4 py-2 text-center text-sm font-semibold text-white hover:bg-uned-accent-hover"
                             >
-                                Registrarse
+                                {t("nav.register")}
                             </button>
                         </>
                     )}

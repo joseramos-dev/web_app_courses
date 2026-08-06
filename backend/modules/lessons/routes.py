@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import FileResponse
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from core.database import get_db
+from core.i18n import http_error, msg
 from modules.lessons.schema import (
     LessonSchema,
     LessonCreateSchema,
@@ -41,7 +42,7 @@ lessons_router = APIRouter(
 def _require_lesson(db: Session, lesson_id: int) -> LessonModel:
     lesson = db.query(LessonModel).filter(LessonModel.id == lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+        raise http_error(404, "lesson_not_found")
     return lesson
 
 
@@ -101,7 +102,7 @@ def create_lesson(
     """
     course = get_course_detail(db, course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     return create_lesson_service(db, course_id, lesson)
 
 
@@ -115,11 +116,11 @@ def patch_lesson(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
 
     updated = update_lesson_service(db, lesson_id, payload)
     if not updated:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+        raise http_error(404, "lesson_not_found")
     return updated
 
 
@@ -132,12 +133,12 @@ def remove_lesson(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
 
     ok = delete_lesson_service(db, lesson_id)
     if not ok:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    return {"detail": "Lesson deleted"}
+        raise http_error(404, "lesson_not_found")
+    return {"detail": msg("lesson_deleted")}
 
 
 @lessons_router.post(
@@ -153,11 +154,11 @@ def reorder_course_lessons(
 ):
     course = get_course_detail(db, course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
 
     reordered = reorder_lessons_service(db, course_id, payload.ordered_lesson_ids)
     if reordered is None:
-        raise HTTPException(status_code=400, detail="Invalid lesson ids for reorder")
+        raise http_error(400, "invalid_lesson_ids_reorder")
     return reordered
 
 
@@ -220,7 +221,7 @@ def download_lesson_file(
 ):
     file_record = file_service.get_file_by_id(db, file_id)
     if not file_record:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise http_error(404, "file_not_found")
     path = file_service.get_download_path(db, file_record, user)
     return FileResponse(
         path,
@@ -240,9 +241,9 @@ def remove_lesson_file(
 ):
     file_record = file_service.get_file_by_id(db, file_id)
     if not file_record:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise http_error(404, "file_not_found")
     file_service.delete_lesson_file(db, file_record, user)
-    return {"detail": "File deleted"}
+    return {"detail": msg("file_deleted")}
 
 
 # ---------- Questions ----------
@@ -275,9 +276,7 @@ def get_lesson_questions_public(
             .first()
         )
         if not enrolled:
-            raise HTTPException(
-                status_code=403, detail="You must enroll in the course first"
-            )
+            raise http_error(403, "must_enroll_first")
 
     return get_questions_by_lesson_service(db, lesson_id)
 
@@ -299,7 +298,7 @@ def get_lesson_questions_admin(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     return get_questions_by_lesson_service(db, lesson_id)
 
 
@@ -317,7 +316,7 @@ def create_lesson_question(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     return create_question_service(db, lesson_id, payload)
 
 
@@ -336,10 +335,10 @@ def update_lesson_question(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     updated = update_question_service(db, question_id, payload)
     if not updated:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise http_error(404, "question_not_found")
     return updated
 
 
@@ -356,8 +355,8 @@ def delete_lesson_question(
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     ok = delete_question_service(db, question_id)
     if not ok:
-        raise HTTPException(status_code=404, detail="Question not found")
-    return {"detail": "Question deleted"}
+        raise http_error(404, "question_not_found")
+    return {"detail": msg("question_deleted")}

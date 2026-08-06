@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { ILessonAttemptList } from "../../../shared/interfaces/IProgress";
 import { formatRelativeTime } from "../../dashboard/components/formatRelativeTime";
 
@@ -7,10 +8,11 @@ type Props = {
 };
 
 export function LessonAttemptHistory({ data, loading }: Props) {
+    const { t, i18n } = useTranslation();
     if (loading) {
         return (
             <p className="text-sm text-gray-500 dark:text-slate-400">
-                Cargando historial de intentos…
+                {t("lessonPage.attemptHistory.loading")}
             </p>
         );
     }
@@ -18,7 +20,7 @@ export function LessonAttemptHistory({ data, loading }: Props) {
     if (!data || data.attempts.length === 0) {
         return (
             <p className="text-sm text-gray-500 dark:text-slate-400">
-                Aún no hay intentos registrados en esta lección.
+                {t("lessonPage.attemptHistory.empty")}
             </p>
         );
     }
@@ -27,11 +29,14 @@ export function LessonAttemptHistory({ data, loading }: Props) {
         <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
                 <span>
-                    Mejor nota:{" "}
-                    {data.best_score != null ? `${Math.round(data.best_score)}%` : "—"}
+                    {t("lessonPage.attemptHistory.bestScore", {
+                        score: data.best_score != null ? `${Math.round(data.best_score)}%` : "—",
+                    })}
                 </span>
                 <span>
-                    {data.total_attempts} intento{data.total_attempts !== 1 ? "s" : ""}
+                    {t("lessonPage.attemptHistory.attemptsCount", {
+                        count: data.total_attempts,
+                    })}
                 </span>
             </div>
             <ul className="divide-y divide-gray-100 rounded-xl border border-gray-200 dark:divide-slate-700 dark:border-slate-600">
@@ -51,11 +56,13 @@ export function LessonAttemptHistory({ data, loading }: Props) {
                                         : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
                                 }`}
                             >
-                                {attempt.passed ? "Aprobado" : "No superado"}
+                                {attempt.passed
+                                    ? t("lessonPage.attemptHistory.passed")
+                                    : t("lessonPage.attemptHistory.notPassed")}
                             </span>
                         </div>
                         <span className="text-xs text-gray-500 dark:text-slate-400">
-                            {formatRelativeTime(attempt.attempted_at)}
+                            {formatRelativeTime(attempt.attempted_at, i18n.language)}
                         </span>
                     </li>
                 ))}

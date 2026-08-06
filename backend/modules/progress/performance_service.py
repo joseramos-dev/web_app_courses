@@ -1,7 +1,8 @@
 from typing import List, Optional
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
+from core.i18n import http_error
 
 from modules.courses.model import CourseModel
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
@@ -34,10 +35,7 @@ def list_lesson_attempts(
 ) -> LessonAttemptListSchema:
     lesson = _require_lesson(db, lesson_id)
     if lesson.lesson_type not in _TEST_LESSON_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail="Attempt history is only available for test lessons",
-        )
+        raise http_error(400, "attempt_history_test_only")
 
     enrollment = _require_enrollment(db, user_id, lesson.course_id)
     progress = (

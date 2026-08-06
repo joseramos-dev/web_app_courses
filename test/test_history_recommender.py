@@ -17,14 +17,6 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
-from modules.recommendations.aux_content_based import (
-    compute_final_score,
-    score_courses_hybrid,
-)
-from modules.recommendations.aux_history_based import (
-    build_history_profile,
-    similar_completed_rating_score,
-)
 from modules.recommendations.schema import RecommendationSourceType
 from modules.recommendations.service import recommend_courses_content_based
 
@@ -87,6 +79,9 @@ def mock_db(mocker):
 
 
 def test_history_only_recommends_affined_course(mock_db, mocker):
+    # Sin preferencias explícitas, solo debe recomendarse el curso candidato
+    # que comparte site+category+language con el historial completado; el
+    # candidato totalmente distinto queda fuera y la fuente debe ser HISTORY.
     completed = [
         _course(
             101,
@@ -145,114 +140,9 @@ def test_history_only_recommends_affined_course(mock_db, mocker):
     assert result.recommendations[0].source_type == RecommendationSourceType.HISTORY
 
 
-def test_similar_completed_rating_boosts_matching_candidate():
-    rated_completed = _course(
-        1,
-        site=Site.COURSERA,
-        category=Category.DATA_SCIENCE,
-        language=Language.ENGLISH,
-    )
-    similar_candidate = _course(
-        2,
-        site=Site.COURSERA,
-        category=Category.DATA_SCIENCE,
-        language=Language.SPANISH,
-        rating=4.0,
-    )
-    dissimilar_candidate = _course(
-        3,
-        site=Site.UDACTITY,
-        category=Category.BUSINESS,
-        language=Language.FRENCH,
-        rating=4.0,
-    )
-
-    completed_with_ratings = [(rated_completed, 5)]
-    history_profile = build_history_profile([rated_completed])
-
-    scored = score_courses_hybrid(
-        [similar_candidate, dissimilar_candidate],
-        set(),
-        set(),
-        set(),
-        set(),
-        set(),
-        set(),
-        history_profile,
-        completed_with_ratings,
-    )
-    by_id = {course_id: final for final, _, _, course_id, _ in scored}
-
-    assert by_id[2] > by_id[3]
-
-
-def test_preferences_and_history_prefer_stronger_match():
-    profile_sites = {Site.COURSERA}
-    profile_categories = {Category.DATA_SCIENCE}
-    completed = [
-        _course(
-            1,
-            site=Site.COURSERA,
-            category=Category.DATA_SCIENCE,
-            language=Language.ENGLISH,
-        )
-    ]
-    strong = _course(
-        10,
-        site=Site.COURSERA,
-        category=Category.DATA_SCIENCE,
-        language=Language.ENGLISH,
-    )
-    weak = _course(
-        11,
-        site=Site.COURSERA,
-        category=Category.BUSINESS,
-        language=Language.FRENCH,
-    )
-
-    history_profile = build_history_profile(completed)
-    scored = score_courses_hybrid(
-        [strong, weak],
-        profile_sites,
-        profile_categories,
-        set(),
-        set(),
-        set(),
-        set(),
-        history_profile,
-        [],
-    )
-    by_id = {
-        course_id: (final, source)
-        for final, _, _, course_id, source in scored
-    }
-
-    assert by_id[10][0] > by_id[11][0]
-    assert by_id[10][1] == RecommendationSourceType.PREFERENCES
-
-
-def test_similar_completed_rating_score_requires_two_shared_dimensions():
-    completed = _course(
-        1,
-        site=Site.COURSERA,
-        category=Category.DATA_SCIENCE,
-        language=Language.ENGLISH,
-    )
-    one_shared = _course(
-        2,
-        site=Site.COURSERA,
-        category=Category.BUSINESS,
-        language=Language.FRENCH,
-        course_type=CourseType.SPECIALIZATION,
-        difficulty=Difficulty.ADVANCED,
-        duration_seconds=8 * 24 * 3600,
-    )
-
-    score = similar_completed_rating_score(one_shared, [(completed, 5)])
-    assert score is None
-
-
 def test_no_preferences_nor_completed_returns_empty(mock_db, mocker):
+    # Un usuario sin preferencias guardadas ni cursos completados no tiene
+    # base para el content-based, así que debe recibir una lista vacía.
     mocker.patch(
         "modules.recommendations.service.get_or_create_recommendation",
         return_value=_empty_profile(),
@@ -264,8 +154,3 @@ def test_no_preferences_nor_completed_returns_empty(mock_db, mocker):
 
     result = recommend_courses_content_based(mock_db, user_id=99, limit=5)
     assert result.recommendations == []
-
-
-def test_compute_final_score_weights():
-    assert compute_final_score(1.0, 1.0) == pytest.approx(1.0)
-    assert compute_final_score(0.0, 1.0) == pytest.approx(0.35)

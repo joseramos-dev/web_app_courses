@@ -4,11 +4,14 @@ import type { UserRoles } from "../../shared/types/UserRoles"
 import { API_deleteUser, API_getUsers, API_updateUserRole } from "./api"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
+import { useTranslation } from "react-i18next"
+import { useAuth } from "../../shared/povider/AuthContext"
 
 const userRoles: UserRoles[] = ["student", "instructor", "admin"]
 
 export const AdminPanel = () => {
-
+    const { t } = useTranslation()
+    const { user: currentUser } = useAuth()
     const [users, setUsers] = useState<IUser[]>([])
     const [loading, setLoading] = useState(false)
 
@@ -29,19 +32,31 @@ export const AdminPanel = () => {
     }
 
     const onRoleChange = async (user: IUser, role: UserRoles) => {
-        const updatedUser = await API_updateUserRole(user.id!, role)
-        toast.success(`role from user ${user.name} updated from ${user.role} to ${updatedUser.role}`)
-        setUsers((currentUsers) =>
-            currentUsers.map((currentUser) =>
-                currentUser === user ? { ...currentUser, role } : currentUser
+        if (currentUser?.id === user.id && role !== "admin") {
+            toast.error(t("admin.cannotRemoveOwnAdmin"))
+            return
+        }
+        try {
+            const updatedUser = await API_updateUserRole(user.id!, role)
+            toast.success(t("admin.roleUpdateSuccess", {
+                name: user.name,
+                from: t(`admin.roles.${user.role}`),
+                to: t(`admin.roles.${updatedUser.role}`),
+            }))
+            setUsers((currentUsers) =>
+                currentUsers.map((currentUser) =>
+                    currentUser === user ? { ...currentUser, role } : currentUser
+                )
             )
-        )
+        } catch {
+            toast.error(t("admin.roleUpdateFailed"))
+        }
     }
 
     if (loading) {
         return (
             <p className="min-h-screen bg-neutral-100 p-8 text-sm text-gray-600 dark:bg-surface dark:text-slate-400">
-                loading ...
+                {t("admin.loading")}
             </p>
         )
     }
@@ -49,8 +64,10 @@ export const AdminPanel = () => {
         <div className="min-h-screen bg-neutral-100 p-8 dark:bg-surface">
             <div className="mx-auto flex max-w-5xl flex-col gap-4">
                 <header>
-                    <h1 className="text-3xl font-semibold text-gray-900 dark:text-slate-100">Users</h1>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{users.length} registered users</p>
+                    <h1 className="text-3xl font-semibold text-gray-900 dark:text-slate-100">{t("admin.title")}</h1>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                        {t("admin.registeredUsers", { count: users.length })}
+                    </p>
                 </header>
 
                 {
@@ -80,8 +97,9 @@ const UserCard = (
             onRoleChange: (role: UserRoles) => void
         }
 ) => {
+    const { t, i18n } = useTranslation()
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
-    const createdAt = formatUserCreationDate(user.time_creation)
+    const createdAt = formatUserCreationDate(user.time_creation, i18n.language, t)
 
     return (
         <>
@@ -91,21 +109,21 @@ const UserCard = (
                         <div className="flex flex-wrap items-center gap-3">
                             <h2 className="truncate text-xl font-semibold text-gray-900 dark:text-slate-100">{user.name}</h2>
                             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-600 dark:bg-slate-700 dark:text-slate-300">
-                                {user.role}
+                                {t(`admin.roles.${user.role}`)}
                             </span>
                         </div>
 
                         <dl className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-slate-300 sm:grid-cols-2">
-                            <UserInfo label="ID" value={user.id ?? "No ID"} />
-                            <UserInfo label="Email" value={user.email} />
-                            <UserInfo label="Role" value={user.role} />
-                            <UserInfo label="Created" value={createdAt} />
+                            <UserInfo label={t("admin.fields.id")} value={user.id ?? t("admin.noId")} />
+                            <UserInfo label={t("admin.fields.email")} value={user.email} />
+                            <UserInfo label={t("admin.fields.role")} value={t(`admin.roles.${user.role}`)} />
+                            <UserInfo label={t("admin.fields.created")} value={createdAt} />
                         </dl>
                     </div>
 
                     <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col">
                         <label className="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-slate-300">
-                            Role
+                            {t("admin.fields.role")}
                             <select
                                 value={user.role}
                                 onChange={(event) => onRoleChange(event.target.value as UserRoles)}
@@ -113,7 +131,7 @@ const UserCard = (
                             >
                                 {userRoles.map((role) => (
                                     <option key={role} value={role}>
-                                        {role}
+                                        {t(`admin.roles.${role}`)}
                                     </option>
                                 ))}
                             </select>
@@ -124,7 +142,7 @@ const UserCard = (
                             onClick={() => setIsConfirmModalOpen(true)}
                             className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
                         >
-                            Delete user
+                            {t("admin.deleteUser")}
                         </button>
                     </div>
                 </div>
@@ -133,9 +151,9 @@ const UserCard = (
             {isConfirmModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                     <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-slate-800">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Delete user?</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{t("admin.deleteConfirmTitle")}</h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-slate-300">
-                            Are you sure you want to delete {user.name}?
+                            {t("admin.deleteConfirmMessage", { name: user.name })}
                         </p>
 
                         <div className="mt-6 flex justify-end gap-3">
@@ -144,7 +162,7 @@ const UserCard = (
                                 onClick={() => setIsConfirmModalOpen(false)}
                                 className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
-                                Cancel
+                                {t("common.cancel")}
                             </button>
                             <button
                                 type="button"
@@ -154,7 +172,7 @@ const UserCard = (
                                 }}
                                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                             >
-                                Yes, delete
+                                {t("admin.yesDelete")}
                             </button>
                         </div>
                     </div>
@@ -171,13 +189,17 @@ const UserInfo = ({ label, value }: { label: string, value: string | number }) =
     </div>
 )
 
-const formatUserCreationDate = (date: Date | string | null): string => {
-    if (!date) return "Unknown"
+const formatUserCreationDate = (
+    date: Date | string | null,
+    locale: string,
+    t: (key: string) => string,
+): string => {
+    if (!date) return t("admin.unknownDate")
 
     const parsedDate = new Date(date)
-    if (Number.isNaN(parsedDate.getTime())) return "Unknown"
+    if (Number.isNaN(parsedDate.getTime())) return t("admin.unknownDate")
 
-    return parsedDate.toLocaleDateString(undefined, {
+    return parsedDate.toLocaleDateString(locale, {
         year: "numeric",
         month: "short",
         day: "numeric",

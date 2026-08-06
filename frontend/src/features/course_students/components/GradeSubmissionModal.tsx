@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type { ISubmission } from "../../../shared/interfaces/ISubmission";
 import { API_gradeSubmission } from "../../progress/submissionApi";
 import { api } from "../../../shared/api/api";
@@ -19,6 +20,7 @@ export function GradeSubmissionModal({
     onClose,
     onGraded,
 }: Props) {
+    const { t } = useTranslation();
     const maxScore = submission.max_score ?? 100;
     const [score, setScore] = useState("");
     const [feedback, setFeedback] = useState("");
@@ -34,6 +36,17 @@ export function GradeSubmissionModal({
 
     if (!isOpen) return null;
 
+    const handleScoreChange = (raw: string) => {
+        if (raw === "") {
+            setScore("");
+            return;
+        }
+        // Digits with at most one decimal point (scores are floats).
+        if (/^\d*\.?\d*$/.test(raw)) {
+            setScore(raw);
+        }
+    };
+
     const handleDownloadFile = async () => {
         if (!submission.file_id) return;
         try {
@@ -44,12 +57,13 @@ export function GradeSubmissionModal({
             const url = window.URL.createObjectURL(data);
             const anchor = document.createElement("a");
             anchor.href = url;
-            anchor.download = submission.file_name ?? "entrega";
+            anchor.download =
+                submission.file_name ?? t("courseStudents.gradeModal.defaultSubmissionFile");
             anchor.click();
             window.URL.revokeObjectURL(url);
         } catch (e) {
             console.error(e);
-            toast.error("No se pudo descargar el archivo.");
+            toast.error(t("courseStudents.gradeModal.downloadFailed"));
         }
     };
 
@@ -57,11 +71,11 @@ export function GradeSubmissionModal({
         const scoreNum = score.trim() === "" ? null : Number(score);
         if (action === "grade") {
             if (scoreNum == null || Number.isNaN(scoreNum)) {
-                toast.error("Indica una nota válida para calificar.");
+                toast.error(t("courseStudents.gradeModal.invalidScore"));
                 return;
             }
             if (scoreNum < 0 || scoreNum > maxScore) {
-                toast.error(`La nota debe estar entre 0 y ${maxScore}.`);
+                toast.error(t("courseStudents.gradeModal.scoreRange", { max: maxScore }));
                 return;
             }
         }
@@ -75,14 +89,14 @@ export function GradeSubmissionModal({
             });
             toast.success(
                 action === "grade"
-                    ? "Entrega calificada"
-                    : "Entrega devuelta al alumno",
+                    ? t("courseStudents.gradeModal.gradedSuccess")
+                    : t("courseStudents.gradeModal.returnedSuccess"),
             );
             onGraded(updated);
             onClose();
         } catch (e) {
             console.error(e);
-            toast.error("No se pudo actualizar la entrega.");
+            toast.error(t("courseStudents.gradeModal.updateFailed"));
         } finally {
             setSubmitting(false);
         }
@@ -94,11 +108,11 @@ export function GradeSubmissionModal({
                 <div className="flex items-start justify-between gap-3">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                            Corregir entrega
+                            {t("courseStudents.gradeModal.title")}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                            {submission.student_name ?? "Alumno"} ·{" "}
-                            {submission.lesson_title ?? "Lección"}
+                            {submission.student_name ?? t("courseStudents.gradeModal.defaultStudent")} ·{" "}
+                            {submission.lesson_title ?? t("courseStudents.gradeModal.defaultLesson")}
                         </p>
                     </div>
                     <button
@@ -106,13 +120,13 @@ export function GradeSubmissionModal({
                         onClick={onClose}
                         className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
-                        Cerrar
+                        {t("common.close")}
                     </button>
                 </div>
 
                 <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm dark:border-slate-600 dark:bg-slate-900/50">
                     <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                        Respuesta del alumno
+                        {t("courseStudents.gradeModal.studentAnswer")}
                     </div>
                     <pre className="mt-2 max-h-40 overflow-y-auto wrap-break-word font-sans whitespace-pre-wrap text-gray-800 dark:text-slate-200">
                         {submission.content}
@@ -123,7 +137,11 @@ export function GradeSubmissionModal({
                             onClick={() => void handleDownloadFile()}
                             className="mt-2 inline-block text-xs font-medium text-uned-primary hover:underline dark:text-uned-primary"
                         >
-                            Descargar {submission.file_name ?? "adjunto"}
+                            {t("courseStudents.gradeModal.downloadFile", {
+                                fileName:
+                                    submission.file_name ??
+                                    t("courseStudents.gradeModal.defaultAttachment"),
+                            })}
                         </button>
                     ) : null}
                 </div>
@@ -131,27 +149,38 @@ export function GradeSubmissionModal({
                 <div className="mt-4 grid grid-cols-1 gap-4">
                     <label className="flex flex-col gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                            Nota (0–{maxScore})
+                            {t("courseStudents.gradeModal.scoreLabel", { maxScore })}
                         </span>
                         <input
-                            type="number"
-                            min={0}
-                            max={maxScore}
+                            type="text"
+                            inputMode="decimal"
+                            autoComplete="off"
                             value={score}
-                            onChange={(e) => setScore(e.target.value)}
+                            onChange={(e) => handleScoreChange(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (
+                                    e.key.length === 1 &&
+                                    !/[\d.]/.test(e.key) &&
+                                    !e.ctrlKey &&
+                                    !e.metaKey
+                                ) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            placeholder={t("courseStudents.gradeModal.scorePlaceholder", { maxScore })}
                             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                         />
                     </label>
 
                     <label className="flex flex-col gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                            Comentarios
+                            {t("courseStudents.gradeModal.feedback")}
                         </span>
                         <textarea
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                             rows={4}
-                            placeholder="Feedback para el alumno…"
+                            placeholder={t("courseStudents.gradeModal.feedbackPlaceholder")}
                             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                         />
                     </label>
@@ -164,7 +193,7 @@ export function GradeSubmissionModal({
                         onClick={() => void handleAction("return")}
                         className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
-                        Devolver para revisión
+                        {t("courseStudents.gradeModal.returnForReview")}
                     </button>
                     <button
                         type="button"
@@ -172,7 +201,7 @@ export function GradeSubmissionModal({
                         onClick={() => void handleAction("grade")}
                         className="rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:opacity-60 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent"
                     >
-                        {submitting ? "Guardando…" : "Calificar"}
+                        {submitting ? t("common.saving") : t("courseStudents.gradeModal.grade")}
                     </button>
                 </div>
             </div>

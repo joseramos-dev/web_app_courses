@@ -8,12 +8,14 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { ChartDatum } from "./chartTheme";
 import {
     CHART_BAR_FILL,
     chartAxisTickStyle,
     chartGridProps,
     chartTooltipContentStyle,
+    chartTooltipCursor,
     chartTooltipLabelStyle,
     chartWrapperClassName,
 } from "./chartTheme";
@@ -22,8 +24,11 @@ import { ChartEmptyState } from "./ChartEmptyState";
 type Props = {
     data: ChartDatum[];
     height?: number;
+    /** When true, the chart stretches to fill its parent height (parent must define one). */
+    fill?: boolean;
     showValues?: boolean;
     hideXLabels?: boolean;
+    className?: string;
 };
 
 type TooltipPayload = {
@@ -37,6 +42,7 @@ function ActivityTooltip({
     active?: boolean;
     payload?: TooltipPayload[];
 }) {
+    const { t } = useTranslation();
     if (!active || !payload?.length) return null;
     const row = payload[0].payload;
     if (!row) return null;
@@ -44,7 +50,7 @@ function ActivityTooltip({
     return (
         <div style={chartTooltipContentStyle} className="text-slate-800 dark:text-slate-100">
             <p style={chartTooltipLabelStyle}>{heading}</p>
-            <p className="mt-0.5">{row.value} completadas</p>
+            <p className="mt-0.5">{t("charts.completed", { count: row.value })}</p>
         </div>
     );
 }
@@ -52,8 +58,10 @@ function ActivityTooltip({
 export function ActivityBarChart({
     data,
     height = 120,
+    fill = false,
     showValues = false,
     hideXLabels = false,
+    className,
 }: Props) {
     if (data.length === 0) {
         return <ChartEmptyState />;
@@ -63,11 +71,18 @@ export function ActivityBarChart({
     const yDomainMax = maxValue === 0 ? 1 : maxValue;
 
     return (
-        <div className={chartWrapperClassName}>
-            <ResponsiveContainer width="100%" height={height}>
+        <div
+            className={`${chartWrapperClassName}${fill ? " h-full min-h-[180px]" : ""}${className ? ` ${className}` : ""}`}
+        >
+            <ResponsiveContainer width="100%" height={fill ? "100%" : height}>
                 <BarChart
                     data={data}
-                    margin={{ top: showValues ? 16 : 4, right: 4, left: -20, bottom: 0 }}
+                    margin={{
+                        top: showValues ? 20 : 8,
+                        right: 4,
+                        left: -20,
+                        bottom: hideXLabels ? 0 : 4,
+                    }}
                 >
                     <CartesianGrid {...chartGridProps} />
                     <XAxis
@@ -86,7 +101,7 @@ export function ActivityBarChart({
                         width={28}
                     />
                     <Tooltip
-                        cursor={{ fill: "currentColor", opacity: 0.08 }}
+                        cursor={chartTooltipCursor}
                         content={<ActivityTooltip />}
                     />
                     <Bar

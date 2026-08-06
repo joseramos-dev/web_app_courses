@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ChevronLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLessonTypeLabels } from "../../shared/types/LessonTypes";
 import {
   API_completeLesson,
   API_getCourseLessonsForNav,
@@ -43,6 +45,8 @@ import type { ISubmission } from "../../shared/interfaces/ISubmission";
 import { LessonAttemptHistory } from "./components/LessonAttemptHistory";
 
 export const Lesson = () => {
+  const { t } = useTranslation();
+  const lessonTypeLabels = getLessonTypeLabels(t);
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -95,7 +99,7 @@ export const Lesson = () => {
   const courseIdNum = Number(courseId);
   const lessonIdNum = Number(lessonId);
 
-  const shellCn = lessonPageShellClassName();
+  const shellCn = lessonPageShellClassName(lesson?.lesson_type);
   const mutedPanelCn = lessonMutedNoticePanelClassName();
   const errorPanelCn = lessonErrorNoticePanelClassName();
   const backBtnCn = lessonBackToCourseButtonClassName();
@@ -113,7 +117,7 @@ export const Lesson = () => {
   useEffect(() => {
     const fetchAll = async () => {
       if (Number.isNaN(courseIdNum) || Number.isNaN(lessonIdNum)) {
-        setError("Lección no válida.");
+        setError(t("lessonPage.invalidLesson"));
         return;
       }
       try {
@@ -138,21 +142,10 @@ export const Lesson = () => {
           setAttachmentsLoading(false);
         }
 
+        let progressBestScore: number | null = null;
         try {
           const progress = await startReq;
-          if (
-            lessonData.lesson_type === "test" ||
-            lessonData.lesson_type === "multiple_selection"
-          ) {
-            const qs = await API_getLessonQuestions(lessonIdNum);
-            setQuestions(qs);
-            if (progress.best_score != null) {
-              setLastScore(progress.best_score);
-            }
-            await loadAttemptHistory(lessonIdNum);
-          } else if (lessonData.lesson_type === "assignment") {
-            await loadSubmission(lessonIdNum);
-          }
+          progressBestScore = progress.best_score ?? null;
         } catch (e) {
           const handled = tryNavigateAwayOnLessonHttpError({
             error: e,
@@ -162,7 +155,25 @@ export const Lesson = () => {
             treatForbiddenOrNotFoundAsEnrollment: true,
           });
           if (handled) return;
-          throw e;
+          // The lesson itself already loaded fine; a transient failure
+          // marking it as "started" shouldn't block the student from
+          // viewing it (retrying will register the progress anyway).
+          console.error("No se pudo registrar el inicio de la lección:", e);
+          toast.error(t("lessonPage.progressUpdateFailed"));
+        }
+
+        if (
+          lessonData.lesson_type === "test" ||
+          lessonData.lesson_type === "multiple_selection"
+        ) {
+          const qs = await API_getLessonQuestions(lessonIdNum);
+          setQuestions(qs);
+          if (progressBestScore != null) {
+            setLastScore(progressBestScore);
+          }
+          await loadAttemptHistory(lessonIdNum);
+        } else if (lessonData.lesson_type === "assignment") {
+          await loadSubmission(lessonIdNum);
         }
       } catch (e) {
         console.error(e);
@@ -173,13 +184,13 @@ export const Lesson = () => {
           locationState: location.state,
         });
         if (handled) return;
-        setError("No se pudo cargar la lección.");
+        setError(t("lessonPage.loadFailed"));
       } finally {
         setIsLoading(false);
       }
     };
     void fetchAll();
-  }, [courseIdNum, lessonIdNum, navigate]);
+  }, [courseIdNum, lessonIdNum, navigate, t]);
 
   const handleAfterPass = (enrollmentCompleted: boolean) => {
     window.dispatchEvent(new Event(KURSA_DASHBOARD_REFRESH_EVENT));
@@ -189,16 +200,16 @@ export const Lesson = () => {
       }),
     );
     if (nextLessonId !== null) {
-      toast.success("Lección superada!");
+      toast.success(t("lessonPage.passed"));
       navigate(`/course/${courseIdNum}/lesson/${nextLessonId}`, {
         state: lessonChainState(location.state),
       });
       return;
     }
     if (enrollmentCompleted) {
-      toast.success("¡Curso completado!");
+      toast.success(t("lessonPage.courseCompleted"));
     } else {
-      toast.success("Lección superada!");
+      toast.success(t("lessonPage.passed"));
     }
     navigate(`/course/${courseIdNum}`, {
       state: {
@@ -213,7 +224,7 @@ export const Lesson = () => {
     const result = await runWithSubmitting(
       setSubmitting,
       () => API_completeLesson(lesson.id),
-      "No se pudo marcar la lección como completada.",
+      t("lessonPage.markCompleteFailed"),
     );
     if (result) handleAfterPass(result.enrollment_completed);
   };
@@ -223,15 +234,13 @@ export const Lesson = () => {
     const result = await runWithSubmitting(
       setSubmitting,
       () => API_completeLesson(lesson.id, answers),
-      "No se pudieron enviar las respuestas.",
+      t("lessonPage.submitAnswersFailed"),
     );
     if (!result) return;
     setLastScore(result.score);
     if (!result.passed) {
       toast.error(
-        `No has alcanzado el 70% (puntuación: ${Math.round(
-          result.score ?? 0,
-        )}%). Inténtalo de nuevo.`,
+        t("lessonPage.failedAttempt", { score: Math.round(result.score ?? 0) }),
       );
       await loadAttemptHistory(lesson.id);
       return;
@@ -244,11 +253,11 @@ export const Lesson = () => {
     const result = await runWithSubmitting(
       setSubmitting,
       () => API_submitLessonAssignment(lesson.id, { content, file }),
-      "No se pudo enviar la entrega.",
+      t("lessonPage.submitAssignmentFailed"),
     );
     if (!result) return;
     setSubmission(result);
-    toast.success("Entrega enviada correctamente");
+    toast.success(t("lessonPage.submissionSent"));
     window.dispatchEvent(new Event(KURSA_DASHBOARD_REFRESH_EVENT));
     window.dispatchEvent(
       new CustomEvent(KURSA_COURSE_ENROLLMENT_CHANGED_EVENT, {
@@ -260,7 +269,7 @@ export const Lesson = () => {
   if (isLoading) {
     return (
       <div className={shellCn}>
-        <div className={mutedPanelCn}>Cargando lección...</div>
+        <div className={mutedPanelCn}>{t("lessonPage.loading")}</div>
       </div>
     );
   }
@@ -269,7 +278,7 @@ export const Lesson = () => {
     return (
       <div className={shellCn}>
         <div className={errorPanelCn}>
-          {error ?? "Lección no encontrada."}
+          {error ?? t("lessonPage.notFound")}
         </div>
       </div>
     );
@@ -290,14 +299,14 @@ export const Lesson = () => {
           className={backBtnCn}
         >
           <ChevronLeft className="size-4" aria-hidden />
-          Volver al curso
+          {t("lessonPage.backToCourse")}
         </button>
       </div>
 
       <header className="mb-4">
         <div className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">
-          Lección {lesson.position} ·{" "}
-          {lesson.lesson_type.replace("_", " ")}
+          {t("lessonPage.lessonNumber", { position: lesson.position })} ·{" "}
+          {lessonTypeLabels[lesson.lesson_type]}
         </div>
         <h1 className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
           {lesson.title}
@@ -323,10 +332,10 @@ export const Lesson = () => {
             />
             <section className="mt-6 rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                Historial de intentos
+                {t("lessonPage.attemptHistory.title")}
               </h2>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                Registro de tus envíos en esta evaluación.
+                {t("lessonPage.attemptHistory.subtitle")}
               </p>
               <div className="mt-3">
                 <LessonAttemptHistory
@@ -339,7 +348,7 @@ export const Lesson = () => {
         )}
         {lesson.lesson_type === "assignment" && (
           submissionLoading ? (
-            <div className={mutedPanelCn}>Cargando entrega…</div>
+            <div className={mutedPanelCn}>{t("lessonPage.loadingSubmission")}</div>
           ) : (
             <LessonAssignment
               lesson={lesson}
@@ -365,7 +374,7 @@ export const Lesson = () => {
             disabled={submitting}
             className={markCompleteCn}
           >
-            {submitting ? "Marcando…" : "Marcar como completada"}
+            {submitting ? t("lessonPage.marking") : t("lessonPage.markComplete")}
           </button>
         </div>
       )}

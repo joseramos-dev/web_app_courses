@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type { IQuestionAdmin, IQuestionCreate } from "../lessonTypes";
 import {
     API_createQuestion,
@@ -33,6 +34,7 @@ const emptyDraft: Draft = {
 };
 
 export function QuestionsEditor({ lessonId, onClose }: Props) {
+    const { t } = useTranslation();
     const [questions, setQuestions] = useState<IQuestionAdmin[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -45,7 +47,7 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
             setQuestions(data);
         } catch (e) {
             console.error(e);
-            toast.error("No se pudieron cargar las preguntas.");
+            toast.error(t("courseEdit.toast.questionsLoadFailed"));
         } finally {
             setIsLoading(false);
         }
@@ -119,43 +121,43 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                 .filter((o) => o.text.trim().length > 0),
         };
         if (!payload.prompt) {
-            toast.error("La pregunta no puede estar vacía.");
+            toast.error(t("courseEdit.toast.promptRequired"));
             return;
         }
         if (payload.options.length < 2) {
-            toast.error("Necesitas al menos 2 opciones.");
+            toast.error(t("courseEdit.toast.minTwoOptions"));
             return;
         }
         if (!payload.options.some((o) => o.is_correct)) {
-            toast.error("Marca al menos una opción correcta.");
+            toast.error(t("courseEdit.toast.correctOptionRequired"));
             return;
         }
         try {
             if (editingId) {
                 await API_updateQuestion(lessonId, editingId, payload);
-                toast.success("Pregunta actualizada");
+                toast.success(t("courseEdit.toast.questionUpdated"));
             } else {
                 await API_createQuestion(lessonId, payload);
-                toast.success("Pregunta creada");
+                toast.success(t("courseEdit.toast.questionCreated"));
             }
             await refresh();
             startNew();
         } catch (e) {
             console.error(e);
-            toast.error("No se pudo guardar la pregunta.");
+            toast.error(t("courseEdit.toast.questionSaveFailed"));
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("¿Eliminar esta pregunta?")) return;
+        if (!confirm(t("courseEdit.questions.deleteConfirm"))) return;
         try {
             await API_deleteQuestion(lessonId, id);
-            toast.success("Pregunta eliminada");
+            toast.success(t("courseEdit.toast.questionDeleted"));
             await refresh();
             if (editingId === id) startNew();
         } catch (e) {
             console.error(e);
-            toast.error("No se pudo eliminar la pregunta.");
+            toast.error(t("courseEdit.toast.questionDeleteFailed"));
         }
     };
 
@@ -165,11 +167,10 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                 <div className="flex items-start justify-between gap-3 border-b border-gray-200 p-5 dark:border-slate-600">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                            Editar preguntas
+                            {t("courseEdit.questions.title")}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                            Define preguntas y opciones. Marca la(s) opción(es)
-                            correcta(s).
+                            {t("courseEdit.questions.subtitle")}
                         </p>
                     </div>
                     <button
@@ -177,20 +178,20 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                         onClick={onClose}
                         className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
-                        Cerrar
+                        {t("courseEdit.close")}
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-5">
                     <section className="mb-6">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                            Preguntas existentes
+                            {t("courseEdit.questions.existingTitle")}
                         </h3>
                         {isLoading ? (
-                            <div className="mt-2 text-sm text-gray-500 dark:text-slate-400">Cargando…</div>
+                            <div className="mt-2 text-sm text-gray-500 dark:text-slate-400">{t("courseEdit.questions.loading")}</div>
                         ) : questions.length === 0 ? (
                             <div className="mt-2 rounded-lg border border-dashed border-gray-300 p-3 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-900/30 dark:text-slate-400">
-                                Aún no hay preguntas. Crea la primera abajo.
+                                {t("courseEdit.questions.empty")}
                             </div>
                         ) : (
                             <div className="mt-2 space-y-2">
@@ -211,9 +212,10 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                                     {q.prompt}
                                                 </div>
                                                 <div className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                                    {q.options.length} opciones ·{" "}
-                                                    {q.options.filter((o) => o.is_correct).length}{" "}
-                                                    correcta(s)
+                                                    {t("courseEdit.questions.optionsCount", {
+                                                        count: q.options.length,
+                                                        correct: q.options.filter((o) => o.is_correct).length,
+                                                    })}
                                                 </div>
                                             </div>
                                             <div className="flex shrink-0 gap-2">
@@ -222,14 +224,14 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                                     onClick={() => startEdit(q)}
                                                     className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                                                 >
-                                                    Editar
+                                                    {t("courseEdit.edit")}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDelete(q.id)}
                                                     className="rounded-md bg-red-600 px-2 py-1 text-xs font-semibold text-white hover:bg-red-700"
                                                 >
-                                                    Borrar
+                                                    {t("courseEdit.delete")}
                                                 </button>
                                             </div>
                                         </div>
@@ -242,7 +244,7 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                     <section>
                         <div className="mb-2 flex items-center justify-between">
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                {editingId ? "Editar pregunta" : "Nueva pregunta"}
+                                {editingId ? t("courseEdit.questions.editQuestion") : t("courseEdit.questions.newQuestion")}
                             </h3>
                             {editingId && (
                                 <button
@@ -250,14 +252,14 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                     onClick={startNew}
                                     className="text-xs text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100"
                                 >
-                                    Cancelar edición
+                                    {t("courseEdit.questions.cancelEdit")}
                                 </button>
                             )}
                         </div>
 
                         <label className="flex flex-col gap-2">
                             <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                                Enunciado
+                                {t("courseEdit.questions.promptLabel")}
                             </div>
                             <textarea
                                 value={draft.prompt}
@@ -271,7 +273,7 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
 
                         <div className="mt-4">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                                Opciones
+                                {t("courseEdit.questions.optionsLabel")}
                             </div>
                             <div className="space-y-2">
                                 {draft.options.map((opt, idx) => (
@@ -289,14 +291,14 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                                     })
                                                 }
                                             />
-                                            Correcta
+                                            {t("courseEdit.questions.correctOption")}
                                         </label>
                                         <input
                                             value={opt.text}
                                             onChange={(e) =>
                                                 updateOption(idx, { text: e.target.value })
                                             }
-                                            placeholder={`Opción ${idx + 1}`}
+                                            placeholder={t("courseEdit.questions.optionPlaceholder", { number: idx + 1 })}
                                             className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                                         />
                                         <button
@@ -305,7 +307,7 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                             disabled={draft.options.length <= 2}
                                             className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 disabled:dark:bg-slate-800/50 disabled:dark:text-slate-600"
                                         >
-                                            Quitar
+                                            {t("courseEdit.questions.removeOption")}
                                         </button>
                                     </div>
                                 ))}
@@ -315,7 +317,7 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                                 onClick={addOption}
                                 className="mt-2 inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
-                                Añadir opción
+                                {t("courseEdit.questions.addOption")}
                             </button>
                         </div>
                     </section>
@@ -327,14 +329,14 @@ export function QuestionsEditor({ lessonId, onClose }: Props) {
                         onClick={onClose}
                         className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
-                        Cerrar
+                        {t("courseEdit.close")}
                     </button>
                     <button
                         type="button"
                         onClick={handleSave}
                         className="rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent"
                     >
-                        {editingId ? "Guardar cambios" : "Crear pregunta"}
+                        {editingId ? t("courseEdit.questions.saveChanges") : t("courseEdit.questions.createQuestion")}
                     </button>
                 </div>
             </div>

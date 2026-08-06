@@ -1,5 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
+from core.i18n import http_error
 
 from modules.recommendations.aux_collaborative import (
     MIN_ENROLLMENTS_FOR_COLLABORATIVE,
@@ -84,10 +85,7 @@ def update_preferences(
         return row
     except Exception as e:
         db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Could not update recommendation preferences: {e}",
-        ) from e
+        raise http_error(500, "could_not_update_preferences", error=str(e)) from e
 
 
 # TODO: IMPLEMENTAR CON REDIS CACHE DE RECOMENDACIONES

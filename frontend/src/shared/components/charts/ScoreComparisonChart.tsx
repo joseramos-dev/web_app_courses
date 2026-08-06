@@ -8,12 +8,15 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import {
     CHART_BAR_FILL,
-    CHART_LINE_STROKE,
+    CHART_SECONDARY,
     chartAxisTickStyle,
     chartGridProps,
+    chartLegendWrapperStyle,
     chartTooltipContentStyle,
+    chartTooltipCursor,
     chartTooltipLabelStyle,
     chartWrapperClassName,
 } from "./chartTheme";
@@ -41,19 +44,25 @@ function ComparisonTooltip({
     active?: boolean;
     payload?: TooltipPayload[];
 }) {
+    const { t } = useTranslation();
     if (!active || !payload?.length) return null;
     const row = payload[0].payload;
     if (!row) return null;
     return (
         <div style={chartTooltipContentStyle} className="text-slate-800 dark:text-slate-100">
             <p style={chartTooltipLabelStyle}>{row.label}</p>
-            <p className="mt-0.5">Tu media: {Math.round(row.userScore)}%</p>
-            <p className="mt-0.5">Media cohorte: {Math.round(row.cohortScore)}%</p>
+            <p className="mt-0.5">
+                {t("charts.score.tooltipYourAverage", { value: Math.round(row.userScore) })}
+            </p>
+            <p className="mt-0.5">
+                {t("charts.score.tooltipCohortAverage", { value: Math.round(row.cohortScore) })}
+            </p>
         </div>
     );
 }
 
 export function ScoreComparisonChart({ data, height = 220 }: Props) {
+    const { t } = useTranslation();
     if (data.length === 0) {
         return <ChartEmptyState />;
     }
@@ -84,18 +93,18 @@ export function ScoreComparisonChart({ data, height = 220 }: Props) {
                         width={32}
                         tickFormatter={(v) => `${v}%`}
                     />
-                    <Tooltip content={<ComparisonTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: "11px" }} />
+                    <Tooltip cursor={chartTooltipCursor} content={<ComparisonTooltip />} />
+                    <Legend wrapperStyle={chartLegendWrapperStyle} />
                     <Bar
                         dataKey="userScore"
-                        name="Tu media"
+                        name={t("charts.score.yourAverage")}
                         fill={CHART_BAR_FILL}
                         radius={[4, 4, 0, 0]}
                     />
                     <Bar
                         dataKey="cohortScore"
-                        name="Media cohorte"
-                        fill={CHART_LINE_STROKE}
+                        name={t("charts.score.cohortAverage")}
+                        fill={CHART_SECONDARY}
                         radius={[4, 4, 0, 0]}
                     />
                 </BarChart>

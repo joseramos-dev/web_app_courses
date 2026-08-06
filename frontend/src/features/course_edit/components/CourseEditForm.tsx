@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
 import type { IUser } from "../../../shared/interfaces/IUser";
-import { courseTypesDict, difficultyLabels } from "../../../shared/types/CourseTypes";
+import { useTranslation } from "react-i18next";
+import { courseTypesDict, getDifficultyLabels } from "../../../shared/types/CourseTypes";
 import { API_getInstructors } from "../api";
 import { InstructorCombobox } from "./InstructorCombobox";
 
@@ -21,6 +22,8 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
+  const { t } = useTranslation();
+  const difficultyLabels = getDifficultyLabels(t);
   const sites = useMemo(() => courseTypesDict.SiteTypes, []);
   const categories = useMemo(() => courseTypesDict.CategoryTypes, []);
   const languages = useMemo(() => courseTypesDict.LanguageTypes, []);
@@ -43,7 +46,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         if (!cancelled) setInstructors(list);
       } catch (e) {
         console.error("Could not load instructors:", e);
-        if (!cancelled) setInstructorsError("Could not load instructors");
+        if (!cancelled) setInstructorsError(t("courseEdit.form.instructorsLoadError"));
       }
     })();
     return () => {
@@ -54,13 +57,13 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
   return (
     <div className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
       <div className="mb-4">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Edit course</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Update course details and manage lessons.</p>
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{t("courseEdit.form.title")}</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t("courseEdit.form.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 sm:col-span-2">
-          <FieldLabel>Title</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.title")}</FieldLabel>
           <input
             value={value.title}
             disabled={disabled}
@@ -70,7 +73,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2 sm:col-span-2">
-          <FieldLabel>URL</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.url")}</FieldLabel>
           <input
             value={value.url}
             disabled={disabled}
@@ -80,7 +83,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2 sm:col-span-2">
-          <FieldLabel>Intro</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.intro")}</FieldLabel>
           <textarea
             value={value.intro ?? ""}
             disabled={disabled}
@@ -91,7 +94,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Site</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.site")}</FieldLabel>
           <select
             value={value.site}
             disabled={disabled}
@@ -107,7 +110,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Category</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.category")}</FieldLabel>
           <select
             value={value.category}
             disabled={disabled}
@@ -125,7 +128,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Subcategory</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.subcategory")}</FieldLabel>
           <input
             value={value.subcategory ?? ""}
             disabled={disabled}
@@ -135,7 +138,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Language</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.language")}</FieldLabel>
           <select
             value={value.language}
             disabled={disabled}
@@ -153,7 +156,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Course type</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.courseType")}</FieldLabel>
           <select
             value={value.course_type}
             disabled={disabled}
@@ -171,7 +174,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Difficulty</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.difficulty")}</FieldLabel>
           <select
             value={value.difficulty}
             disabled={disabled}
@@ -189,13 +192,24 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel>Duration (seconds)</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.durationMinutes")}</FieldLabel>
           <input
-            value={value.duration_seconds ?? ""}
+            value={
+              value.duration_seconds != null
+                ? String(Math.round(value.duration_seconds / 60))
+                : ""
+            }
             disabled={disabled}
             onChange={(e) => {
               const raw = e.target.value.trim();
-              onChange({ ...value, duration_seconds: raw === "" ? null : Number(raw) });
+              const minutes = raw === "" ? null : Number(raw);
+              onChange({
+                ...value,
+                duration_seconds:
+                  minutes === null || Number.isNaN(minutes)
+                    ? null
+                    : Math.round(minutes * 60),
+              });
             }}
             inputMode="numeric"
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
@@ -203,7 +217,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
         </label>
 
         <div className="flex flex-col gap-2">
-          <FieldLabel>Instructor</FieldLabel>
+          <FieldLabel>{t("courseEdit.form.fields.instructor")}</FieldLabel>
           {isAdmin ? (
             <InstructorCombobox
               instructors={instructors}
@@ -218,7 +232,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
                   ? value.instructor_name
                   : value.instructor_id !== null
                     ? `#${value.instructor_id}`
-                    : "Unassigned"
+                    : t("courseEdit.form.unassigned")
               }
               disabled
               className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-400"
@@ -228,17 +242,19 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             <div className="text-xs text-red-600 dark:text-red-400">{instructorsError}</div>
           ) : null}
           {!isAdmin ? (
-            <div className="text-xs text-gray-500 dark:text-slate-400">Only admins can change ownership.</div>
+            <div className="text-xs text-gray-500 dark:text-slate-400">{t("courseEdit.form.onlyAdminsChangeOwnership")}</div>
           ) : null}
         </div>
 
         <div className="sm:col-span-2">
           <div className="rounded-lg border border-gray-200/80 bg-gray-50 p-3 text-xs text-gray-600 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
-            <div className="font-semibold text-gray-700 dark:text-slate-200">Read-only</div>
+            <div className="font-semibold text-gray-700 dark:text-slate-200">{t("courseEdit.form.readOnly")}</div>
             <div className="mt-1">
-              Course id: <span className="font-medium">#{value.id}</span> · Created{" "}
-              <span className="font-medium">{value.created_at}</span> · Updated{" "}
-              <span className="font-medium">{value.updated_at}</span>
+              {t("courseEdit.form.readOnlyMeta", {
+                id: value.id,
+                createdAt: value.created_at,
+                updatedAt: value.updated_at,
+              })}
             </div>
           </div>
         </div>

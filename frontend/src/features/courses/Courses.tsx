@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { CourseCard } from "./components/CourseCard";
 import { get_courses } from "./api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
 import Pagination from '@mui/material/Pagination';
 import { useDebounce } from "../../shared/hooks/useDebounce";
 import { FilterDropDown } from "./components/FilterDropDown";
-import { courseTypesDict, type SiteTypes, type CategoryTypes, type LanguageTypes, type CourseTypeTypes, type DurationBucketTypes, type DifficultyTypes, durationBucketShortLabels, difficultyLabels } from "../../shared/types/CourseTypes";
-import { type sort_by_dir, SORT_BY_ENTRIES, type sort_by_types } from "../../shared/types/SortTypes";
+import { courseTypesDict, type SiteTypes, type CategoryTypes, type LanguageTypes, type CourseTypeTypes, type DurationBucketTypes, type DifficultyTypes, getDurationBucketShortLabels, getDifficultyLabels } from "../../shared/types/CourseTypes";
+import { type sort_by_dir, SORT_BY_KEYS, getSortByEntries, type sort_by_types } from "../../shared/types/SortTypes";
 import { useAuth } from "../../shared/povider/AuthContext";
 import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
 
@@ -22,6 +23,14 @@ const FILTER_PARAM_KEY: Record<string, "site" | "category" | "language" | "cours
     CourseTypeTypes: "course_type",
 }
 
+// Maps the dict key to a translation key for the filter's visible label.
+const FILTER_LABEL_KEY: Record<string, string> = {
+    SiteTypes: "preferences.platform",
+    CategoryTypes: "preferences.category",
+    LanguageTypes: "preferences.language",
+    CourseTypeTypes: "preferences.courseType",
+}
+
 // Whitelists used to sanitize URL params. Anything not present here is
 // silently dropped, so a manually-edited URL with a typo (e.g.
 // `language=Non%20defin`) will never reach the backend (which would
@@ -32,7 +41,7 @@ const VALID_LANGUAGES = courseTypesDict.LanguageTypes as readonly string[]
 const VALID_COURSE_TYPES = courseTypesDict.CourseTypeTypes as readonly string[]
 const VALID_DURATION_BUCKETS = courseTypesDict.DurationBucketTypes as readonly string[]
 const VALID_DIFFICULTIES = courseTypesDict.DifficultyTypes as readonly string[]
-const VALID_SORT_BY: readonly string[] = SORT_BY_ENTRIES.map(([k]) => k)
+const VALID_SORT_BY: readonly string[] = SORT_BY_KEYS
 const VALID_ORDER: readonly string[] = ["asc", "desc"]
 
 const filterValid = <T extends string>(
@@ -41,6 +50,10 @@ const filterValid = <T extends string>(
 ): T[] => values.filter((v) => whitelist.includes(v)) as T[]
 
 export function Courses() {
+    const { t } = useTranslation();
+    const durationBucketShortLabels = getDurationBucketShortLabels(t);
+    const difficultyLabels = getDifficultyLabels(t);
+    const SORT_BY_ENTRIES = getSortByEntries(t);
     const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuth();
 
@@ -236,13 +249,15 @@ export function Courses() {
             {/* SEARCH */}
             <section className="mb-8 flex w-full flex-col items-center justify-center">
                 <h1 className="mb-4 text-4xl font-light text-slate-900 dark:text-slate-100">
-                    Encuentra tu próximo{" "}
-                    <span className="italic text-gray-500 dark:text-slate-400">curso</span>
+                    <Trans
+                        i18nKey="courses.heroTitle"
+                        components={{ 1: <span className="italic text-gray-500 dark:text-slate-400" /> }}
+                    />
                 </h1>
 
                 <input
                     type="text"
-                    placeholder="Buscar cursos..."
+                    placeholder={t("courses.searchPlaceholder")}
                     value={search}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="w-full max-w-3xl rounded-full border border-gray-200 bg-white px-4 py-3 text-slate-900 shadow-sm placeholder:text-gray-400 focus:border-uned-primary focus:outline-none focus:ring-1 focus:ring-uned-primary dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
@@ -263,7 +278,7 @@ export function Courses() {
                         return (
                             <FilterDropDown
                                 key={k}
-                                label={k}
+                                label={FILTER_LABEL_KEY[k] ? t(FILTER_LABEL_KEY[k]) : k}
                                 options={v}
                                 value={currentValue}
                                 onChange={(selected) => handleFilterChange(paramKey, selected)}
@@ -272,14 +287,14 @@ export function Courses() {
                     })
                 }
                 <FilterDropDown
-                    label="Duración"
+                    label={t("courses.filters.duration")}
                     options={[...VALID_DURATION_BUCKETS]}
                     optionLabels={durationBucketShortLabels}
                     value={durationFilter as string[]}
                     onChange={(selected) => handleFilterChange("duration_bucket", selected)}
                 />
                 <FilterDropDown
-                    label="Dificultad"
+                    label={t("courses.filters.difficulty")}
                     options={[...VALID_DIFFICULTIES]}
                     optionLabels={difficultyLabels}
                     value={difficultyFilter as string[]}
@@ -302,19 +317,21 @@ export function Courses() {
                 >
                     {
                         SORT_BY_ENTRIES.map(([k, v]) =>
-                            <option key={k} value={k}>Order by: {v} </option>
+                            <option key={k} value={k}>{t("courses.orderBy", { label: v })}</option>
                         )
                     }
                 </select>
 
-                <p className="p-3 text-slate-800 dark:text-slate-200">{total} cursos encontrados</p>
+                <p className="p-3 text-slate-800 dark:text-slate-200">
+                    {t("courses.foundCount", { count: total })}
+                </p>
 
                 {user && (user.role === "instructor" || user.role === "admin") ? (
                     <Link
                         to="/course/new"
                         className="ml-auto inline-flex items-center rounded-lg bg-uned-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-uned-primary-hover"
                     >
-                        Crear curso
+                        {t("courses.createCourse")}
                     </Link>
                 ) : null}
 
@@ -330,7 +347,7 @@ export function Courses() {
                     {
                         loading ? (
                             <div className="py-10 text-center text-slate-800 dark:text-slate-200">
-                                Loading courses...
+                                {t("courses.loading")}
                             </div>
                         ) : courses.length === 0 ? (
                             <div
@@ -345,10 +362,10 @@ export function Courses() {
                                     🙁
                                 </span>
                                 <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                                    No se han encontrado cursos
+                                    {t("courses.noResultsTitle")}
                                 </p>
                                 <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
-                                    Prueba a cambiar la búsqueda o los filtros.
+                                    {t("courses.noResultsHint")}
                                 </p>
                             </div>
                         ) : (

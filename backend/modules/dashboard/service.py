@@ -19,7 +19,9 @@ from modules.lessons.model import LessonModel
 from modules.progress.model import (
     LessonProgressModel,
     LessonProgressStatus,
+    LessonSubmissionModel,
     StudyActivityModel,
+    SubmissionStatus,
 )
 from modules.users.model import UserModel, UserRole
 from modules.dashboard.schema import (
@@ -32,6 +34,7 @@ from modules.dashboard.schema import (
     InstructorCourseRowSchema,
     InstructorDashboardSchema,
     LessonTypeStatSchema,
+    PendingSubmissionRowSchema,
     PublicStatsSchema,
     RecentCourseSchema,
     RecentLessonSchema,
@@ -407,6 +410,8 @@ def get_instructor_summary(
             courses=[],
             top_active_students=[],
             top_completed_lessons=[],
+            pending_submissions_count=0,
+            pending_submissions=[],
         )
 
     # One row per (course_id) with all its aggregates.
@@ -534,6 +539,47 @@ def get_instructor_summary(
         for lid, ltitle, cid, ctitle, cnt in top_lessons_rows
     ]
 
+    # Pending assignment submissions across all of the instructor's courses,
+    # oldest first (the ones that have been waiting the longest).
+    pending_query = (
+        db.query(
+            LessonSubmissionModel.id,
+            LessonSubmissionModel.submitted_at,
+            LessonModel.id.label("lesson_id"),
+            LessonModel.title.label("lesson_title"),
+            CourseModel.id.label("course_id"),
+            CourseModel.title.label("course_title"),
+            UserModel.id.label("student_user_id"),
+            UserModel.name.label("student_name"),
+        )
+        .join(LessonModel, LessonModel.id == LessonSubmissionModel.lesson_id)
+        .join(CourseModel, CourseModel.id == LessonModel.course_id)
+        .join(
+            EnrollmentModel,
+            EnrollmentModel.id == LessonSubmissionModel.enrollment_id,
+        )
+        .join(UserModel, UserModel.id == EnrollmentModel.user_id)
+        .filter(
+            LessonModel.course_id.in_(course_ids),
+            LessonSubmissionModel.status == SubmissionStatus.PENDING,
+        )
+        .order_by(LessonSubmissionModel.submitted_at.asc())
+    )
+    pending_submissions_count = pending_query.count()
+    pending_submissions = [
+        PendingSubmissionRowSchema(
+            id=row.id,
+            course_id=row.course_id,
+            course_title=row.course_title,
+            lesson_id=row.lesson_id,
+            lesson_title=row.lesson_title,
+            student_user_id=row.student_user_id,
+            student_name=row.student_name,
+            submitted_at=row.submitted_at,
+        )
+        for row in pending_query.limit(50).all()
+    ]
+
     return InstructorDashboardSchema(
         courses_count=courses_count,
         total_students=int(total_students),
@@ -542,6 +588,8 @@ def get_instructor_summary(
         courses=courses_payload,
         top_active_students=top_active_students,
         top_completed_lessons=top_completed_lessons,
+        pending_submissions_count=pending_submissions_count,
+        pending_submissions=pending_submissions,
     )
 
 

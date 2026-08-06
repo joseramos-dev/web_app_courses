@@ -1,0 +1,875 @@
+{
+    "common": {
+        "loading": "Cargando...",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "saving": "Guardando...",
+        "close": "Cerrar",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "back": "Volver",
+        "confirm": "Confirmar",
+        "yes": "Sí",
+        "no": "No",
+        "error": "Error",
+        "success": "Hecho",
+        "optional": "Opcional",
+        "search": "Buscar",
+        "noResults": "No hay resultados.",
+        "genericError": "Ha ocurrido un error. Inténtalo de nuevo.",
+        "showMore": "Mostrar más ({{count}})",
+        "showLess": "Mostrar menos"
+    },
+    "footer": {
+        "description": "Proyecto académico (TFG). La identidad cromática se inspira en la web pública de la UNED, sin uso de su logotipo ni recursos oficiales.",
+        "navAriaLabel": "Pie de página",
+        "academicProject": "Proyecto académico"
+    },
+    "nav": {
+        "home": "Inicio",
+        "courses": "Cursos",
+        "dashboard": "Dashboard",
+        "admin": "Admin",
+        "settings": "Ajustes",
+        "logout": "Cerrar sesión",
+        "login": "Iniciar sesión",
+        "register": "Registrarse",
+        "language": "Idioma",
+        "spanish": "Español",
+        "english": "English"
+    },
+    "domain": {
+        "difficulty": {
+            "beginner": "Principiante",
+            "intermediate": "Intermedio",
+            "advanced": "Avanzado"
+        },
+        "duration": {
+            "short": "Corto (< 10 h)",
+            "medium": "Medio (10 h – 1 semana)",
+            "long": "Largo (> 1 semana)"
+        },
+        "durationShort": {
+            "short": "Corto",
+            "medium": "Medio",
+            "long": "Largo"
+        },
+        "lessonType": {
+            "text": "Texto",
+            "video": "Vídeo",
+            "test": "Test",
+            "multiple_selection": "Selección múltiple",
+            "assignment": "Tarea"
+        },
+        "statsPeriod": {
+            "day": "Día",
+            "week": "Semana",
+            "month": "Mes"
+        },
+        "sortBy": {
+            "title": "Título",
+            "rating": "Valoración",
+            "duration_seconds": "Duración",
+            "time_creation": "Fecha de creación"
+        },
+        "category": {
+            "notDefined": "Sin categoría"
+        }
+    },
+    "dashboard": {
+        "loading": "Cargando dashboard...",
+        "noData": "No hay datos disponibles.",
+        "invalidRole": "Tu cuenta no tiene un rol válido para mostrar un dashboard.",
+        "admin": {
+            "title": "Panel de administración",
+            "greeting": "Hola, {{name}}. Visión global del aprendizaje en la plataforma.",
+            "advancedManagement": "Gestión avanzada",
+            "loadError": "No se pudo cargar el dashboard de admin.",
+            "stats": {
+                "students": "Estudiantes",
+                "studentsHelper": "Cuentas con rol student",
+                "coursesPublished": "Cursos publicados",
+                "activeEnrollments": "Matrículas activas",
+                "activeEnrollmentsHelper": "Estudiantes en cursos en progreso",
+                "lessonsCompleted": "Lecciones completadas",
+                "lessonsCompletedHelper": "Total acumulado en la plataforma",
+                "completionRate": "Tasa de finalización",
+                "completionRateHelper": "{{count}} matrículas totales",
+                "avgRating": "Valoración media",
+                "avgRatingHelper": "Media de cursos valorados"
+            },
+            "topCourses": {
+                "title": "Cursos más populares",
+                "subtitle": "Ranking por número de matrículas",
+                "empty": "Aún no hay matrículas registradas.",
+                "enrollments": "{{count}} matrículas"
+            },
+            "topStudents": {
+                "title": "Estudiantes más activos",
+                "subtitle": "Por lecciones completadas en los últimos 30 días",
+                "empty": "Sin actividad registrada todavía.",
+                "lessons": "{{count}} lecciones"
+            },
+            "categoryDistribution": {
+                "title": "Distribución por categoría",
+                "descriptionWithTotal": "Reparto de matrículas por categoría de curso ({{total}} total).",
+                "descriptionNoTotal": "Reparto de matrículas por categoría de curso."
+            },
+            "activity": {
+                "title": "Actividad de la plataforma",
+                "description": "Lecciones completadas por día (últimos 30)."
+            },
+            "platformDistribution": {
+                "title": "Matrículas por plataforma",
+                "description": "Comparativa entre Coursera, Future Learn, Udacity y otras fuentes."
+            },
+            "difficultyDistribution": {
+                "title": "Matrículas por dificultad",
+                "description": "Reparto según el nivel del curso matriculado."
+            },
+            "cohorts": {
+                "title": "Cohortes de matriculación",
+                "description": "Progreso colectivo y volumen de matrículas por mes (últimos 12 meses)."
+            }
+        },
+        "instructor": {
+            "title": "Panel del instructor",
+            "greeting": "Hola, {{name}}. Aquí puedes seguir el progreso de tus alumnos en cada uno de tus cursos.",
+            "loadError": "No se pudo cargar el dashboard del instructor.",
+            "stats": {
+                "myCourses": "Mis cursos",
+                "myCoursesHelper": "Cursos asignados",
+                "enrolledStudents": "Alumnos matriculados",
+                "enrolledStudentsHelper": "Total en todos tus cursos",
+                "avgProgress": "Progreso medio",
+                "avgProgressHelper": "Media por matrícula",
+                "completedStudents": "Alumnos completados"
+            },
+            "myCourses": "Mis cursos",
+            "createCourse": "Crear curso",
+            "goToCatalog": "Ir al catálogo",
+            "table": {
+                "course": "Curso",
+                "students": "Alumnos",
+                "avgProgress": "Progreso medio",
+                "completed": "Completados",
+                "completionRate": "Finalización",
+                "rating": "Valoración",
+                "lastActivity": "Última actividad"
+            },
+            "noCourses": "Aún no tienes cursos. Puedes crear uno con «Crear curso» o esperar a que un administrador te asigne cursos; entonces aparecerán aquí con las métricas de tus alumnos.",
+            "activeStudents": {
+                "title": "Alumnos más activos",
+                "subtitle": "Por lecciones completadas en los últimos 7 días en tus cursos.",
+                "empty": "Sin actividad de alumnos en los últimos 7 días.",
+                "lessons": "{{count}} lecciones"
+            },
+            "completedLessons": {
+                "title": "Lecciones más completadas",
+                "subtitle": "Lecciones de tus cursos con más finalizaciones.",
+                "empty": "Aún no se han completado lecciones en tus cursos."
+            },
+            "pendingSubmissions": {
+                "title": "Entregas pendientes de corregir",
+                "none": "No tienes entregas pendientes de corregir.",
+                "countTotal_one": "{{count}} entrega pendiente en total, de más antigua a más reciente.",
+                "countTotal_other": "{{count}} entregas pendientes en total, de más antigua a más reciente.",
+                "review": "Corregir",
+                "moreTotal_one": "Hay {{count}} entrega pendiente en total; entra en cada curso para verlas todas.",
+                "moreTotal_other": "Hay {{count}} entregas pendientes en total; entra en cada curso para verlas todas."
+            }
+        },
+        "student": {
+            "loadError": "No se pudo cargar el dashboard.",
+            "greeting": "Hola, {{name}}",
+            "subtitle": "Aquí tienes un resumen de tu aprendizaje.",
+            "stats": {
+                "inProgress": "Cursos en progreso",
+                "inProgressHelper": "Aún no estás matriculado en ningún curso",
+                "completed": "Cursos completados",
+                "lessonsCompleted": "Lecciones completadas",
+                "lessonsCompletedHelper": "Total acumulado",
+                "streak": "Racha actual",
+                "streakDays_one": "{{count}} día",
+                "streakDays_other": "{{count}} días",
+                "streakHelper": "Días consecutivos con lección completada"
+            },
+            "performance": {
+                "title": "Rendimiento en evaluaciones",
+                "emptyTitle": "Aún no has realizado evaluaciones con puntuación.",
+                "emptyDescription": "Cuando completes tests o cuestionarios, verás aquí tu media y la comparativa con el resto de alumnos.",
+                "avgScore": "Nota media global",
+                "avgScoreHelper": "Media de tus mejores notas por test",
+                "totalAttempts": "Total intentos",
+                "totalAttemptsHelper": "En tests y cuestionarios",
+                "byCourseTitle": "Tu media por curso",
+                "byCourseSubtitle": "Mejor nota media en tests de cada curso.",
+                "vsCohortTitle": "Tu media vs media de la cohorte",
+                "vsCohortSubtitle": "Comparativa por curso con otros alumnos matriculados.",
+                "recentAttempts": "Intentos recientes",
+                "noAttempts": "No hay intentos registrados todavía.",
+                "table": {
+                    "course": "Curso",
+                    "lesson": "Lección",
+                    "score": "Nota",
+                    "status": "Estado",
+                    "date": "Fecha"
+                },
+                "passed": "Aprobado",
+                "failed": "Suspenso"
+            },
+            "completedCourses": {
+                "title": "Cursos terminados",
+                "emptyTitle": "Aún no has terminado ningún curso al 100%.",
+                "emptyDescription": "Al completar todas las lecciones, el curso aparecerá en esta lista.",
+                "badge": "Completado",
+                "finishedAgo": "Terminado {{time}}",
+                "finished": "Curso finalizado",
+                "viewCourse": "Ver ficha del curso →"
+            },
+            "continueLearning": {
+                "title": "Continuar aprendiendo",
+                "viewAll": "Ver todos los cursos",
+                "emptyTitle": "Todavía no tienes cursos en marcha.",
+                "exploreCourses": "Explorar cursos",
+                "lessonsCount": "{{completed}}/{{total}} lecciones",
+                "lastActivity": "Última actividad {{time}}",
+                "continue": "Continuar"
+            },
+            "recentActivity": {
+                "title": "Actividad reciente",
+                "empty": "Cuando empieces a estudiar lecciones, verás aquí tu actividad más reciente."
+            },
+            "studyWeek": {
+                "title": "Tu semana de estudio",
+                "subtitle": "Lecciones completadas en los últimos 7 días."
+            },
+            "status": {
+                "notStarted": "Pendiente",
+                "inProgress": "En progreso",
+                "completed": "Completada"
+            }
+        }
+    },
+    "landing": {
+        "badge": "Plataforma de aprendizaje online",
+        "title": "Descubre qué se aprende en Kursa",
+        "subtitle": "Estadísticas agregadas de la comunidad: cursos más populares, categorías con más matrículas y actividad reciente en la plataforma.",
+        "exploreCourses": "Explorar cursos",
+        "myDashboard": "Mi dashboard",
+        "activityTitle": "Actividad de la plataforma",
+        "periodAriaLabel": "Periodo de estadísticas",
+        "period": {
+            "day": "Hoy",
+            "week": "Últimos 7 días",
+            "month": "Últimos 30 días"
+        },
+        "loadingStats": "Cargando estadísticas...",
+        "loadStatsError": "No se pudieron cargar las estadísticas de la plataforma.",
+        "stats": {
+            "coursesInCatalog": "Cursos en catálogo",
+            "totalEnrollments": "Matrículas totales",
+            "activeEnrollments": "Matrículas activas",
+            "activeEnrollmentsHelper": "Cursos en progreso",
+            "lessonsCompleted": "Lecciones completadas"
+        },
+        "popularCoursesTitle": "Cursos más populares",
+        "popularCoursesSubtitle": "Ranking por número de matrículas",
+        "noEnrollmentsYet": "Aún no hay matrículas registradas.",
+        "categoryTitle": "Matrículas por categoría",
+        "categorySubtitleWithTotal": "Secciones con más registros ({{total}} total).",
+        "categorySubtitleNoTotal": "Secciones con más registros.",
+        "lessonsPerDayTitle": "Lecciones completadas por día",
+        "lessonsPerDaySubtitle": "Actividad global en el periodo seleccionado.",
+        "completedByTypeTitle": "Completados por tipo de lección",
+        "completedByTypeSubtitle": "Desglose en {{period}}."
+    },
+    "auth": {
+        "loading": "Cargando…",
+        "forbiddenTitle": "Acceso no permitido",
+        "backToCourses": "Volver a cursos",
+        "guest": {
+            "loginTitle": "Inicia sesión",
+            "needLoginDescription": "Necesitas iniciar sesión o registrarte para acceder a esta página.",
+            "adminOnlyDescription": "El panel de administración solo está disponible para administradores. Inicia sesión con una cuenta de administrador.",
+            "staffOnlyDescription": "Solo instructores y administradores pueden crear o editar cursos y lecciones. Inicia sesión con una cuenta autorizada.",
+            "forbiddenAdmin": "Esta sección solo está disponible para administradores.",
+            "forbiddenStaff": "Solo instructores y administradores pueden acceder al editor de cursos.",
+            "dashboardNeedAccount": "Para ver tu dashboard necesitas una cuenta. <1>Regístrate</1> o <3>inicia sesión</3> para acceder a tu progreso y estadísticas."
+        },
+        "form": {
+            "loginTitle": "Iniciar sesión",
+            "registerTitle": "Registrarse",
+            "nameOrEmail": "Nombre o email",
+            "password": "Contraseña",
+            "confirmPassword": "Confirmar contraseña",
+            "name": "Nombre",
+            "email": "Email",
+            "role": "Rol",
+            "submit": "Enviar",
+            "noAccount": "¿No tienes cuenta?",
+            "registerHere": "regístrate aquí",
+            "hasAccount": "¿Ya tienes cuenta?",
+            "loginHere": "inicia sesión aquí"
+        },
+        "role": {
+            "student": "Estudiante",
+            "instructor": "Instructor"
+        },
+        "errors": {
+            "loginFailed": "Error al iniciar sesión",
+            "passwordMismatch": "Las contraseñas no coinciden",
+            "nameTooShort": "El nombre debe tener al menos 3 caracteres",
+            "invalidEmail": "El email debe ser válido",
+            "registerFailed": "Error al registrar el usuario"
+        },
+        "toast": {
+            "loginSuccess": "Sesión iniciada correctamente",
+            "registerSuccess": "Usuario registrado correctamente"
+        }
+    },
+    "courseEdit": {
+        "back": "Volver",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "createCourse": "Crear curso",
+        "deleteCourse": "Eliminar curso",
+        "deleting": "Eliminando…",
+        "loadingCourse": "Cargando curso...",
+        "loadingEditor": "Cargando editor...",
+        "noCourseFound": "No se encontró el curso.",
+        "noPermission": "No tienes permiso para editar este curso.",
+        "loadError": "No se pudo cargar el curso.",
+        "deleteCourseConfirm": "¿Eliminar el curso \"{{title}}\"? Se borrarán también lecciones, matrículas, progreso y valoraciones. Esta acción no se puede deshacer.",
+        "form": {
+            "title": "Editar curso",
+            "subtitle": "Actualiza los detalles del curso y gestiona las lecciones.",
+            "fields": {
+                "title": "Título",
+                "url": "URL",
+                "intro": "Introducción",
+                "site": "Plataforma",
+                "category": "Categoría",
+                "subcategory": "Subcategoría",
+                "language": "Idioma",
+                "courseType": "Tipo de curso",
+                "difficulty": "Dificultad",
+                "durationMinutes": "Duración (minutos)",
+                "instructor": "Instructor"
+            },
+            "unassigned": "Sin asignar",
+            "instructorsLoadError": "No se pudieron cargar los instructores",
+            "onlyAdminsChangeOwnership": "Solo los administradores pueden cambiar la titularidad.",
+            "readOnly": "Solo lectura",
+            "readOnlyMeta": "Id. del curso: #{{id}} · Creado {{createdAt}} · Actualizado {{updatedAt}}"
+        },
+        "lessons": {
+            "title": "Lecciones",
+            "subtitle": "Crea, edita, elimina y reordena las lecciones de este curso.",
+            "addLesson": "Añadir lección",
+            "noLessons": "Aún no hay lecciones — añade la primera.",
+            "moveUp": "Subir",
+            "moveDown": "Bajar",
+            "newLesson": "Nueva lección",
+            "editLesson": "Editar lección",
+            "deleteConfirm": "¿Eliminar \"{{title}}\"?"
+        },
+        "lessonModal": {
+            "subtitle": "Título, tipo, orden y contenido.",
+            "fields": {
+                "title": "Título",
+                "type": "Tipo",
+                "position": "Posición",
+                "contentMarkdown": "Contenido (markdown)",
+                "assignmentStatement": "Enunciado",
+                "maxScore": "Puntuación máxima",
+                "passingScore": "Nota mínima para aprobar",
+                "videoUrl": "URL del vídeo (YouTube / Vimeo)"
+            },
+            "assignmentInstructionsPlaceholder": "Instrucciones de la tarea para el alumno…",
+            "allowFileSubmission": "Permitir adjuntar archivo",
+            "videoUrlPlaceholder": "https://www.youtube.com/watch?v=...",
+            "editQuestions": "Editar preguntas",
+            "questionsInstantSaveHint": "Las preguntas se gestionan en su propio editor; los cambios se guardan al instante.",
+            "saveAndAddQuestions": "Guardar y añadir preguntas",
+            "saveDraftHint": "Se guardará la lección con el título actual; después podrás seguir editando el resto de campos y pulsar \"Guardar lección\".",
+            "attachmentsTitle": "Materiales adjuntos",
+            "attachmentsSubtitle": "PDFs y otros recursos descargables para los estudiantes.",
+            "loadingAttachments": "Cargando archivos…",
+            "noAttachments": "Aún no hay archivos adjuntos.",
+            "deleteFileAria": "Eliminar {{filename}}",
+            "uploading": "Subiendo…",
+            "uploadFile": "Subir archivo",
+            "saveLesson": "Guardar lección",
+            "createLesson": "Crear lección",
+            "deleteFileConfirm": "¿Eliminar este archivo?"
+        },
+        "questions": {
+            "title": "Editar preguntas",
+            "subtitle": "Define preguntas y opciones. Marca la(s) opción(es) correcta(s).",
+            "existingTitle": "Preguntas existentes",
+            "loading": "Cargando…",
+            "empty": "Aún no hay preguntas. Crea la primera abajo.",
+            "optionsCount": "{{count}} opciones · {{correct}} correcta(s)",
+            "editQuestion": "Editar pregunta",
+            "newQuestion": "Nueva pregunta",
+            "cancelEdit": "Cancelar edición",
+            "promptLabel": "Enunciado",
+            "optionsLabel": "Opciones",
+            "correctOption": "Correcta",
+            "optionPlaceholder": "Opción {{number}}",
+            "removeOption": "Quitar",
+            "addOption": "Añadir opción",
+            "saveChanges": "Guardar cambios",
+            "createQuestion": "Crear pregunta",
+            "deleteConfirm": "¿Eliminar esta pregunta?"
+        },
+        "instructorCombobox": {
+            "searchPlaceholder": "Buscar instructor...",
+            "clearAria": "Quitar instructor",
+            "orphanLabel": "#{{id}} (ya no es instructor)",
+            "unassignedOption": "— Sin asignar —",
+            "noMatches": "Sin coincidencias"
+        },
+        "toast": {
+            "titleRequired": "El título es obligatorio",
+            "courseCreated": "Curso creado",
+            "createFailed": "No se pudo crear el curso",
+            "courseSaved": "Curso guardado",
+            "saveFailed": "No se pudo guardar el curso",
+            "deleteFailed": "No se pudo eliminar el curso",
+            "lessonCreated": "Lección creada",
+            "lessonUpdated": "Lección actualizada",
+            "lessonDeleted": "Lección eliminada",
+            "lessonsReordered": "Lecciones reordenadas",
+            "saveLessonFailed": "No se pudo guardar la lección.",
+            "attachmentsLoadFailed": "No se pudieron cargar los materiales adjuntos.",
+            "fileUploaded": "Archivo subido.",
+            "fileUploadFailed": "No se pudo subir el archivo.",
+            "fileDeleted": "Archivo eliminado.",
+            "fileDeleteFailed": "No se pudo eliminar el archivo.",
+            "lessonSaveFailed": "No se pudo guardar la lección.",
+            "questionsLoadFailed": "No se pudieron cargar las preguntas.",
+            "promptRequired": "La pregunta no puede estar vacía.",
+            "minTwoOptions": "Necesitas al menos 2 opciones.",
+            "correctOptionRequired": "Marca al menos una opción correcta.",
+            "questionUpdated": "Pregunta actualizada",
+            "questionCreated": "Pregunta creada",
+            "questionSaveFailed": "No se pudo guardar la pregunta.",
+            "questionDeleted": "Pregunta eliminada",
+            "questionDeleteFailed": "No se pudo eliminar la pregunta."
+        }
+    },
+    "courseDetail": {
+        "instructor": "Instructor",
+        "language": "Idioma",
+        "courseType": "Tipo de curso",
+        "rating": "Valoración",
+        "noRatingsYet": "Sin valoraciones aún",
+        "ratingCount_one": "{{count}} valoración",
+        "ratingCount_other": "{{count}} valoraciones",
+        "duration": "Duración",
+        "difficulty": "Dificultad",
+        "platform": "Plataforma",
+        "openCourse": "Ver curso",
+        "backButton": "Volver",
+        "loginToEnroll": "Inicia sesión para matricularte",
+        "viewStudents": "Ver alumnos",
+        "edit": "Editar",
+        "enrolling": "Matriculando…",
+        "enroll": "Matricularme",
+        "completing": "Completando…",
+        "completeCourse": "Completar curso",
+        "continue": "Continuar",
+        "review": "Repasar",
+        "toast": {
+            "enrolled": "Te has matriculado en este curso",
+            "enrollFailed": "No se ha podido completar la matriculación.",
+            "noLessons": "Este curso no tiene lecciones.",
+            "noLessonsToReview": "Este curso no tiene lecciones para repasar.",
+            "courseCompleted": "Curso completado",
+            "completeFailed": "No se pudo completar el curso.",
+            "noLessonsYet": "Este curso aún no tiene lecciones"
+        },
+        "myRating": {
+            "loading": "Cargando tu valoración…",
+            "title": "Tu valoración",
+            "emptyCourseHint": "Este curso aún no tiene lecciones. Puedes valorar tu experiencia como alumno matriculado.",
+            "hint": "Del 1 al 5. Puedes cambiarla cuando quieras.",
+            "saved": "Valoración guardada",
+            "saveFailed": "No se pudo guardar la valoración"
+        },
+        "invalidCourse": "Curso no válido.",
+        "loadError": "No se pudieron cargar los detalles del curso.",
+        "loadingCourse": "Cargando curso...",
+        "noCourseFound": "No se encontró el curso.",
+        "yourProgress": "Tu progreso",
+        "courseCompletedBadge": "Curso completado",
+        "lessonsProgress": "{{percent}}% · {{completed}}/{{total}} lecciones",
+        "lessonsPanelTitle": "Lecciones",
+        "noLessonsPanel": "Este curso aún no tiene lecciones.",
+        "lessonCount_one": "{{count}} lección",
+        "lessonCount_other": "{{count}} lecciones",
+        "completeAtLeastOneLesson": "Completa al menos una lección para poder valorar el curso.",
+        "bestScore": "Mejor: {{score}}%",
+        "attemptCount_one": "{{count}} intento",
+        "attemptCount_other": "{{count}} intentos",
+        "status": {
+            "completed": "Completada",
+            "inProgress": "En curso",
+            "notStarted": "Sin empezar"
+        }
+    },
+    "courses": {
+        "heroTitle": "Encuentra tu próximo <1>curso</1>",
+        "filterDropdown": {
+            "selectPlaceholder": "Elige opciones...",
+            "searchPlaceholder": "Buscar...",
+            "selectAll": "Seleccionar todo",
+            "noOptions": "No se encontraron opciones"
+        },
+        "card": {
+            "noDescription": "Sin descripción.",
+            "lessons_one": "{{count}} lección",
+            "lessons_other": "{{count}} lecciones",
+            "lessonsTitle": "Lecciones",
+            "durationTitle": "Duración",
+            "ratingTitle": "Valoración"
+        },
+        "searchPlaceholder": "Buscar cursos...",
+        "filters": {
+            "duration": "Duración",
+            "difficulty": "Dificultad"
+        },
+        "orderBy": "Ordenar por: {{label}}",
+        "foundCount_one": "{{count}} curso encontrado",
+        "foundCount_other": "{{count}} cursos encontrados",
+        "createCourse": "Crear curso",
+        "loading": "Cargando cursos...",
+        "noResultsTitle": "No se han encontrado cursos",
+        "noResultsHint": "Prueba a cambiar la búsqueda o los filtros.",
+        "loadError": "Error cargando cursos.",
+        "recommended": {
+            "title": "Recomendados para ti",
+            "loading": "Cargando recomendaciones…",
+            "matchPercent": "{{percent}}% coincidencia",
+            "sourceCollaborative": "Colaborativo",
+            "sourceHistory": "Por historial",
+            "sourceContent": "Por contenido",
+            "titleCollaborative": "Recomendado por similitud con otros estudiantes",
+            "titleContent": "Recomendado según tus preferencias de contenido",
+            "emptyTitle": "No hay suficientes datos para realizar una recomendación.",
+            "emptyDescription": "Introduce tus preferencias de cursos (categorías, idiomas, plataformas, etc.) para que podamos sugerirte contenido adaptado a ti.",
+            "configurePreferences": "Configurar preferencias",
+            "error": "No se pudieron cargar las recomendaciones.",
+            "prevAria": "Ver recomendaciones anteriores",
+            "nextAria": "Ver siguientes recomendaciones",
+            "pagesAria": "Páginas del carrusel",
+            "pageAria": "Página {{page}} de {{total}}"
+        }
+    },
+    "charts": {
+        "noData": "No hay datos",
+        "completed": "{{count}} completadas",
+        "enrolledCount": "{{count}} matriculados",
+        "avgProgress": "Progreso medio: {{value}}%",
+        "completionRate": "Finalización: {{value}}%",
+        "enrollmentsUnit": "matrículas",
+        "enrollmentsWithPercent": "{{count}} matrículas ({{percent}}%)",
+        "legend": {
+            "enrollments": "Matriculados",
+            "avgProgress": "Progreso medio"
+        },
+        "lesson": {
+            "studentsCompleted": "{{count}} alumnos completaron",
+            "completedPercent": "{{value}}% completaron"
+        },
+        "score": {
+            "yourAverage": "Tu media",
+            "cohortAverage": "Media cohorte",
+            "tooltipYourAverage": "Tu media: {{value}}%",
+            "tooltipCohortAverage": "Media cohorte: {{value}}%"
+        }
+    },
+    "lessonPage": {
+        "invalidLesson": "Lección no válida.",
+        "loading": "Cargando lección...",
+        "notFound": "Lección no encontrada.",
+        "progressUpdateFailed": "No se pudo actualizar tu progreso, pero puedes seguir con la lección.",
+        "loadFailed": "No se pudo cargar la lección.",
+        "passed": "¡Lección superada!",
+        "courseCompleted": "¡Curso completado!",
+        "markCompleteFailed": "No se pudo marcar la lección como completada.",
+        "submitAnswersFailed": "No se pudieron enviar las respuestas.",
+        "failedAttempt": "No has alcanzado el 70% (puntuación: {{score}}%). Inténtalo de nuevo.",
+        "submitAssignmentFailed": "No se pudo enviar la entrega.",
+        "submissionSent": "Entrega enviada correctamente",
+        "backToCourse": "Volver al curso",
+        "lessonNumber": "Lección {{position}}",
+        "attemptHistory": {
+            "title": "Historial de intentos",
+            "subtitle": "Registro de tus envíos en esta evaluación.",
+            "loading": "Cargando historial de intentos…",
+            "empty": "Aún no hay intentos registrados en esta lección.",
+            "bestScore": "Mejor nota: {{score}}",
+            "attemptsCount_one": "{{count}} intento",
+            "attemptsCount_other": "{{count}} intentos",
+            "passed": "Aprobado",
+            "notPassed": "No superado"
+        },
+        "loadingSubmission": "Cargando entrega…",
+        "marking": "Marcando…",
+        "markComplete": "Marcar como completada",
+        "assignment": {
+            "statement": "Enunciado",
+            "noInstructions": "El instructor aún no ha añadido instrucciones para esta tarea.",
+            "maxScore": "Puntuación máxima: {{max}} · Nota mínima para aprobar: {{passing}}",
+            "status": "Estado: {{status}}",
+            "statusLabel": {
+                "pending": "Pendiente de corrección",
+                "graded": "Calificada",
+                "returned": "Devuelta para revisión"
+            },
+            "score": "Nota: {{score}}/{{max}}",
+            "passed": " — Aprobada",
+            "notPassed": " — No alcanza la nota mínima",
+            "instructorFeedback": "Comentarios del instructor",
+            "fileSubmitted": "Archivo enviado:",
+            "downloadAttachment": "Descargar adjunto",
+            "resubmit": "Reenviar entrega",
+            "yourSubmission": "Tu entrega",
+            "answerLabel": "Respuesta",
+            "answerPlaceholder": "Escribe tu respuesta o comentarios sobre la tarea…",
+            "attachmentLabel": "Archivo adjunto (opcional)",
+            "selectFile": "Seleccionar archivo",
+            "sending": "Enviando…",
+            "submit": "Enviar entrega",
+            "pendingReview": "Tu entrega está pendiente de corrección. El instructor te notificará cuando la revise.",
+            "alreadyGraded": "Esta entrega ya ha sido calificada.",
+            "downloadFailed": "No se pudo descargar el archivo enviado."
+        },
+        "textEmpty": "Esta lección aún no tiene contenido.",
+        "videoEmpty": "Esta lección aún no tiene vídeo configurado.",
+        "videoTitle": "Vídeo de la lección",
+        "attachments": {
+            "title": "Materiales adjuntos",
+            "loading": "Cargando materiales…",
+            "subtitle": "PDFs y otros recursos descargables de esta lección.",
+            "downloadFailed": "No se pudo descargar el archivo."
+        },
+        "quiz": {
+            "noQuestions": "Esta lección no tiene preguntas. Puedes marcarla como completada para seguir.",
+            "marking": "Marcando…",
+            "markComplete": "Marcar lección como completada",
+            "lastScore": "Tu última puntuación: {{score}}%",
+            "needMinScore": " — necesitas al menos 70% para superar la lección.",
+            "question": "Pregunta {{number}}",
+            "sending": "Enviando…",
+            "submitAnswers": "Enviar respuestas"
+        }
+    },
+    "preferences": {
+        "platform": "Plataforma",
+        "platformPlaceholder": "Elige plataformas…",
+        "category": "Categoría",
+        "categoryPlaceholder": "Elige categorías…",
+        "language": "Idioma",
+        "languagePlaceholder": "Elige idiomas…",
+        "courseType": "Tipo de curso",
+        "courseTypePlaceholder": "Elige tipos de curso…",
+        "preferredDuration": "Duración preferida",
+        "durationPlaceholder": "Elige duraciones…",
+        "preferredDifficulty": "Dificultad preferida",
+        "difficultyPlaceholder": "Elige niveles…"
+    },
+    "courseStudents": {
+        "enrollmentStatus": {
+            "in_progress": "En progreso",
+            "completed": "Completado",
+            "dropped": "Abandonado"
+        },
+        "lessonStatus": {
+            "not_started": "Sin empezar",
+            "in_progress": "En curso",
+            "completed": "Completada"
+        },
+        "score": "Nota",
+        "attemptCount_one": "{{count}} intento",
+        "attemptCount_other": "{{count}} intentos",
+        "completedAgo": "Completada {{time}}",
+        "invalidCourse": "Curso no válido",
+        "loadError": "No se pudo cargar el listado de alumnos.",
+        "loadDetailError": "No se pudo cargar el detalle del alumno",
+        "loading": "Cargando alumnos…",
+        "noData": "No hay datos disponibles.",
+        "noPermission": "No tienes permiso para ver el progreso de los alumnos de este curso.",
+        "backToCourse": "← Volver al curso",
+        "title": "Alumnos — {{courseTitle}}",
+        "subtitle": "Progreso de los estudiantes matriculados. Pulsa una fila para ver el detalle por lección.",
+        "editCourse": "Editar curso",
+        "stats": {
+            "enrolled": "Matriculados",
+            "completed": "Completados",
+            "avgProgress": "Progreso medio",
+            "completionRate": "Tasa de finalización",
+            "avgRating": "Valoración media"
+        },
+        "charts": {
+            "lessonCompletion": {
+                "title": "Completados por lección",
+                "subtitle": "Alumnos que han completado cada lección del curso."
+            },
+            "progressDistribution": {
+                "title": "Distribución de progreso",
+                "subtitle": "Reparto de alumnos por tramo de progreso global."
+            },
+            "studentsUnit": "alumnos",
+            "cohorts": {
+                "title": "Cohortes por mes de matriculación",
+                "subtitle": "Comparativa de progreso colectivo entre cohortes de alumnos."
+            }
+        },
+        "table": {
+            "student": "Alumno",
+            "status": "Estado",
+            "progress": "Progreso",
+            "lessons": "Lecciones",
+            "lastActivity": "Última actividad"
+        },
+        "noStudents": "Aún no hay alumnos matriculados en este curso.",
+        "loadingLessons": "Cargando lecciones…",
+        "submissions": {
+            "title": "Entregas de tareas",
+            "intro": "Revisa y califica las entregas de lecciones tipo tarea.",
+            "pendingSuffix_one": " {{count}} pendiente.",
+            "pendingSuffix_other": " {{count}} pendientes.",
+            "noPendingSuffix": " No hay entregas pendientes.",
+            "filterPending": "Pendientes",
+            "filterAll": "Todas",
+            "loading": "Cargando entregas…",
+            "loadError": "No se pudieron cargar las entregas.",
+            "noPending": "No hay entregas pendientes de corrección.",
+            "noSubmissions": "Aún no hay entregas en este curso.",
+            "defaultLesson": "Lección",
+            "status": {
+                "pending": "Pendiente",
+                "graded": "Calificada",
+                "returned": "Devuelta"
+            },
+            "table": {
+                "student": "Alumno",
+                "lesson": "Lección",
+                "submitted": "Enviada",
+                "status": "Estado",
+                "score": "Nota",
+                "action": "Acción"
+            },
+            "review": "Corregir",
+            "viewEdit": "Ver / editar"
+        },
+        "gradeModal": {
+            "title": "Corregir entrega",
+            "defaultStudent": "Alumno",
+            "defaultLesson": "Lección",
+            "studentAnswer": "Respuesta del alumno",
+            "downloadFile": "Descargar {{fileName}}",
+            "defaultAttachment": "adjunto",
+            "defaultSubmissionFile": "entrega",
+            "scoreLabel": "Nota (0–{{maxScore}})",
+            "scorePlaceholder": "0–{{maxScore}}",
+            "feedback": "Comentarios",
+            "feedbackPlaceholder": "Feedback para el alumno…",
+            "returnForReview": "Devolver para revisión",
+            "grade": "Calificar",
+            "downloadFailed": "No se pudo descargar el archivo.",
+            "invalidScore": "Indica una nota válida para calificar.",
+            "scoreRange": "La nota debe estar entre 0 y {{max}}.",
+            "gradedSuccess": "Entrega calificada",
+            "returnedSuccess": "Entrega devuelta al alumno",
+            "updateFailed": "No se pudo actualizar la entrega."
+        }
+    },
+    "settings": {
+        "title": "Ajustes",
+        "subtitleStudent": "Cuenta, recomendaciones y apariencia",
+        "subtitleDefault": "Cuenta y apariencia",
+        "name": {
+            "title": "Nombre",
+            "save": "Guardar nombre"
+        },
+        "email": {
+            "title": "Email",
+            "current": "Actual: {{email}}",
+            "newLabel": "Nuevo email",
+            "currentPasswordLabel": "Contraseña actual (obligatoria)",
+            "save": "Guardar email"
+        },
+        "password": {
+            "title": "Contraseña",
+            "currentLabel": "Contraseña actual",
+            "newLabel": "Nueva contraseña",
+            "confirmLabel": "Confirmar nueva contraseña",
+            "save": "Cambiar contraseña"
+        },
+        "recommendations": {
+            "title": "Preferencias de recomendación",
+            "hint": "Estas opciones alimentan el recomendador de cursos en tu dashboard y en el catálogo.",
+            "loading": "Cargando preferencias…",
+            "save": "Guardar preferencias"
+        },
+        "appearance": {
+            "title": "Apariencia",
+            "hint": "El modo se guarda en este dispositivo.",
+            "darkMode": "Modo oscuro"
+        },
+        "toast": {
+            "loadPreferencesFailed": "No se pudieron cargar las preferencias.",
+            "nameEmpty": "El nombre no puede estar vacío",
+            "nameUnchanged": "Sin cambios en el nombre",
+            "nameUpdateFailed": "No se pudo actualizar el nombre",
+            "nameUpdated": "Nombre actualizado",
+            "emailEmpty": "El email no puede estar vacío",
+            "emailUnchanged": "Sin cambios en el email",
+            "emailPasswordRequired": "Introduce tu contraseña actual para cambiar el email",
+            "emailUpdateFailed": "No se pudo actualizar el email",
+            "emailUpdated": "Email actualizado",
+            "passwordCurrentRequired": "Introduce tu contraseña actual",
+            "passwordTooShort": "La nueva contraseña debe tener al menos 6 caracteres",
+            "passwordMismatch": "Las contraseñas nuevas no coinciden",
+            "passwordUpdateFailed": "No se pudo actualizar la contraseña",
+            "passwordUpdated": "Contraseña actualizada",
+            "preferencesEmpty": "Selecciona al menos una preferencia",
+            "preferencesSaveFailed": "No se pudieron guardar las preferencias",
+            "preferencesSaved": "Preferencias guardadas"
+        }
+    },
+    "admin": {
+        "loading": "Cargando…",
+        "title": "Usuarios",
+        "registeredUsers_one": "{{count}} usuario registrado",
+        "registeredUsers_other": "{{count}} usuarios registrados",
+        "cannotRemoveOwnAdmin": "No puedes quitarte el rol de administrador a ti mismo.",
+        "roleUpdateSuccess": "Rol de {{name}} actualizado de {{from}} a {{to}}",
+        "roleUpdateFailed": "No se pudo actualizar el rol.",
+        "deleteUser": "Eliminar usuario",
+        "deleteConfirmTitle": "¿Eliminar usuario?",
+        "deleteConfirmMessage": "¿Seguro que quieres eliminar a {{name}}?",
+        "yesDelete": "Sí, eliminar",
+        "fields": {
+            "id": "ID",
+            "email": "Email",
+            "role": "Rol",
+            "created": "Creado"
+        },
+        "noId": "Sin ID",
+        "unknownDate": "Desconocido",
+        "roles": {
+            "student": "Estudiante",
+            "instructor": "Instructor",
+            "admin": "Administrador"
+        }
+    }
+}

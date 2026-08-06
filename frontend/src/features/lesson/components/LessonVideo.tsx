@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 function toEmbedUrl(rawUrl: string): string {
     try {
         const url = new URL(rawUrl);
@@ -26,10 +28,11 @@ function toEmbedUrl(rawUrl: string): string {
 }
 
 export function LessonVideo({ videoUrl }: { videoUrl: string | null | undefined }) {
+    const { t } = useTranslation();
     if (!videoUrl) {
         return (
             <div className="rounded-xl border border-dashed border-gray-300 bg-surface-muted p-6 text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                Esta lección aún no tiene vídeo configurado.
+                {t("lessonPage.videoEmpty")}
             </div>
         );
     }
@@ -38,10 +41,10 @@ export function LessonVideo({ videoUrl }: { videoUrl: string | null | undefined 
 
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-black dark:border-slate-600">
-            <div className="aspect-video w-full">
+            <div className="mx-auto aspect-video w-full max-w-[min(100%,calc(75vh*16/9))]">
                 <iframe
                     src={embed}
-                    title="Lesson video"
+                    title={t("lessonPage.videoTitle")}
                     className="h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen

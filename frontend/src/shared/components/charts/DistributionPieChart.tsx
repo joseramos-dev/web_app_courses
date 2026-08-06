@@ -1,7 +1,10 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { ChartDatum } from "./chartTheme";
 import {
     CHART_PIE_COLORS,
+    chartLegendWrapperStyle,
+    chartPieActiveShape,
     chartTooltipContentStyle,
     chartTooltipLabelStyle,
     chartWrapperClassName,
@@ -24,6 +27,7 @@ function PieTooltip({
     active?: boolean;
     payload?: TooltipPayload[];
 }) {
+    const { t } = useTranslation();
     if (!active || !payload?.length) return null;
     const row = payload[0].payload;
     if (!row) return null;
@@ -32,7 +36,9 @@ function PieTooltip({
         <div style={chartTooltipContentStyle} className="text-slate-800 dark:text-slate-100">
             <p style={chartTooltipLabelStyle}>{row.label}</p>
             <p className="mt-0.5">
-                {row.value} matrículas{pct != null ? ` (${pct}%)` : ""}
+                {pct != null
+                    ? t("charts.enrollmentsWithPercent", { count: row.value, percent: pct })
+                    : t("charts.enrolledCount", { count: row.value })}
             </p>
         </div>
     );
@@ -65,6 +71,7 @@ export function DistributionPieChart({ data, height = 220 }: Props) {
                         innerRadius={48}
                         outerRadius={72}
                         paddingAngle={2}
+                        activeShape={chartPieActiveShape}
                     >
                         {data.map((_, index) => (
                             <Cell
@@ -77,7 +84,7 @@ export function DistributionPieChart({ data, height = 220 }: Props) {
                     <Legend
                         verticalAlign="bottom"
                         formatter={renderLegend}
-                        wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
+                        wrapperStyle={{ ...chartLegendWrapperStyle, paddingTop: "8px" }}
                     />
                 </PieChart>
             </ResponsiveContainer>

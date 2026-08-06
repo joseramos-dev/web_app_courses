@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { BookOpen, Clock, Globe, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
 
 function formatDuration(seconds: number | null) {
@@ -17,14 +18,12 @@ function formatRating(rating: number | null) {
 }
 
 export function CourseCard({ course }: { course: ICourses }) {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { pathname, search } = useLocation();
     const duration = formatDuration(course.duration_seconds);
     const rating = formatRating(course.rating);
-    const lessonsLabel =
-        course.lessons_count === 1
-            ? "1 lesson"
-            : `${course.lessons_count} lessons`;
+    const lessonsLabel = t("courses.card.lessons", { count: course.lessons_count });
 
     return (
         <article
@@ -57,7 +56,7 @@ export function CourseCard({ course }: { course: ICourses }) {
                 </p>
             ) : (
                 <p className="mb-3 text-sm italic text-gray-400 dark:text-slate-500">
-                    Sin descripción.
+                    {t("courses.card.noDescription")}
                 </p>
             )}
 
@@ -68,15 +67,15 @@ export function CourseCard({ course }: { course: ICourses }) {
             <div className="mt-3 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-xs text-gray-600 dark:border-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-1">
                     <BookOpen className="size-3.5 text-gray-400 dark:text-slate-500" />
-                    <span title="Lecciones">{lessonsLabel}</span>
+                    <span title={t("courses.card.lessonsTitle")}>{lessonsLabel}</span>
                 </div>
                 <div className="flex items-center gap-1">
                     <Clock className="size-3.5 text-gray-400 dark:text-slate-500" />
-                    <span title="Duración">{duration ?? "—"}</span>
+                    <span title={t("courses.card.durationTitle")}>{duration ?? "—"}</span>
                 </div>
                 <div className="flex items-center justify-end gap-1">
                     <Star className="size-3.5 text-yellow-500" />
-                    <span title="Valoración">
+                    <span title={t("courses.card.ratingTitle")}>
                         {rating != null && course.ratings_count > 0
                             ? `${rating} (${course.ratings_count})`
                             : "—"}

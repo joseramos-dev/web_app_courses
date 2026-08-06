@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi import APIRouter, Depends, Query, status
 from typing import Annotated, List, Optional
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 from core.dependencies import PaginationParams, get_pagination, require_role, sort_map_column
 from core.database import get_db
 from core.config import ENABLE_DEV_ROUTES
+from core.i18n import http_error, msg
 from modules.courses.schema import (
     CourseSchema,
     CoursePaginatedSchema,
@@ -67,14 +68,15 @@ def _resolve_create_instructor_id(
                 .first()
             )
             if target is None:
-                raise HTTPException(status_code=404, detail="Instructor not found")
+                raise http_error(404, "instructor_not_found")
             if target.role != UserRole.INSTRUCTOR:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"User {target.id} is not an instructor",
+                raise http_error(
+                    400,
+                    "user_not_instructor",
+                    user_id=target.id,
                 )
         return inst_id
-    raise HTTPException(status_code=403, detail="You haven't enough privileges")
+    raise http_error(403, "insufficient_privileges")
 
 
 courses_router = APIRouter(
@@ -157,16 +159,10 @@ def put_my_course_rating(
     user=Depends(get_current_user),
 ):
     if user.role != UserRole.STUDENT:
-        raise HTTPException(
-            status_code=403,
-            detail="Only students can rate courses",
-        )
+        raise http_error(403, "only_students_rate")
     row = upsert_course_rating(db, user.id, course_id, payload.score)
     if row is None:
-        raise HTTPException(
-            status_code=403,
-            detail="Must be enrolled in this course to rate",
-        )
+        raise http_error(403, "must_enroll_to_rate")
     return row
 
 
@@ -181,17 +177,11 @@ def get_my_course_rating(
     user=Depends(get_current_user),
 ):
     if user.role != UserRole.STUDENT:
-        raise HTTPException(
-            status_code=403,
-            detail="Only students can view their rating",
-        )
+        raise http_error(403, "only_students_view_rating")
     get_course_detail(db, course_id)
     enr = get_enrollment(db, user.id, course_id)
     if not enr or enr.status == EnrollmentStatus.DROPPED:
-        raise HTTPException(
-            status_code=403,
-            detail="Must be enrolled in this course",
-        )
+        raise http_error(403, "must_enroll")
     row = (
         db.query(CourseRatingModel)
         .filter(
@@ -201,7 +191,7 @@ def get_my_course_rating(
         .first()
     )
     if not row:
-        raise HTTPException(status_code=404, detail="No rating submitted yet")
+        raise http_error(404, "no_rating_submitted")
     return row
 
 
@@ -309,16 +299,13 @@ def update_course_by_id(
     """
     course = get_course_detail(db, course_id)
     if user.role != "admin" and (course.instructor_id is None or user.id != course.instructor_id):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
 
     # Only admins may change ownership. We compare against the current value
     # so a non-admin saving the form unchanged still works.
     if "instructor_id" in payload.model_fields_set and payload.instructor_id != course.instructor_id:
         if user.role != "admin":
-            raise HTTPException(
-                status_code=403,
-                detail="Only admins can reassign a course's instructor",
-            )
+            raise http_error(403, "only_admins_reassign_instructor")
         if payload.instructor_id is not None:
             target = (
                 db.query(UserModel)
@@ -326,11 +313,12 @@ def update_course_by_id(
                 .first()
             )
             if target is None:
-                raise HTTPException(status_code=404, detail="Instructor not found")
+                raise http_error(404, "instructor_not_found")
             if target.role != UserRole.INSTRUCTOR:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"User {target.id} is not an instructor",
+                raise http_error(
+                    400,
+                    "user_not_instructor",
+                    user_id=target.id,
                 )
 
     return update_course(db, course_id, payload)
@@ -354,9 +342,9 @@ def delete_course_by_id(
     if user.role != "admin" and (
         course.instructor_id is None or user.id != course.instructor_id
     ):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     delete_course(db, course_id)
-    return {"detail": "Course deleted"}
+    return {"detail": msg("course_deleted")}
 
 
 @courses_router.get(
@@ -392,10 +380,10 @@ def reorder_course_lessons(
     """
     course = get_course_detail(db, course_id)
     if user.role != "admin" and (course.instructor_id is None or user.id != course.instructor_id):
-        raise HTTPException(status_code=403, detail="You haven't enough privileges")
+        raise http_error(403, "insufficient_privileges")
     reordered = reorder_lessons(db, course_id, payload.ordered_lesson_ids)
     if reordered is None:
-        raise HTTPException(status_code=400, detail="Invalid lesson ids for reorder")
+        raise http_error(400, "invalid_lesson_ids_reorder")
     return reordered
 
 if ENABLE_DEV_ROUTES:

@@ -1,17 +1,26 @@
 import type { LessonType } from "../../features/course_edit/lessonTypes";
 
-export const lessonTypeLabels: Record<LessonType, string> = {
-    text: "Texto",
-    video: "Vídeo",
-    test: "Test",
-    multiple_selection: "Selección múltiple",
-    assignment: "Tarea",
-};
+/** `t` is the i18next translate function (from `useTranslation()`). */
+export function getLessonTypeLabels(
+    t: (key: string) => string,
+): Record<LessonType, string> {
+    return {
+        text: t("domain.lessonType.text"),
+        video: t("domain.lessonType.video"),
+        test: t("domain.lessonType.test"),
+        multiple_selection: t("domain.lessonType.multiple_selection"),
+        assignment: t("domain.lessonType.assignment"),
+    };
+}
 
 export type PublicStatsPeriod = "day" | "week" | "month";
 
-export const publicStatsPeriodLabels: Record<PublicStatsPeriod, string> = {
-    day: "Día",
-    week: "Semana",
-    month: "Mes",
-};
+export function getPublicStatsPeriodLabels(
+    t: (key: string) => string,
+): Record<PublicStatsPeriod, string> {
+    return {
+        day: t("domain.statsPeriod.day"),
+        week: t("domain.statsPeriod.week"),
+        month: t("domain.statsPeriod.month"),
+    };
+}

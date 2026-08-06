@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Download, FileText } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type { ILessonFile } from "../../course_edit/lessonTypes";
 import { api } from "../../../shared/api/api";
 
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function LessonAttachments({ files, loading }: Props) {
+  const { t } = useTranslation();
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   const handleDownload = async (file: ILessonFile) => {
@@ -33,7 +35,7 @@ export function LessonAttachments({ files, loading }: Props) {
       window.URL.revokeObjectURL(url);
     } catch (e) {
       console.error(e);
-      toast.error("No se pudo descargar el archivo.");
+      toast.error(t("lessonPage.attachments.downloadFailed"));
     } finally {
       setDownloadingId(null);
     }
@@ -43,10 +45,10 @@ export function LessonAttachments({ files, loading }: Props) {
     return (
       <section className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-          Materiales adjuntos
+          {t("lessonPage.attachments.title")}
         </h2>
         <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-          Cargando materiales…
+          {t("lessonPage.attachments.loading")}
         </p>
       </section>
     );
@@ -59,10 +61,10 @@ export function LessonAttachments({ files, loading }: Props) {
   return (
     <section className="rounded-xl border border-gray-200 bg-surface-muted p-4 dark:border-slate-600 dark:bg-slate-800">
       <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-        Materiales adjuntos
+        {t("lessonPage.attachments.title")}
       </h2>
       <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-        PDFs y otros recursos descargables de esta lección.
+        {t("lessonPage.attachments.subtitle")}
       </p>
       <ul className="mt-3 space-y-2">
         {files.map((file) => (

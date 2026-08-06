@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session, selectinload
+
+from core.i18n import http_error
 
 from modules.courses.model import CourseModel
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
@@ -86,7 +87,7 @@ def enroll_user_in_course(
     """
     course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise http_error(404, "course_not_found")
 
     existing = get_enrollment(db, user_id, course_id)
     if existing:

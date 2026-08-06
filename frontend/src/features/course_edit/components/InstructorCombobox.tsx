@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { IUser } from "../../../shared/interfaces/IUser";
 
 type Props = {
@@ -17,6 +18,7 @@ export function InstructorCombobox({
   onChange,
   disabled,
 }: Props) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -118,7 +120,9 @@ export function InstructorCombobox({
   // query so the user can keep typing; when closed we show the canonical
   // label for the selected instructor (or a fallback for orphan ids).
   const orphanLabel =
-    value !== null && !selected ? `#${value} (not an instructor anymore)` : "";
+    value !== null && !selected
+      ? t("courseEdit.instructorCombobox.orphanLabel", { id: value })
+      : "";
   const selectedLabel = selected
     ? `${selected.name} (${selected.email})`
     : orphanLabel;
@@ -136,7 +140,7 @@ export function InstructorCombobox({
           aria-autocomplete="list"
           disabled={disabled}
           value={inputValue}
-          placeholder="Buscar instructor..."
+          placeholder={t("courseEdit.instructorCombobox.searchPlaceholder")}
           onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
           onChange={(e) => {
@@ -149,7 +153,7 @@ export function InstructorCombobox({
         {value !== null && !disabled ? (
           <button
             type="button"
-            aria-label="Clear instructor"
+            aria-label={t("courseEdit.instructorCombobox.clearAria")}
             onMouseDown={(e) => {
               // mousedown + preventDefault so the input doesn't blur before
               // we get to handle the click.
@@ -189,10 +193,10 @@ export function InstructorCombobox({
                 : "hover:bg-gray-50 dark:hover:bg-slate-700/80"
             }`}
           >
-            — Unassigned —
+            {t("courseEdit.instructorCombobox.unassignedOption")}
           </li>
           {options.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-400 dark:text-slate-500">No matches</li>
+            <li className="px-3 py-2 text-sm text-gray-400 dark:text-slate-500">{t("courseEdit.instructorCombobox.noMatches")}</li>
           ) : (
             options.map((u, idx) => {
               const rowIdx = idx + 1;

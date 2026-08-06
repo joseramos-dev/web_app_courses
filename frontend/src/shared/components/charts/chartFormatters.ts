@@ -1,13 +1,14 @@
-const COHORT_MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    year: "numeric",
-});
-
-export function formatCohortMonth(isoDate: string): string {
-    return COHORT_MONTH_FORMATTER.format(new Date(isoDate));
+export function formatCohortMonth(isoDate: string, locale?: string): string {
+    return new Intl.DateTimeFormat(locale, {
+        month: "short",
+        year: "numeric",
+    }).format(new Date(isoDate));
 }
 
-export function formatCategoryLabel(category: string): string {
-    if (category === "Non defined") return "Sin categoría";
+export function formatCategoryLabel(
+    category: string,
+    t: (key: string) => string,
+): string {
+    if (category === "Non defined") return t("domain.category.notDefined");
     return category;
 }

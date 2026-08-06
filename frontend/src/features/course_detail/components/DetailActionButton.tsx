@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../shared/povider/AuthContext";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
 import type {
@@ -55,6 +56,7 @@ export function DetailActionButton({
   onEnrolled,
   lessonNavState = { returnTo: DEFAULT_COURSE_RETURN },
 }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isEnrolling, setIsEnrolling] = useState(false);
@@ -84,7 +86,7 @@ export function DetailActionButton({
         disabled
         className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500"
       >
-        Login to enroll
+        {t("courseDetail.loginToEnroll")}
       </button>
     );
   }
@@ -96,11 +98,11 @@ export function DetailActionButton({
     try {
       setIsEnrolling(true);
       await API_enrollInCourse(course.id);
-      toast.success("Te has matriculado en este curso");
+      toast.success(t("courseDetail.toast.enrolled"));
       onEnrolled();
     } catch (e) {
       console.error(e);
-      toast.error("No se ha podido completar la matriculación.");
+      toast.error(t("courseDetail.toast.enrollFailed"));
     } finally {
       setIsEnrolling(false);
     }
@@ -110,21 +112,21 @@ export function DetailActionButton({
     if (!course) return;
     if (lessons.length === 0) {
       if (!enrollment) {
-        toast("Este curso no tiene lecciones.");
+        toast(t("courseDetail.toast.noLessons"));
         return;
       }
       if (enrollment.status === "completed") {
-        toast("Este curso no tiene lecciones para repasar.");
+        toast(t("courseDetail.toast.noLessonsToReview"));
         return;
       }
       try {
         setIsCompletingEmpty(true);
         await API_completeEnrollmentWithoutLessons(course.id);
-        toast.success("Curso completado");
+        toast.success(t("courseDetail.toast.courseCompleted"));
         onEnrolled();
       } catch (e) {
         console.error(e);
-        toast.error("No se pudo completar el curso.");
+        toast.error(t("courseDetail.toast.completeFailed"));
       } finally {
         setIsCompletingEmpty(false);
       }
@@ -132,7 +134,7 @@ export function DetailActionButton({
     }
     const next = pickNextLesson(lessons, enrollment);
     if (!next) {
-      toast("Este curso aún no tiene lecciones");
+      toast(t("courseDetail.toast.noLessonsYet"));
       return;
     }
     navigate(`/course/${course.id}/lesson/${next.id}`, {
@@ -148,14 +150,14 @@ export function DetailActionButton({
           onClick={() => navigate(`/course/${course?.id}/students`)}
           className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
         >
-          Ver alumnos
+          {t("courseDetail.viewStudents")}
         </button>
         <button
           type="button"
           onClick={() => navigate(`/course/${course?.id}/edit`)}
           className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:shadow-md dark:hover:bg-uned-accent"
         >
-          Edit
+          {t("courseDetail.edit")}
         </button>
       </div>
     );
@@ -169,7 +171,7 @@ export function DetailActionButton({
         disabled={isEnrolling}
         className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:bg-green-300"
       >
-        {isEnrolling ? "Matriculando…" : "Enroll"}
+        {isEnrolling ? t("courseDetail.enrolling") : t("courseDetail.enroll")}
       </button>
     );
   }
@@ -184,10 +186,10 @@ export function DetailActionButton({
         className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:bg-green-300"
       >
         {isCompletingEmpty
-          ? "Completando…"
+          ? t("courseDetail.completing")
           : emptyCourse
-            ? "Completar curso"
-            : "Continuar"}
+            ? t("courseDetail.completeCourse")
+            : t("courseDetail.continue")}
       </button>
     );
   }
@@ -199,7 +201,7 @@ export function DetailActionButton({
       onClick={handleContinue}
       className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:shadow-md dark:hover:bg-uned-accent"
     >
-      Repasar
+      {t("courseDetail.review")}
     </button>
   );
 }

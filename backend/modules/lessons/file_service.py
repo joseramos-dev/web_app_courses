@@ -1,11 +1,12 @@
 import uuid
 from pathlib import Path
 
-from fastapi import HTTPException, UploadFile, status
+from fastapi import UploadFile, status
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from core.config import ALLOWED_UPLOAD_MIMES, MAX_UPLOAD_BYTES, UPLOAD_DIR
+from core.i18n import http_error
 from modules.courses.service import get_course_detail
 from modules.enrollments.model import EnrollmentModel
 from modules.lessons.model import LessonFileModel, LessonModel, LessonType
@@ -20,9 +21,9 @@ def _is_course_editor(user, course) -> bool:
 def _require_course_editor(db: Session, user, lesson: LessonModel):
     course = get_course_detail(db, lesson.course_id)
     if not _is_course_editor(user, course):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You haven't enough privileges",
+        raise http_error(
+            status.HTTP_403_FORBIDDEN,
+            "insufficient_privileges",
         )
     return course
 
@@ -40,9 +41,9 @@ def require_course_access(db: Session, user, lesson: LessonModel):
         .first()
     )
     if not enrolled:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You must enroll in the course first",
+        raise http_error(
+            status.HTTP_403_FORBIDDEN,
+            "must_enroll_first",
         )
     return course
 
@@ -70,21 +71,23 @@ def _remove_storage_file(storage_name: str) -> None:
 
 def validate_upload(file: UploadFile, content: bytes) -> str:
     if not content:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Empty file",
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            "empty_file",
         )
     if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File exceeds maximum size of {MAX_UPLOAD_BYTES} bytes",
+        raise http_error(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            "file_too_large",
+            max_bytes=MAX_UPLOAD_BYTES,
         )
 
     mime_type = (file.content_type or "").split(";")[0].strip().lower()
     if mime_type not in ALLOWED_UPLOAD_MIMES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"MIME type not allowed: {mime_type or 'unknown'}",
+        raise http_error(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            "mime_not_allowed",
+            mime_type=mime_type or "unknown",
         )
     return mime_type
 
@@ -120,9 +123,9 @@ async def save_submission_file(
     file: UploadFile,
 ) -> LessonFileModel:
     if lesson.lesson_type != LessonType.ASSIGNMENT:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File uploads are only allowed for assignment lessons",
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            "file_upload_assignment_only",
         )
     require_course_access(db, user, lesson)
     return await _persist_upload(db, lesson, user, file)
@@ -136,9 +139,9 @@ async def _persist_upload(
 ) -> LessonFileModel:
     original_filename = Path(file.filename or "upload").name
     if not original_filename or original_filename in {".", ".."}:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid filename",
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            "invalid_filename",
         )
 
     content = await file.read()
@@ -173,19 +176,19 @@ def get_download_path(
 ) -> Path:
     lesson = db.query(LessonModel).filter(LessonModel.id == file_record.lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+        raise http_error(404, "lesson_not_found")
     require_course_access(db, user, lesson)
 
     path = _storage_path(file_record.storage_name)
     if not path.is_file():
-        raise HTTPException(status_code=404, detail="File not found on disk")
+        raise http_error(404, "file_not_found_on_disk")
     return path
 
 
 def delete_lesson_file(db: Session, file_record: LessonFileModel, user) -> None:
     lesson = db.query(LessonModel).filter(LessonModel.id == file_record.lesson_id).first()
     if not lesson:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+        raise http_error(404, "lesson_not_found")
     _require_course_editor(db, user, lesson)
 
     db.delete(file_record)

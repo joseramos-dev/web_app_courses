@@ -115,6 +115,17 @@ export interface IInstructorCourseRow {
     last_activity_at: string | null;
 }
 
+export interface IPendingSubmissionRow {
+    id: number;
+    course_id: number;
+    course_title: string;
+    lesson_id: number;
+    lesson_title: string;
+    student_user_id: number;
+    student_name: string;
+    submitted_at: string;
+}
+
 export interface IInstructorDashboard {
     courses_count: number;
     total_students: number;
@@ -123,6 +134,8 @@ export interface IInstructorDashboard {
     courses: IInstructorCourseRow[];
     top_active_students: ITopStudent[];
     top_completed_lessons: ITopLesson[];
+    pending_submissions_count: number;
+    pending_submissions: IPendingSubmissionRow[];
 }
 
 // ---------- Admin ----------
