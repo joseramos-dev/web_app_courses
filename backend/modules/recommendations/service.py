@@ -2,17 +2,22 @@ from sqlalchemy.orm import Session
 
 from core.i18n import http_error
 
+from modules.courses.model import CourseModel
 from modules.recommendations.aux_collaborative import (
+    COLLABORATIVE_BLEND_WEIGHT,
     MIN_ENROLLMENTS_FOR_COLLABORATIVE,
+    PREFERENCE_BLEND_WEIGHT,
+    collaborative_course_scores,
     count_active_enrollments,
-    recommend_courses_collaborative,
 )
 from modules.recommendations.aux_content_based import (
     build_hybrid_recommendations,
+    build_recommendations,
     enrolled_course_ids,
     fetch_candidate_courses,
     has_any_preferences,
     parse_profile_preferences,
+    preference_match_ratio,
     score_courses_hybrid,
 )
 from modules.recommendations.aux_history_based import (
@@ -23,6 +28,7 @@ from modules.recommendations.aux_history_based import (
 from modules.recommendations.model import RecommendationModel
 from modules.recommendations.schema import (
     ListCourseRecommendationsSchema,
+    RecommendationSourceType,
     RecommendationUpdateSchema,
 )
 from modules.users.model import UserModel
@@ -140,6 +146,86 @@ def recommend_courses_content_based(
     return ListCourseRecommendationsSchema(recommendations=recommendations)
 
 
+def _recommend_with_collaborative_and_preferences(
+    db: Session, user_id: int, limit: int
+) -> ListCourseRecommendationsSchema:
+    collab_scores = collaborative_course_scores(db, user_id)
+    if not collab_scores:
+        return ListCourseRecommendationsSchema(recommendations=[])
+
+    profile = get_or_create_recommendation(db, user_id)
+    (
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+    ) = parse_profile_preferences(profile)
+
+    if not has_any_preferences(
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+    ):
+        course_ids = list(collab_scores.keys())
+        course_rows = db.query(CourseModel).filter(CourseModel.id.in_(course_ids)).all()
+        course_by_id = {course.id: course for course in course_rows}
+        scored: list[tuple[float, float, int]] = []
+        for course_id, score in collab_scores.items():
+            course = course_by_id.get(course_id)
+            if course is None:
+                continue
+            rating = float(course.rating) if course.rating is not None else 0.0
+            scored.append((score, rating, course_id))
+        scored.sort(key=lambda item: (-item[0], -item[1], item[2]))
+        top = scored[:limit]
+        recommendations = build_recommendations(
+            db, top, RecommendationSourceType.COLLABORATIVE
+        )
+        return ListCourseRecommendationsSchema(recommendations=recommendations)
+
+    course_ids = list(collab_scores.keys())
+    course_rows = db.query(CourseModel).filter(CourseModel.id.in_(course_ids)).all()
+    course_by_id = {course.id: course for course in course_rows}
+
+    blended: list[tuple[float, float, int]] = []
+    for course_id, collab_score in collab_scores.items():
+        course = course_by_id.get(course_id)
+        if course is None:
+            continue
+        pref_ratio = preference_match_ratio(
+            course,
+            sites,
+            categories,
+            languages,
+            course_types,
+            duration_buckets,
+            difficulties,
+        )
+        if pref_ratio <= 0.0:
+            continue
+        combined = (
+            COLLABORATIVE_BLEND_WEIGHT * collab_score
+            + PREFERENCE_BLEND_WEIGHT * pref_ratio
+        )
+        rating = float(course.rating) if course.rating is not None else 0.0
+        blended.append((combined, rating, course_id))
+
+    if not blended:
+        return ListCourseRecommendationsSchema(recommendations=[])
+
+    blended.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    top = blended[:limit]
+    recommendations = build_recommendations(
+        db, top, RecommendationSourceType.HYBRID
+    )
+    return ListCourseRecommendationsSchema(recommendations=recommendations)
+
+
 def recommend_courses(
     db: Session, user_id: int, limit: int
 ) -> ListCourseRecommendationsSchema:
@@ -147,8 +233,8 @@ def recommend_courses(
     if active_count < MIN_ENROLLMENTS_FOR_COLLABORATIVE:
         return recommend_courses_content_based(db, user_id, limit)
 
-    collaborative = recommend_courses_collaborative(db, user_id, limit)
-    if collaborative.recommendations:
-        return collaborative
+    blended = _recommend_with_collaborative_and_preferences(db, user_id, limit)
+    if blended.recommendations:
+        return blended
 
     return recommend_courses_content_based(db, user_id, limit)

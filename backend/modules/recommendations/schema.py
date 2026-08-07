@@ -18,6 +18,7 @@ class RecommendationSourceType(str, enum.Enum):
     PREFERENCES = "preferences"
     COLLABORATIVE = "collaborative"
     HISTORY = "history"
+    HYBRID = "hybrid"
 
 
 class RecommendationSchema(BaseModel):

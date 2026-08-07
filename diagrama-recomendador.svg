@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 780" width="760" height="780" role="img" aria-label="Diagrama de flujo del recomendador Kursa">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <polygon points="0 0, 8 4, 0 8" fill="#64748b"/>
+    </marker>
+    <style>
+      .box { fill: #dbeafe; stroke: #93c5fd; stroke-width: 1.5; }
+      .proc { fill: #eff6ff; stroke: #60a5fa; stroke-width: 1.5; }
+      .end { fill: #dcfce7; stroke: #86efac; stroke-width: 1.5; }
+      .dia { fill: #fef9c3; stroke: #facc15; stroke-width: 1.5; }
+      .t { fill: #1e3a8a; font: 500 13px Segoe UI, Arial, sans-serif; text-anchor: middle; }
+      .ts { fill: #1e3a8a; font: 500 11px Segoe UI, Arial, sans-serif; text-anchor: middle; }
+      .e { fill: #64748b; font: 500 11px Segoe UI, Arial, sans-serif; text-anchor: middle; }
+      .h { fill: #1e3a8a; font: 600 15px Segoe UI, Arial, sans-serif; text-anchor: middle; }
+      .l { fill: none; stroke: #64748b; stroke-width: 1.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <text class="h" x="380" y="26">Flujo del modulo de recomendacion</text>
+
+  <rect class="box" x="255" y="42" width="250" height="40" rx="10"/>
+  <text class="t" x="380" y="66">GET /recommendations/me</text>
+  <path class="l" d="M380 82 L380 102"/>
+
+  <rect class="proc" x="215" y="102" width="330" height="40" rx="10"/>
+  <text class="t" x="380" y="126">Contar matriculas activas o completadas</text>
+  <path class="l" d="M380 142 L380 162"/>
+
+  <polygon class="dia" points="380,162 480,202 380,242 280,202"/>
+  <text class="ts" x="380" y="198">3 o mas matriculas?</text>
+
+  <path class="l" d="M280 202 L130 202 L130 262"/>
+  <text class="e" x="195" y="192">No</text>
+
+  <rect class="proc" x="30" y="262" width="200" height="48" rx="10"/>
+  <text class="ts" x="130" y="282">Ruta content-based</text>
+  <text class="ts" x="130" y="298">(preferencias + historial)</text>
+
+  <path class="l" d="M480 202 L630 202 L630 262"/>
+  <text class="e" x="555" y="192">Si</text>
+
+  <rect class="proc" x="530" y="262" width="200" height="48" rx="10"/>
+  <text class="ts" x="630" y="282">Scores colaborativos</text>
+  <text class="ts" x="630" y="298">(similitud coseno)</text>
+  <path class="l" d="M630 310 L630 330"/>
+
+  <polygon class="dia" points="630,330 720,370 630,410 540,370"/>
+  <text class="ts" x="630" y="374">Hay scores?</text>
+
+  <path class="l" d="M540 370 L130 370 L130 310"/>
+  <text class="e" x="380" y="360">No: fallback</text>
+
+  <path class="l" d="M630 410 L630 430"/>
+  <text class="e" x="650" y="424">Si</text>
+
+  <polygon class="dia" points="630,430 720,470 630,510 540,470"/>
+  <text class="ts" x="630" y="466">Preferencias</text>
+  <text class="ts" x="630" y="482">configuradas?</text>
+
+  <path class="l" d="M540 470 L430 470 L430 530"/>
+  <text class="e" x="475" y="460">No</text>
+  <rect class="proc" x="330" y="530" width="200" height="48" rx="10"/>
+  <text class="ts" x="430" y="550">Colaborativo puro</text>
+  <text class="ts" x="430" y="566">source: collaborative</text>
+
+  <path class="l" d="M720 470 L780 470 L780 554 L530 554"/>
+  <text class="e" x="752" y="460">Si</text>
+  <rect class="proc" x="530" y="530" width="200" height="48" rx="10"/>
+  <text class="ts" x="630" y="550">Mezcla 50% colab.</text>
+  <text class="ts" x="630" y="566">+ 50% preferencias</text>
+
+  <path class="l" d="M130 310 L130 330"/>
+  <polygon class="dia" points="130,330 220,370 130,410 40,370"/>
+  <text class="ts" x="130" y="366">Prefs o</text>
+  <text class="ts" x="130" y="382">completados?</text>
+
+  <path class="l" d="M40 370 L20 370 L20 610 L90 610"/>
+  <text class="e" x="18" y="490">No</text>
+  <rect class="end" x="90" y="590" width="120" height="40" rx="10"/>
+  <text class="ts" x="150" y="614">Lista vacia</text>
+
+  <path class="l" d="M130 410 L130 430"/>
+  <text class="e" x="148" y="424">Si</text>
+  <rect class="proc" x="30" y="430" width="200" height="72" rx="10"/>
+  <text class="ts" x="130" y="452">Excluir matriculados</text>
+  <text class="ts" x="130" y="470">max(pref, historial)</text>
+  <text class="ts" x="130" y="488">+ senal rating (65/35)</text>
+
+  <path class="l" d="M130 502 L130 680 L280 680"/>
+  <path class="l" d="M430 578 L430 680 L280 680"/>
+  <path class="l" d="M630 578 L630 680 L280 680"/>
+  <path class="l" d="M150 630 L150 680 L280 680"/>
+
+  <rect class="box" x="180" y="660" width="400" height="44" rx="10"/>
+  <text class="t" x="380" y="686">Ordenar, top N, devolver JSON</text>
+
+  <text class="ts" x="380" y="730" fill="#64748b">Fallback: colaborativo/hibrido sin candidatos vuelve a content-based</text>
+  <text class="ts" x="380" y="752" fill="#64748b">En hibrido solo entran cursos con coincidencia de preferencias mayor que 0</text>
+</svg>

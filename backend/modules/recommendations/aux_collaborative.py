@@ -1,28 +1,21 @@
 import math
 from collections import defaultdict
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from modules.course_ratings.model import CourseRatingModel
-from modules.courses.model import CourseModel
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
-from modules.recommendations.aux_content_based import (
-    ScoredEntry,
-    build_recommendations,
-    enrolled_course_ids,
-)
-from modules.recommendations.schema import (
-    ListCourseRecommendationsSchema,
-    RecommendationSourceType,
-)
+from modules.recommendations.aux_content_based import enrolled_course_ids
 
 PROGRESS_WEIGHT = 0.5
 RATING_WEIGHT = 0.5
 DEFAULT_RATING = 2.5
 RATING_MAX = 5
 MIN_ENROLLMENTS_FOR_COLLABORATIVE = 3
+COLLABORATIVE_BLEND_WEIGHT = 0.5
+PREFERENCE_BLEND_WEIGHT = 0.5
 
 UserCourseWeights = Dict[int, Dict[int, float]]
 
@@ -119,45 +112,22 @@ def _score_collaborative_candidates(
     return dict(course_scores)
 
 
-def recommend_courses_collaborative(
-    db: Session, user_id: int, limit: int
-) -> ListCourseRecommendationsSchema:
+def collaborative_course_scores(db: Session, user_id: int) -> Dict[int, float]:
+    """Normalized collaborative scores in [0, 1] for non-enrolled courses."""
     enrollment_map = build_weighted_enrollment_map(db)
-    target_vec = enrollment_map.get(user_id, {})
-    if not target_vec:
-        return ListCourseRecommendationsSchema(recommendations=[])
+    if not enrollment_map.get(user_id):
+        return {}
 
     excluded = enrolled_course_ids(db, user_id)
-    course_scores = _score_collaborative_candidates(
-        enrollment_map, user_id, excluded
-    )
-    if not course_scores:
-        return ListCourseRecommendationsSchema(recommendations=[])
+    raw_scores = _score_collaborative_candidates(enrollment_map, user_id, excluded)
+    if not raw_scores:
+        return {}
 
-    max_score = max(course_scores.values())
+    max_score = max(raw_scores.values())
     if max_score <= 0.0:
-        return ListCourseRecommendationsSchema(recommendations=[])
+        return {}
 
-    course_ids = list(course_scores.keys())
-    course_rows = db.query(CourseModel).filter(CourseModel.id.in_(course_ids)).all()
-    course_by_id = {course.id: course for course in course_rows}
-
-    scored: List[ScoredEntry] = []
-    for course_id, score in course_scores.items():
-        course = course_by_id.get(course_id)
-        if course is None:
-            continue
-        ratio = score / max_score
-        rating = float(course.rating) if course.rating is not None else 0.0
-        scored.append((ratio, rating, course_id))
-
-    if not scored:
-        return ListCourseRecommendationsSchema(recommendations=[])
-
-    scored.sort(key=lambda item: (-item[0], -item[1], item[2]))
-    top = scored[:limit]
-
-    recommendations = build_recommendations(
-        db, top, RecommendationSourceType.COLLABORATIVE
-    )
-    return ListCourseRecommendationsSchema(recommendations=recommendations)
+    return {
+        course_id: score / max_score
+        for course_id, score in raw_scores.items()
+    }

@@ -1,4 +1,4 @@
-"""Pruebas del recomendador colaborativo y enrutamiento entre estrategias.
+"""Pruebas del recomendador colaborativo y fusión con preferencias.
 
     cd backend
     uv run pytest ../test/test_collaborative_recommender.py -v
@@ -17,8 +17,8 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
-from modules.recommendations.aux_collaborative import recommend_courses_collaborative
-from modules.recommendations.schema import ListCourseRecommendationsSchema
+from modules.recommendations.aux_collaborative import collaborative_course_scores
+from modules.recommendations.schema import ListCourseRecommendationsSchema, RecommendationSourceType
 from modules.recommendations.service import recommend_courses
 
 NOW = datetime(2025, 1, 1, tzinfo=timezone.utc)
@@ -78,13 +78,20 @@ def mock_db(mocker, courses):
     return db
 
 
-def test_recommend_courses_collaborative_returns_collaborative_source(
-    mock_db, mocker, courses
-):
-    # Con un mapa de interacciones ponderadas por usuario, el filtrado
-    # colaborativo debe recomendar el curso 4 (el único no matriculado por
-    # el usuario 1 pero sí por usuarios similares), etiquetado como fuente
-    # "collaborative" y con el 100% de coincidencia.
+def _profile(**prefs):
+    return SimpleNamespace(
+        preferred_sites=[s.value for s in prefs.get("sites", [])],
+        preferred_categories=[c.value for c in prefs.get("categories", [])],
+        preferred_languages=[l.value for l in prefs.get("languages", [])],
+        preferred_course_types=[t.value for t in prefs.get("types", [])],
+        preferred_duration_buckets=[
+            b.value for b in prefs.get("duration_buckets", [])
+        ],
+        preferred_difficulties=[d.value for d in prefs.get("difficulties", [])],
+    )
+
+
+def test_collaborative_course_scores_returns_normalized_score(mock_db, mocker):
     mocker.patch(
         "modules.recommendations.aux_collaborative.build_weighted_enrollment_map",
         return_value=WEIGHTED_MAP,
@@ -94,19 +101,12 @@ def test_recommend_courses_collaborative_returns_collaborative_source(
         return_value={1, 2, 3},
     )
 
-    result = recommend_courses_collaborative(mock_db, user_id=1, limit=10)
+    scores = collaborative_course_scores(mock_db, user_id=1)
 
-    assert len(result.recommendations) == 1
-    rec = result.recommendations[0]
-    assert rec.course.id == 4
-    assert rec.source_type == "collaborative"
-    assert rec.recommendation_percent == 100.0
+    assert scores == {4: 1.0}
 
 
 def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, mock_db):
-    # Si el usuario tiene menos matrículas activas que el umbral mínimo
-    # (MIN_ENROLLMENTS_FOR_COLLABORATIVE), el punto de entrada debe usar
-    # directamente el content-based y no debe llamar al colaborativo.
     cb_result = ListCourseRecommendationsSchema(recommendations=[])
     mocker.patch(
         "modules.recommendations.service.count_active_enrollments",
@@ -116,12 +116,63 @@ def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, 
         "modules.recommendations.service.recommend_courses_content_based",
         return_value=cb_result,
     )
-    collaborative = mocker.patch(
-        "modules.recommendations.service.recommend_courses_collaborative",
+    mocker.patch(
+        "modules.recommendations.service._recommend_with_collaborative_and_preferences",
     )
 
     result = recommend_courses(mock_db, user_id=1, limit=10)
 
     assert result == cb_result
     content_based.assert_called_once_with(mock_db, 1, 10)
-    collaborative.assert_not_called()
+
+
+def test_recommend_courses_pure_collaborative_without_preferences(mocker, mock_db, courses):
+    mocker.patch(
+        "modules.recommendations.service.count_active_enrollments",
+        return_value=3,
+    )
+    mocker.patch(
+        "modules.recommendations.service.collaborative_course_scores",
+        return_value={4: 1.0},
+    )
+    mocker.patch(
+        "modules.recommendations.service.get_or_create_recommendation",
+        return_value=_profile(),
+    )
+
+    result = recommend_courses(mock_db, user_id=1, limit=10)
+
+    assert len(result.recommendations) == 1
+    rec = result.recommendations[0]
+    assert rec.course.id == 4
+    assert rec.source_type == RecommendationSourceType.COLLABORATIVE
+    assert rec.recommendation_percent == 100.0
+
+
+def test_recommend_courses_hybrid_blends_collaborative_and_preferences(
+    mocker, mock_db, courses
+):
+    mocker.patch(
+        "modules.recommendations.service.count_active_enrollments",
+        return_value=3,
+    )
+    mocker.patch(
+        "modules.recommendations.service.collaborative_course_scores",
+        return_value={4: 1.0},
+    )
+    mocker.patch(
+        "modules.recommendations.service.get_or_create_recommendation",
+        return_value=_profile(
+            sites=[Site.COURSERA],
+            categories=[Category.BUSINESS],
+            languages=[Language.FRENCH],
+        ),
+    )
+
+    result = recommend_courses(mock_db, user_id=1, limit=10)
+
+    assert len(result.recommendations) == 1
+    rec = result.recommendations[0]
+    assert rec.course.id == 4
+    assert rec.source_type == RecommendationSourceType.HYBRID
+    assert rec.recommendation_percent == 83.3

@@ -8,7 +8,7 @@ import type {
     SiteTypes,
 } from "../types/CourseTypes";
 
-export type RecommendationSourceType = "preferences" | "collaborative" | "history";
+export type RecommendationSourceType = "preferences" | "collaborative" | "history" | "hybrid";
 
 export interface ICourseRecommendation {
     course: ICourses;

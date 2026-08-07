@@ -228,33 +228,6 @@ def score_courses_hybrid(
     return scored
 
 
-def score_courses(
-    courses: List[CourseModel],
-    sites: Set[Site],
-    categories: Set[Category],
-    languages: Set[Language],
-    course_types: Set[CourseType],
-    duration_buckets: Set[DurationBucket],
-    difficulties: Set[Difficulty],
-) -> List[ScoredEntry]:
-    scored: List[ScoredEntry] = []
-    for course in courses:
-        ratio = preference_match_ratio(
-            course,
-            sites,
-            categories,
-            languages,
-            course_types,
-            duration_buckets,
-            difficulties,
-        )
-        if ratio <= 0.0:
-            continue
-        rating = float(course.rating) if course.rating is not None else 0.0
-        scored.append((ratio, rating, course.id))
-    return scored
-
-
 def build_recommendations(
     db: Session,
     top: List[ScoredEntry],

@@ -18,7 +18,14 @@ const NAV_BUTTON_CLASS =
 function recommendationSourceLabel(source: RecommendationSourceType, t: TFunction): string {
     if (source === "collaborative") return t("courses.recommended.sourceCollaborative");
     if (source === "history") return t("courses.recommended.sourceHistory");
+    if (source === "hybrid") return t("courses.recommended.sourceHybrid");
     return t("courses.recommended.sourceContent");
+}
+
+function recommendationSourceTitle(source: RecommendationSourceType, t: TFunction): string {
+    if (source === "collaborative") return t("courses.recommended.titleCollaborative");
+    if (source === "hybrid") return t("courses.recommended.titleHybrid");
+    return t("courses.recommended.titleContent");
 }
 
 function visibleCountForWidth(width: number): number {
@@ -172,11 +179,7 @@ function renderRecommendationsCarousel({
                                 </span>
                                 <span
                                     className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-700 dark:text-slate-300"
-                                    title={
-                                        rec.source_type === "collaborative"
-                                            ? t("courses.recommended.titleCollaborative")
-                                            : t("courses.recommended.titleContent")
-                                    }
+                                    title={recommendationSourceTitle(rec.source_type, t)}
                                 >
                                     {recommendationSourceLabel(rec.source_type, t)}
                                 </span>
