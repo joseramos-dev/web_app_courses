@@ -35,6 +35,8 @@
         "login": "Log in",
         "register": "Sign up",
         "language": "Language",
+        "theme": "Theme",
+        "toggleTheme": "Toggle light and dark mode",
         "spanish": "Español",
         "english": "English"
     },
@@ -854,6 +856,8 @@
         "registeredUsers_one": "{{count}} registered user",
         "registeredUsers_other": "{{count}} registered users",
         "cannotRemoveOwnAdmin": "You can't remove the administrator role from yourself.",
+        "cannotDeleteSelf": "You can't delete your own account.",
+        "deleteUserFailed": "Could not delete the user.",
         "roleUpdateSuccess": "Role for {{name}} updated from {{from}} to {{to}}",
         "roleUpdateFailed": "Could not update role.",
         "deleteUser": "Delete user",

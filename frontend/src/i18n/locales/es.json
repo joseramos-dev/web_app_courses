@@ -35,6 +35,8 @@
         "login": "Iniciar sesión",
         "register": "Registrarse",
         "language": "Idioma",
+        "theme": "Tema",
+        "toggleTheme": "Cambiar entre modo claro y oscuro",
         "spanish": "Español",
         "english": "English"
     },
@@ -854,6 +856,8 @@
         "registeredUsers_one": "{{count}} usuario registrado",
         "registeredUsers_other": "{{count}} usuarios registrados",
         "cannotRemoveOwnAdmin": "No puedes quitarte el rol de administrador a ti mismo.",
+        "cannotDeleteSelf": "No puedes eliminar tu propia cuenta.",
+        "deleteUserFailed": "No se pudo eliminar el usuario.",
         "roleUpdateSuccess": "Rol de {{name}} actualizado de {{from}} a {{to}}",
         "roleUpdateFailed": "No se pudo actualizar el rol.",
         "deleteUser": "Eliminar usuario",

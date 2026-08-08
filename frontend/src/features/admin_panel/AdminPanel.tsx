@@ -26,9 +26,17 @@ export const AdminPanel = () => {
     }, [])
 
     const onDeleteUser = async (user: IUser, index: number) => {
-        const detail = await API_deleteUser(user.id!)
-        setUsers((currentUsers) => currentUsers.filter((_, currentIndex) => currentIndex !== index))
-        toast.success(detail)
+        if (currentUser?.id === user.id) {
+            toast.error(t("admin.cannotDeleteSelf"))
+            return
+        }
+        try {
+            const detail = await API_deleteUser(user.id!)
+            setUsers((currentUsers) => currentUsers.filter((_, currentIndex) => currentIndex !== index))
+            toast.success(detail)
+        } catch (error) {
+            toast.error(typeof error === "string" ? error : t("admin.deleteUserFailed"))
+        }
     }
 
     const onRoleChange = async (user: IUser, role: UserRoles) => {
@@ -75,6 +83,7 @@ export const AdminPanel = () => {
                         <UserCard
                             key={user.id ?? index}
                             user={user}
+                            canDelete={currentUser?.id !== user.id}
                             onDelete={() => {
                                 onDeleteUser(user, index)
                             }}
@@ -90,9 +99,10 @@ export const AdminPanel = () => {
 }
 
 const UserCard = (
-    { user, onDelete, onRoleChange }
+    { user, canDelete, onDelete, onRoleChange }
         : {
             user: IUser,
+            canDelete: boolean,
             onDelete: () => void,
             onRoleChange: (role: UserRoles) => void
         }
@@ -137,13 +147,15 @@ const UserCard = (
                             </select>
                         </label>
 
-                        <button
-                            type="button"
-                            onClick={() => setIsConfirmModalOpen(true)}
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
-                        >
-                            {t("admin.deleteUser")}
-                        </button>
+                        {canDelete && (
+                            <button
+                                type="button"
+                                onClick={() => setIsConfirmModalOpen(true)}
+                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+                            >
+                                {t("admin.deleteUser")}
+                            </button>
+                        )}
                     </div>
                 </div>
             </article>

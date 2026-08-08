@@ -5,6 +5,7 @@ import type { AuthType } from "../types/AuthTypes";
 import { LogOut, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 
 
 export const ButtonsNavBar = (
@@ -46,6 +47,7 @@ export const ButtonsNavBar = (
 
             {/* Auth Buttons - Desktop Only */}
             <div className="hidden md:flex items-center gap-3 shrink-0 relative">
+                <ThemeToggle variant="desktop" />
                 <LanguageSwitcher variant="desktop" />
                 {
                     user ? (

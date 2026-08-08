@@ -5,3 +5,7 @@ LaText/
 # Bytecode de Python compilado por pytest al ejecutar los tests en test/.
 __pycache__/
 *.py[oc]
+
+# Configuración del editor (local)
+.vscode/
+.cursor/

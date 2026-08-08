@@ -5,6 +5,7 @@ import { LogOut, Menu, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const ButtonsNavBarMobile = (
     { isAdmin, setAuthType }: { isAdmin: boolean, setAuthType: (authType: AuthType) => void }
@@ -70,6 +71,9 @@ export const ButtonsNavBarMobile = (
 
                     {/* Language Section */}
                     <LanguageSwitcher variant="mobile" />
+
+                    {/* Theme Section */}
+                    <ThemeToggle variant="mobile" />
 
                     {/* Divider */}
                     <div className="border-t border-black/10 dark:border-white/10" />

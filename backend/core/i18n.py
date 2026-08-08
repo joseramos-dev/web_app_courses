@@ -171,6 +171,10 @@ MESSAGES: dict[str, dict[str, str]] = {
         "es": "No puedes quitarte el rol de administrador a ti mismo",
         "en": "Cannot remove your own admin role",
     },
+    "cannot_delete_self": {
+        "es": "No puedes eliminar tu propia cuenta",
+        "en": "Cannot delete your own account",
+    },
     "admin_already_exists": {
         "es": "Ya existe un administrador; usa PATCH /users/{user_id}/role/{role}",
         "en": "Admin already exists; use PATCH /users/{user_id}/role/{role}",
