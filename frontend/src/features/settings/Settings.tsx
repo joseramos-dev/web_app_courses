@@ -6,6 +6,7 @@ import { get_preferences, patch_preferences } from "../courses/api";
 import type { IRecommendationPreferencesUpdate } from "../../shared/interfaces/IRecommendation";
 import { PreferencesSelector } from "../../shared/components/PreferencesSelector";
 import { hasAnyPreference } from "../../shared/utils/preferencesUtils";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
 import { API_patchMe } from "./api";
 import { runWithToastSaving } from "../../shared/utils/runWithToastSaving";
 import { SettingsAppearanceSection } from "./components/SettingsAppearanceSection";
@@ -42,7 +43,6 @@ export function Settings() {
     preferred_duration_buckets: [],
     preferred_difficulties: [],
   });
-  const [loadingPrefs, setLoadingPrefs] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
 
   useEffect(() => {
@@ -52,36 +52,31 @@ export function Settings() {
     setEmailNew(user.email);
   }, [user]);
 
+  const {
+    data: fetchedPrefs,
+    loading: loadingPrefs,
+    error: prefsError,
+  } = useAsyncData(
+    () => (isStudent ? get_preferences() : Promise.resolve(null)),
+    [isStudent],
+    { errorMessage: t("settings.toast.loadPreferencesFailed") },
+  );
+
   useEffect(() => {
-    if (!isStudent) return;
+    if (!fetchedPrefs) return;
+    setPrefs({
+      preferred_sites: fetchedPrefs.preferred_sites,
+      preferred_categories: fetchedPrefs.preferred_categories,
+      preferred_languages: fetchedPrefs.preferred_languages,
+      preferred_course_types: fetchedPrefs.preferred_course_types,
+      preferred_duration_buckets: fetchedPrefs.preferred_duration_buckets,
+      preferred_difficulties: fetchedPrefs.preferred_difficulties,
+    });
+  }, [fetchedPrefs]);
 
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoadingPrefs(true);
-        const data = await get_preferences();
-        if (!cancelled) {
-          setPrefs({
-            preferred_sites: data.preferred_sites,
-            preferred_categories: data.preferred_categories,
-            preferred_languages: data.preferred_languages,
-            preferred_course_types: data.preferred_course_types,
-            preferred_duration_buckets: data.preferred_duration_buckets,
-            preferred_difficulties: data.preferred_difficulties,
-          });
-        }
-      } catch (e) {
-        console.error("Error loading preferences:", e);
-        if (!cancelled) toast.error(t("settings.toast.loadPreferencesFailed"));
-      } finally {
-        if (!cancelled) setLoadingPrefs(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isStudent, t]);
+  useEffect(() => {
+    if (prefsError) toast.error(prefsError);
+  }, [prefsError]);
 
   if (!user) return null;
 

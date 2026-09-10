@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Activity, BookOpen, Star, TrendingUp, UserCheck, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,13 +9,17 @@ import {
     getDurationBucketShortLabels,
 } from "../../shared/types/CourseTypes";
 import { API_getAdminDashboard } from "./api";
-import { StatCard } from "./components/StatCard";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
+import { formatPercent } from "../../shared/utils/formatPercent";
+import { formatOrDash } from "../../shared/utils/formatOrDash";
+import { StatCard } from "../../shared/components/StatCard";
 import { useExpandableList } from "./components/useExpandableList";
 import { ShowMoreToggle } from "./components/ShowMoreToggle";
 import { useCourseNavReturn } from "./components/useCourseNavReturn";
 import { DashboardStateGate } from "./components/DashboardStateGate";
 import { DashboardPanel } from "./components/DashboardPanel";
 import { RankedList } from "./components/RankedList";
+import { ActivityDateRangeLabels } from "./components/ActivityDateRangeLabels";
 import { ActivityBarChart } from "../../shared/components/charts/ActivityBarChart";
 import { CategoryRatingChart } from "../../shared/components/charts/CategoryRatingChart";
 import { CohortComparisonChart } from "../../shared/components/charts/CohortComparisonChart";
@@ -36,35 +40,17 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
     const difficultyLabels = getDifficultyLabels(t);
     const durationLabels = getDurationBucketShortLabels(t);
     const courseNavReturn = useCourseNavReturn();
-    const [data, setData] = useState<IAdminDashboard | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data, loading, error } = useAsyncData<IAdminDashboard>(
+        API_getAdminDashboard,
+        [t],
+        { errorMessage: t("dashboard.admin.loadError") },
+    );
 
     const topCoursesExpand = useExpandableList(data?.top_courses ?? [], 3);
     const topActiveStudentsExpand = useExpandableList(
         data?.top_active_students ?? [],
         3,
     );
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            try {
-                setLoading(true);
-                const res = await API_getAdminDashboard();
-                if (!cancelled) setData(res);
-            } catch (e) {
-                console.error("Error loading admin dashboard:", e);
-                if (!cancelled)
-                    setError(t("dashboard.admin.loadError"));
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [t]);
 
     const totalCategoryEnrollments = useMemo(() => {
         if (!data) return 0;
@@ -179,7 +165,7 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                         <StatCard
                             icon={<TrendingUp className="size-5" />}
                             label={t("dashboard.admin.stats.completionRate")}
-                            value={`${Math.round(data.completion_rate * 100)}%`}
+                            value={formatPercent(data.completion_rate * 100)}
                             helper={t("dashboard.admin.stats.completionRateHelper", {
                                 count: data.total_enrollments,
                             })}
@@ -187,11 +173,7 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                         <StatCard
                             icon={<Star className="size-5" />}
                             label={t("dashboard.admin.stats.avgRating")}
-                            value={
-                                data.avg_course_rating != null
-                                    ? data.avg_course_rating.toFixed(1)
-                                    : "—"
-                            }
+                            value={formatOrDash(data.avg_course_rating, (v) => v.toFixed(1))}
                             helper={t("dashboard.admin.stats.avgRatingHelper")}
                         />
                     </section>
@@ -311,26 +293,13 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                         title: dayFormatter.format(new Date(d.date)),
                                     }))}
                                 />
-                                <div className="mt-1 flex justify-between text-[10px] text-gray-400 dark:text-slate-500">
-                                    <span>
-                                        {data.last_30_days[0]
-                                            ? dayFormatter.format(
-                                                  new Date(data.last_30_days[0].date),
-                                              )
-                                            : ""}
-                                    </span>
-                                    <span>
-                                        {data.last_30_days[data.last_30_days.length - 1]
-                                            ? dayFormatter.format(
-                                                  new Date(
-                                                      data.last_30_days[
-                                                          data.last_30_days.length - 1
-                                                      ].date,
-                                                  ),
-                                              )
-                                            : ""}
-                                    </span>
-                                </div>
+                                <ActivityDateRangeLabels
+                                    firstDate={data.last_30_days[0]?.date}
+                                    lastDate={
+                                        data.last_30_days[data.last_30_days.length - 1]?.date
+                                    }
+                                    formatter={dayFormatter}
+                                />
                             </div>
                         </DashboardPanel>
                     </section>

@@ -116,7 +116,7 @@ export function CategoryRatingChart({ data, height = 200 }: Props) {
                             position="top"
                             fill="currentColor"
                             fontSize={10}
-                            formatter={(value: number) => `${value}`}
+                            formatter={(value) => `${value}`}
                         />
                     </Bar>
                 </BarChart>

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { API_getPublicStats } from "../../dashboard/api";
+import { useAsyncData } from "../../../shared/hooks/useAsyncData";
 import { formatCategoryLabel } from "../../../shared/components/charts/chartFormatters";
 import type { ChartDatum } from "../../../shared/components/charts/chartTheme";
 import type { IPublicStats } from "../../../shared/interfaces/IDashboard";
@@ -45,30 +46,11 @@ export function usePublicStats(period: PublicStatsPeriod): UsePublicStatsResult 
         [i18n.language],
     );
 
-    const [data, setData] = useState<IPublicStats | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const res = await API_getPublicStats(period);
-                if (!cancelled) setData(res);
-            } catch (e) {
-                console.error("Error loading public stats:", e);
-                if (!cancelled)
-                    setError(t("landing.loadStatsError"));
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [period, t]);
+    const { data, loading, error } = useAsyncData<IPublicStats>(
+        () => API_getPublicStats(period),
+        [period, t],
+        { errorMessage: t("landing.loadStatsError") },
+    );
 
     const totalCategoryEnrollments = useMemo(() => {
         if (!data) return 0;

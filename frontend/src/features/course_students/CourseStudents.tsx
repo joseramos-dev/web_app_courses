@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
     CheckCircle2,
@@ -12,7 +12,10 @@ import { useAuth } from "../../shared/provider/AuthContext";
 import type { IInstructorCourseStudents } from "../../shared/interfaces/IInstructorCourseStudents";
 import { API_getCourseDetailById } from "../course_detail/api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
-import { StatCard } from "../dashboard/components/StatCard";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
+import { formatPercent } from "../../shared/utils/formatPercent";
+import { formatOrDash } from "../../shared/utils/formatOrDash";
+import { StatCard } from "../../shared/components/StatCard";
 import { CohortComparisonChart } from "../../shared/components/charts/CohortComparisonChart";
 import { DistributionBarChart } from "../../shared/components/charts/DistributionBarChart";
 import { LessonCompletionChart } from "../../shared/components/charts/LessonCompletionChart";
@@ -27,10 +30,24 @@ export function CourseStudents() {
     const { user } = useAuth();
     const { t } = useTranslation();
 
-    const [course, setCourse] = useState<ICourses | null>(null);
-    const [data, setData] = useState<IInstructorCourseStudents | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data: result, loading, error } = useAsyncData<{
+        course: ICourses;
+        data: IInstructorCourseStudents;
+    }>(
+        () => {
+            if (!Number.isFinite(courseId)) {
+                return Promise.reject(t("courseStudents.invalidCourse"));
+            }
+            return Promise.all([
+                API_getCourseDetailById(courseId),
+                API_getCourseStudents(courseId),
+            ]).then(([course, data]) => ({ course, data }));
+        },
+        [courseId, t],
+        { errorMessage: t("courseStudents.loadError") },
+    );
+    const course = result?.course ?? null;
+    const data = result?.data ?? null;
 
     const canManage = useMemo(() => {
         if (!user || !course) return false;
@@ -47,41 +64,6 @@ export function CourseStudents() {
 
     const { lessonChartData, progressBucketData, cohortChartData } =
         useCourseStudentsCharts(data);
-
-    useEffect(() => {
-        if (!Number.isFinite(courseId)) {
-            setError(t("courseStudents.invalidCourse"));
-            setLoading(false);
-            return;
-        }
-
-        let cancelled = false;
-        (async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const [courseDetail, studentsData] = await Promise.all([
-                    API_getCourseDetailById(courseId),
-                    API_getCourseStudents(courseId),
-                ]);
-                if (!cancelled) {
-                    setCourse(courseDetail);
-                    setData(studentsData);
-                }
-            } catch (e) {
-                console.error("Error loading course students:", e);
-                if (!cancelled) {
-                    setError(t("courseStudents.loadError"));
-                }
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [courseId, t]);
 
     if (loading) {
         return (
@@ -152,19 +134,17 @@ export function CourseStudents() {
                 <StatCard
                     icon={<CheckCircle2 className="size-5" />}
                     label={t("courseStudents.stats.avgProgress")}
-                    value={`${Math.round(data.avg_progress_percent)}%`}
+                    value={formatPercent(data.avg_progress_percent)}
                 />
                 <StatCard
                     icon={<TrendingUp className="size-5" />}
                     label={t("courseStudents.stats.completionRate")}
-                    value={`${Math.round(data.completion_rate * 100)}%`}
+                    value={formatPercent(data.completion_rate * 100)}
                 />
                 <StatCard
                     icon={<Star className="size-5" />}
                     label={t("courseStudents.stats.avgRating")}
-                    value={
-                        data.avg_rating != null ? data.avg_rating.toFixed(1) : "—"
-                    }
+                    value={formatOrDash(data.avg_rating, (v) => v.toFixed(1))}
                 />
             </section>
 

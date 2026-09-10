@@ -21,6 +21,7 @@ import {
   isLessonUnlocked,
   pickFirstUnlockedLessonId,
 } from "../../../shared/utils/lessonAccessUtils";
+import { buildLessonProgressMap } from "../../../shared/utils/buildLessonProgressMap";
 
 type ActionKind =
   | "enroll"
@@ -43,13 +44,11 @@ function pickNextLesson(
       return current;
     }
   }
-  const completedSet = new Set(
-    (enrollment?.lesson_progress ?? [])
-      .filter((lp) => lp.status === "completed")
-      .map((lp) => lp.lesson_id),
-  );
+  const progressByLesson = buildLessonProgressMap(enrollment);
   const next = lessons.find(
-    (l) => !completedSet.has(l.id) && isLessonUnlocked(course, enrollment, l.id, isStaff),
+    (l) =>
+      progressByLesson.get(l.id) !== "completed" &&
+      isLessonUnlocked(course, enrollment, l.id, isStaff),
   );
   if (next) return next;
   const fallbackId = pickFirstUnlockedLessonId(

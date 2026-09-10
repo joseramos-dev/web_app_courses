@@ -1,6 +1,6 @@
 import { Activity, BookOpen, TrendingUp, UserCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { StatCard } from "../../dashboard/components/StatCard";
+import { StatCard } from "../../../shared/components/StatCard";
 import type { IPublicStats } from "../../../shared/interfaces/IDashboard";
 import type { PublicStatsPeriod } from "../../../shared/types/LessonTypes";
 import { PERIOD_HELPER_KEY } from "../hooks/usePublicStats";

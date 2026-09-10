@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FileText, Trash2 } from "lucide-react";
@@ -6,13 +6,16 @@ import { useTranslation } from "react-i18next";
 import type { ILesson, LessonType } from "./lessonTypes";
 import { getLessonFileDownloadUrl } from "./api";
 import { API_getLesson } from "../lesson/api";
-import { ExistingQuestionsPanel, QuestionFormModal } from "./components/QuestionsEditor";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
+import { ExistingQuestionsPanel } from "./components/ExistingQuestionsPanel";
+import { QuestionFormModal } from "./components/QuestionFormModal";
 import { getLessonTypeLabels } from "../../shared/types/LessonTypes";
 import { MarkdownEditor } from "../../shared/components/markdown/MarkdownEditor";
 import { ACCEPTED_UPLOAD_TYPES, MAX_UPLOAD_MB } from "../../shared/constants/uploads";
 import { useLessonForm } from "./hooks/useLessonForm";
-import { formatFileSize, useLessonAttachmentsEditor } from "./hooks/useLessonAttachmentsEditor";
+import { useLessonAttachmentsEditor } from "./hooks/useLessonAttachmentsEditor";
 import { useQuestionModal } from "./hooks/useQuestionModal";
+import { formatFileSize } from "../../shared/utils/formatFileSize";
 
 const lessonTypes: LessonType[] = [
   "text",
@@ -62,26 +65,19 @@ export function LessonEdit() {
   const navigate = useNavigate();
   const lessonTypeLabels = getLessonTypeLabels(t);
 
-  const [lesson, setLesson] = useState<ILesson | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: lesson, loading: isLoading, error } = useAsyncData<ILesson | null>(
+    () => {
+      const id = Number(lessonId);
+      if (Number.isNaN(id)) return Promise.resolve(null);
+      return API_getLesson(id);
+    },
+    [lessonId],
+    { errorMessage: t("courseEdit.loadError") },
+  );
 
   useEffect(() => {
-    const load = async () => {
-      const id = Number(lessonId);
-      if (Number.isNaN(id)) return;
-      try {
-        setIsLoading(true);
-        const data = await API_getLesson(id);
-        setLesson(data);
-      } catch (e) {
-        console.error(e);
-        toast.error(t("courseEdit.loadError"));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    void load();
-  }, [lessonId, t]);
+    if (error) toast.error(error);
+  }, [error]);
 
   const form = useLessonForm(lesson);
   const attachmentsEditor = useLessonAttachmentsEditor(lessonId);

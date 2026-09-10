@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,6 +19,8 @@ import {
 } from "../../../shared/constants/appEvents";
 import { flattenCurriculumLessons } from "../../../shared/utils/curriculumUtils";
 import { isCourseStaff } from "../../../shared/utils/lessonAccessUtils";
+import { buildLessonProgressMap } from "../../../shared/utils/buildLessonProgressMap";
+import { useAsyncData } from "../../../shared/hooks/useAsyncData";
 
 export interface UseCourseDetailDataResult {
     course: ICourses | null;
@@ -52,26 +54,49 @@ export function useCourseDetailData(courseId: string | undefined): UseCourseDeta
     const { t } = useTranslation();
     const location = useLocation();
     const { user } = useAuth();
-    const [course, setCourse] = useState<ICourses | null>(null);
-    const [curriculum, setCurriculum] = useState<ICourseCurriculum | null>(null);
-    const [enrollment, setEnrollment] = useState<IEnrollmentDetail | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+
+    const {
+        data,
+        loading: isLoading,
+        error,
+        setData,
+        refetch,
+    } = useAsyncData<{
+        course: ICourses;
+        curriculum: ICourseCurriculum;
+        enrollment: IEnrollmentDetail | null;
+    }>(
+        () => {
+            if (courseId == null || Number.isNaN(Number(courseId))) {
+                return Promise.reject(t("courseDetail.invalidCourse"));
+            }
+            const id = Number(courseId);
+            const enrollmentReq =
+                user && user.role === "student"
+                    ? API_getMyEnrollment(id)
+                    : Promise.resolve(null);
+            return Promise.all([
+                API_getCourseDetailById(id),
+                API_getCourseCurriculum(id),
+                enrollmentReq,
+            ]).then(([course, curriculum, enrollment]) => ({ course, curriculum, enrollment }));
+        },
+        [courseId, user, t, location.key],
+        { errorMessage: t("courseDetail.loadError") },
+    );
+    const course = data?.course ?? null;
+    const curriculum = data?.curriculum ?? null;
+    const enrollment = data?.enrollment ?? null;
 
     const flatLessons = useMemo(
         () => (curriculum ? flattenCurriculumLessons(curriculum.topics) : []),
         [curriculum],
     );
 
-    const progressByLesson = useMemo(() => {
-        const statusMap = new Map<number, LessonProgressStatus>();
-        if (enrollment) {
-            for (const lp of enrollment.lesson_progress) {
-                statusMap.set(lp.lesson_id, lp.status);
-            }
-        }
-        return statusMap;
-    }, [enrollment]);
+    const progressByLesson = useMemo(
+        () => buildLessonProgressMap(enrollment),
+        [enrollment],
+    );
 
     const pendingSet = useMemo(
         () => new Set(enrollment?.pending_review_lesson_ids ?? []),
@@ -82,61 +107,22 @@ export function useCourseDetailData(courseId: string | undefined): UseCourseDeta
         if (courseId == null || Number.isNaN(Number(courseId))) return;
         if (!user || user.role !== "student") return;
         const enr = await API_getMyEnrollment(Number(courseId));
-        setEnrollment(enr);
+        setData((prev) => (prev ? { ...prev, enrollment: enr } : prev));
         window.dispatchEvent(new Event(KURSA_DASHBOARD_REFRESH_EVENT));
-    }, [courseId, user]);
+    }, [courseId, user, setData]);
 
     const refetchCourseSummary = useCallback(async () => {
         if (courseId == null || Number.isNaN(Number(courseId))) return;
         const detail = await API_getCourseDetailById(Number(courseId));
-        setCourse(detail);
-    }, [courseId]);
-
-    const loadAll = useCallback(async () => {
-        if (courseId == null || Number.isNaN(Number(courseId))) {
-            setError(t("courseDetail.invalidCourse"));
-            setCourse(null);
-            setCurriculum(null);
-            setEnrollment(null);
-            return;
-        }
-        const id = Number(courseId);
-        try {
-            setIsLoading(true);
-            setError(null);
-            const enrollmentReq =
-                user && user.role === "student"
-                    ? API_getMyEnrollment(id)
-                    : Promise.resolve(null);
-            const [courseDetail, curriculumData, enr] = await Promise.all([
-                API_getCourseDetailById(id),
-                API_getCourseCurriculum(id),
-                enrollmentReq,
-            ]);
-            setCourse(courseDetail);
-            setCurriculum(curriculumData);
-            setEnrollment(enr);
-        } catch (err) {
-            console.error(err);
-            setError(t("courseDetail.loadError"));
-            setCourse(null);
-            setCurriculum(null);
-            setEnrollment(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [courseId, user, t]);
-
-    useEffect(() => {
-        void loadAll();
-    }, [loadAll, location.key]);
+        setData((prev) => (prev ? { ...prev, course: detail } : prev));
+    }, [courseId, setData]);
 
     useEffect(() => {
         const id = courseId != null && !Number.isNaN(Number(courseId)) ? Number(courseId) : null;
         if (id == null) return;
         const onEnrollmentChanged = (e: Event) => {
             const detail = (e as CustomEvent<{ courseId?: number }>).detail;
-            if (detail?.courseId === id) void loadAll();
+            if (detail?.courseId === id) void refetch();
         };
         window.addEventListener(KURSA_COURSE_ENROLLMENT_CHANGED_EVENT, onEnrollmentChanged);
         return () =>
@@ -144,7 +130,7 @@ export function useCourseDetailData(courseId: string | undefined): UseCourseDeta
                 KURSA_COURSE_ENROLLMENT_CHANGED_EVENT,
                 onEnrollmentChanged,
             );
-    }, [courseId, loadAll]);
+    }, [courseId, refetch]);
 
     const isEnrolled = enrollment !== null;
     const isStaff = isCourseStaff(user, course);

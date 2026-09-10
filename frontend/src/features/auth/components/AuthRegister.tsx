@@ -2,12 +2,16 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AuthTextInput } from "./AuthTextInput"
 import { AuthPasswordInput } from "./AuthPasswordInput"
+import { AuthModalHeader } from "./AuthModalHeader"
+import { AuthSubmitButton } from "./AuthSubmitButton"
+import { authLinkClassName } from "./authLinkClassName"
 import { API_register } from "../api"
 import type { UserRoles } from "../../../shared/types/UserRoles"
 import toast from "react-hot-toast"
 import type { AuthType } from "../../../shared/types/AuthTypes"
-import { XIcon } from "lucide-react"
 import type { TFunction } from "i18next"
+import { useAsyncSubmit } from "../../../shared/hooks/useAsyncSubmit"
+import { validateRegisterForm } from "../validation"
 
 const roles: UserRoles[] = ["student", "instructor"]
 
@@ -21,56 +25,31 @@ export const AuthRegister = (
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [role, setRole] = useState<UserRoles>("student");
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
+    const { loading, error, setError, submit } = useAsyncSubmit(t("auth.errors.registerFailed"))
 
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
-        if (password !== confirmPassword) {
-            setError(t("auth.errors.passwordMismatch"))
+        const validationKey = validateRegisterForm({ name, email, password, confirmPassword })
+        if (validationKey) {
+            setError(t(validationKey))
             return
         }
-        if (name.length < 3) {
-            setError(t("auth.errors.nameTooShort"))
-            return
-        }
-        if (!email.includes("@")) {
-            setError(t("auth.errors.invalidEmail"))
-            return
-        }
-        setLoading(true)
-        setError("")
-        try {
+        await submit(async () => {
             await API_register(name, email, password, role)
-            setLoading(false)
             toast.success(t("auth.toast.registerSuccess"))
             changeAuthType("Login")
-        } catch (error) {
-            setLoading(false)
-            setError(error as string || t("auth.errors.registerFailed"))
-        }
+        })
     }
 
     return (
         <form className="flex flex-col gap-4 " onSubmit={handleSubmit}>
-            <div className="flex flex-row gap-4 justify-between">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">{t("auth.form.registerTitle")}</h1>
-                <button type="button" className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200" onClick={() => changeAuthType(null)}>
-                    <XIcon className="w-8 h-8" />
-                </button>
-            </div>
+            <AuthModalHeader title={t("auth.form.registerTitle")} onClose={() => changeAuthType(null)} />
             <AuthTextInput label={t("auth.form.name")} text={name} setText={setName} />
             <AuthTextInput label={t("auth.form.email")} text={email} setText={setEmail} />
             <AuthPasswordInput label={t("auth.form.password")} text={password} setText={setPassword} />
             <AuthPasswordInput label={t("auth.form.confirmPassword")} text={confirmPassword} setText={setConfirmPassword} />
             <AuthRoleSelect role={role} setRole={setRole} t={t} />
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-blue-500 py-2 text-white transition hover:bg-blue-600 disabled:opacity-50 dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent"
-            >
-                {loading ? t("common.loading") : t("auth.form.submit")}
-            </button>
+            <AuthSubmitButton loading={loading} label={t("auth.form.submit")} />
             <TextRegister changeAuthType={() => changeAuthType("Login")} />
             {error && (
                 <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
@@ -87,7 +66,7 @@ const TextRegister = (
     return (
         <p className="text-sm text-gray-500 dark:text-slate-400">
             {t("auth.form.hasAccount")}{" "}
-            <button type="button" className="text-sm text-blue-500 hover:text-blue-700 dark:text-uned-primary dark:hover:text-uned-accent" onClick={changeAuthType}>
+            <button type="button" className={authLinkClassName()} onClick={changeAuthType}>
                 {t("auth.form.loginHere")}
             </button>
         </p>

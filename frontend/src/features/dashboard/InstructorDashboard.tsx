@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     BookOpen,
@@ -12,7 +11,10 @@ import { useTranslation } from "react-i18next";
 import type { IUser } from "../../shared/interfaces/IUser";
 import type { IInstructorDashboard } from "../../shared/interfaces/IDashboard";
 import { API_getInstructorDashboard } from "./api";
-import { StatCard } from "./components/StatCard";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
+import { formatPercent } from "../../shared/utils/formatPercent";
+import { formatOrDash } from "../../shared/utils/formatOrDash";
+import { StatCard } from "../../shared/components/StatCard";
 import { CourseProgressChart } from "../../shared/components/charts/CourseProgressChart";
 import { formatRelativeTime } from "./components/formatRelativeTime";
 import { useExpandableList } from "./components/useExpandableList";
@@ -25,9 +27,11 @@ import { RankedList } from "./components/RankedList";
 export const InstructorDashboard = ({ user }: { user: IUser }) => {
     const { t, i18n } = useTranslation();
     const courseNavReturn = useCourseNavReturn();
-    const [data, setData] = useState<IInstructorDashboard | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data, loading, error } = useAsyncData<IInstructorDashboard>(
+        API_getInstructorDashboard,
+        [t],
+        { errorMessage: t("dashboard.instructor.loadError") },
+    );
 
     const coursesExpand = useExpandableList(data?.courses ?? [], 5);
     const activeStudentsExpand = useExpandableList(
@@ -42,26 +46,6 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
         data?.pending_submissions ?? [],
         4,
     );
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            try {
-                setLoading(true);
-                const res = await API_getInstructorDashboard();
-                if (!cancelled) setData(res);
-            } catch (e) {
-                console.error("Error loading instructor dashboard:", e);
-                if (!cancelled)
-                    setError(t("dashboard.instructor.loadError"));
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [t]);
 
     return (
         <div className="mx-auto max-w-6xl px-4 py-8">
@@ -94,7 +78,7 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                         <StatCard
                             icon={<TrendingUp className="size-5" />}
                             label={t("dashboard.instructor.stats.avgProgress")}
-                            value={`${Math.round(data.avg_progress_percent)}%`}
+                            value={formatPercent(data.avg_progress_percent)}
                             helper={t("dashboard.instructor.stats.avgProgressHelper")}
                         />
                         <StatCard
@@ -183,7 +167,7 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                                     <div className="w-32">
                                                         <CourseProgressChart
                                                             value={row.avg_progress_percent}
-                                                            rightLabel={`${Math.round(row.avg_progress_percent)}%`}
+                                                            rightLabel={formatPercent(row.avg_progress_percent)}
                                                         />
                                                     </div>
                                                 </td>
@@ -191,12 +175,10 @@ export const InstructorDashboard = ({ user }: { user: IUser }) => {
                                                     {row.completed_students}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
-                                                    {Math.round(row.completion_rate * 100)}%
+                                                    {formatPercent(row.completion_rate * 100)}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
-                                                    {row.avg_rating != null
-                                                        ? row.avg_rating.toFixed(1)
-                                                        : "—"}
+                                                    {formatOrDash(row.avg_rating, (v) => v.toFixed(1))}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
                                                     {formatRelativeTime(row.last_activity_at, i18n.language)}

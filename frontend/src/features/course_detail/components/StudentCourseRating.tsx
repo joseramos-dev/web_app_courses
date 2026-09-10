@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import {
   API_getMyCourseRating,
   API_putCourseRating,
 } from "../api";
+import { useAsyncData } from "../../../shared/hooks/useAsyncData";
 
 type Props = {
   courseId: number;
@@ -15,31 +16,18 @@ type Props = {
 
 export function StudentCourseRating({ courseId, onRated, emptyCourse }: Props) {
   const { t } = useTranslation();
-  const [currentScore, setCurrentScore] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const row = await API_getMyCourseRating(courseId);
-      setCurrentScore(row?.score ?? null);
-    } catch {
-      setCurrentScore(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data, loading, setData } = useAsyncData(
+    () => API_getMyCourseRating(courseId),
+    [courseId],
+  );
+  const currentScore = data?.score ?? null;
 
   const submit = async (score: number) => {
     try {
       setSaving(true);
-      await API_putCourseRating(courseId, score);
-      setCurrentScore(score);
+      const row = await API_putCourseRating(courseId, score);
+      setData(row);
       toast.success(t("courseDetail.myRating.saved"));
       onRated();
     } catch (e) {

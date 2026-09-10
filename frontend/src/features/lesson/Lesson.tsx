@@ -46,6 +46,8 @@ import type { ICourses } from "../../shared/interfaces/ICourses";
 import type { IEnrollmentDetail } from "../../shared/interfaces/IEnrollment";
 import { getLessonGlobalIndex } from "../../shared/utils/curriculumUtils";
 import { isCourseStaff, isLessonUnlocked } from "../../shared/utils/lessonAccessUtils";
+import { buildLessonProgressMap } from "../../shared/utils/buildLessonProgressMap";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
 
 export const Lesson = () => {
   const { t } = useTranslation();
@@ -64,49 +66,47 @@ export const Lesson = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [lastScore, setLastScore] = useState<number | null>(null);
-  const [attemptHistory, setAttemptHistory] = useState<ILessonAttemptList | null>(
-    null,
-  );
-  const [attemptsLoading, setAttemptsLoading] = useState(false);
-  const [attachments, setAttachments] = useState<ILessonFile[]>([]);
-  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
-  const [submission, setSubmission] = useState<ISubmission | null>(null);
-  const [submissionLoading, setSubmissionLoading] = useState(false);
   const [course, setCourse] = useState<ICourses | null>(null);
   const [enrollment, setEnrollment] = useState<IEnrollmentDetail | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const loadAttemptHistory = async (id: number) => {
-    try {
-      setAttemptsLoading(true);
-      const history = await API_getLessonAttempts(id);
-      setAttemptHistory(history);
-      if (history.best_score != null) {
-        setLastScore(history.best_score);
-      }
-    } catch (e) {
-      console.error(e);
-      setAttemptHistory(null);
-    } finally {
-      setAttemptsLoading(false);
-    }
-  };
-
-  const loadSubmission = async (id: number) => {
-    try {
-      setSubmissionLoading(true);
-      const data = await API_getLessonSubmission(id);
-      setSubmission(data);
-    } catch (e) {
-      console.error(e);
-      setSubmission(null);
-    } finally {
-      setSubmissionLoading(false);
-    }
-  };
-
   const courseIdNum = Number(courseId);
   const lessonIdNum = Number(lessonId);
+
+  const isAutoCompleteType =
+    lesson?.lesson_type === "test" ||
+    lesson?.lesson_type === "multiple_selection";
+  const isAssignmentType = lesson?.lesson_type === "assignment";
+
+  const {
+    data: attemptHistory,
+    loading: attemptsLoading,
+    refetch: refetchAttemptHistory,
+  } = useAsyncData<ILessonAttemptList | null>(
+    () =>
+      isAutoCompleteType
+        ? API_getLessonAttempts(lessonIdNum)
+        : Promise.resolve(null),
+    [lessonIdNum, isAutoCompleteType],
+  );
+
+  const {
+    data: submission,
+    loading: submissionLoading,
+    setData: setSubmission,
+  } = useAsyncData<ISubmission | null>(
+    () =>
+      isAssignmentType
+        ? API_getLessonSubmission(lessonIdNum)
+        : Promise.resolve(null),
+    [lessonIdNum, isAssignmentType],
+  );
+
+  const { data: attachmentsData, loading: attachmentsLoading } = useAsyncData<ILessonFile[]>(
+    () => API_getLessonFiles(lessonIdNum),
+    [lessonIdNum],
+  );
+  const attachments = attachmentsData ?? [];
 
   const mutedPanelCn = lessonMutedNoticePanelClassName();
   const errorPanelCn = lessonErrorNoticePanelClassName();
@@ -133,10 +133,6 @@ export const Lesson = () => {
     return siblings[idx + 1].id;
   }, [lesson, siblings]);
 
-  const isAutoCompleteType =
-    lesson?.lesson_type === "test" ||
-    lesson?.lesson_type === "multiple_selection";
-
   const isStaff = isCourseStaff(user, course);
 
   const prevUnlocked =
@@ -147,6 +143,7 @@ export const Lesson = () => {
     isLessonUnlocked(course, enrollment, nextLessonId, isStaff);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchAll = async () => {
       if (Number.isNaN(courseIdNum) || Number.isNaN(lessonIdNum)) {
         setError(t("lessonPage.invalidLesson"));
@@ -174,32 +171,22 @@ export const Lesson = () => {
             courseReq,
             enrollmentReq,
           ]);
+        if (cancelled) return;
         setLesson(lessonData);
         setSiblings(navData);
         setCurriculum(curriculumData);
         setCourse(courseData);
         setEnrollment(enrollmentData);
-        const existingProgress = enrollmentData?.lesson_progress?.find(
-          (p) => p.lesson_id === lessonIdNum,
+        setIsCompleted(
+          buildLessonProgressMap(enrollmentData).get(lessonIdNum) === "completed",
         );
-        setIsCompleted(existingProgress?.status === "completed");
-
-        try {
-          setAttachmentsLoading(true);
-          const files = await API_getLessonFiles(lessonIdNum);
-          setAttachments(files);
-        } catch (e) {
-          console.error(e);
-          setAttachments([]);
-        } finally {
-          setAttachmentsLoading(false);
-        }
 
         let progressBestScore: number | null = null;
         try {
           const progress = await startReq;
           progressBestScore = progress.best_score ?? null;
         } catch (e) {
+          if (cancelled) return;
           const handled = tryNavigateAwayOnLessonHttpError({
             error: e,
             navigate,
@@ -215,21 +202,21 @@ export const Lesson = () => {
           console.error("No se pudo registrar el inicio de la lección:", e);
           toast.error(t("lessonPage.progressUpdateFailed"));
         }
+        if (cancelled) return;
 
         if (
           lessonData.lesson_type === "test" ||
           lessonData.lesson_type === "multiple_selection"
         ) {
           const qs = await API_getLessonQuestions(lessonIdNum);
+          if (cancelled) return;
           setQuestions(qs);
           if (progressBestScore != null) {
             setLastScore(progressBestScore);
           }
-          await loadAttemptHistory(lessonIdNum);
-        } else if (lessonData.lesson_type === "assignment") {
-          await loadSubmission(lessonIdNum);
         }
       } catch (e) {
+        if (cancelled) return;
         console.error(e);
         const handled = tryNavigateAwayOnLessonHttpError({
           error: e,
@@ -241,10 +228,13 @@ export const Lesson = () => {
         if (handled) return;
         setError(t("lessonPage.loadFailed"));
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     void fetchAll();
+    return () => {
+      cancelled = true;
+    };
   }, [courseIdNum, lessonIdNum, navigate, t, user, location.state]);
 
   const handleAfterPass = async (enrollmentCompleted: boolean) => {
@@ -293,10 +283,10 @@ export const Lesson = () => {
       toast.error(
         t("lessonPage.failedAttempt", { score: Math.round(result.score ?? 0) }),
       );
-      await loadAttemptHistory(lesson.id);
+      await refetchAttemptHistory();
       return;
     }
-    await loadAttemptHistory(lesson.id);
+    await refetchAttemptHistory();
     await handleAfterPass(result.enrollment_completed);
   };
 

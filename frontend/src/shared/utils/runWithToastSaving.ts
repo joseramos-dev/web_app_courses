@@ -1,11 +1,5 @@
 import toast from "react-hot-toast";
-
-type ErrorMessage = string | ((error: unknown) => string);
-
-function resolveErrorMessage(error: unknown, fallback: ErrorMessage): string {
-  if (typeof fallback === "function") return fallback(error);
-  return typeof error === "string" ? error : fallback;
-}
+import { resolveErrorMessage, type ErrorMessage } from "./resolveErrorMessage";
 
 /**
  * Runs `action`, flipping a "busy" flag on for its duration and showing an

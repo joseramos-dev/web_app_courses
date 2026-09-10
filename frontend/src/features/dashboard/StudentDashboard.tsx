@@ -1,47 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BookOpen, CheckCircle2, GraduationCap, Flame, Trophy, BarChart3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { IUser } from "../../shared/interfaces/IUser";
 import type { IStudentDashboard } from "../../shared/interfaces/IDashboard";
 import type { IStudentPerformance } from "../../shared/interfaces/IProgress";
-import type { LessonProgressStatus } from "../../shared/interfaces/IEnrollment";
 import { API_getStudentDashboard } from "./api";
 import { API_getStudentPerformance } from "../progress/api";
-import { StatCard } from "./components/StatCard";
-import { CourseProgressChart } from "../../shared/components/charts/CourseProgressChart";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
+import { formatPercent } from "../../shared/utils/formatPercent";
+import { formatOrDash } from "../../shared/utils/formatOrDash";
+import { StatCard } from "../../shared/components/StatCard";
 import { ActivityBarChart } from "../../shared/components/charts/ActivityBarChart";
 import { DistributionBarChart } from "../../shared/components/charts/DistributionBarChart";
 import { ScoreComparisonChart } from "../../shared/components/charts/ScoreComparisonChart";
 import { ChartEmptyState } from "../../shared/components/charts/ChartEmptyState";
-import { formatRelativeTime } from "./components/formatRelativeTime";
 import { useExpandableList } from "./components/useExpandableList";
 import { ShowMoreToggle } from "./components/ShowMoreToggle";
 import { useCourseNavReturn } from "./components/useCourseNavReturn";
 import { DashboardStateGate } from "./components/DashboardStateGate";
 import { DashboardPanel } from "./components/DashboardPanel";
 import { EmptyStateCard } from "./components/EmptyStateCard";
+import { RecentAttemptsTable } from "./components/RecentAttemptsTable";
+import { RecentLessonItem } from "./components/RecentLessonItem";
+import { CompletedCourseCard } from "./components/CompletedCourseCard";
+import { ContinueLearningCourseCard } from "./components/ContinueLearningCourseCard";
 import { KURSA_DASHBOARD_REFRESH_EVENT } from "../../shared/constants/appEvents";
 import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
 import { getLessonTypeLabels } from "../../shared/types/LessonTypes";
-import { LessonTypeIcon } from "../../shared/components/LessonTypeIcon";
-import type { LessonType } from "../course_edit/lessonTypes";
-
-const STATUS_BADGE_CLASS: Record<LessonProgressStatus, string> = {
-    not_started: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
-    in_progress: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
-    completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-200",
-};
-
-function getStatusLabel(
-    t: (key: string) => string,
-): Record<LessonProgressStatus, string> {
-    return {
-        not_started: t("dashboard.student.status.notStarted"),
-        in_progress: t("dashboard.student.status.inProgress"),
-        completed: t("dashboard.student.status.completed"),
-    };
-}
+import {
+    getLessonProgressStatusLabels,
+    lessonProgressStatusBadgeClassName,
+} from "../../shared/types/LessonProgressTypes";
 
 export const StudentDashboard = ({ user }: { user: IUser }) => {
     const { t, i18n } = useTranslation();
@@ -50,13 +40,28 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
         () => new Intl.DateTimeFormat(i18n.language, { weekday: "short" }),
         [i18n.language],
     );
-    const statusLabel = getStatusLabel(t);
+    const statusLabel = getLessonProgressStatusLabels(t);
     const location = useLocation();
     const courseNavReturn = useCourseNavReturn();
-    const [data, setData] = useState<IStudentDashboard | null>(null);
-    const [performance, setPerformance] = useState<IStudentPerformance | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        data: dashboardResult,
+        loading,
+        error,
+        refetch,
+    } = useAsyncData<{
+        data: IStudentDashboard;
+        performance: IStudentPerformance;
+    }>(
+        () =>
+            Promise.all([
+                API_getStudentDashboard(),
+                API_getStudentPerformance(),
+            ]).then(([data, performance]) => ({ data, performance })),
+        [location.key, t],
+        { errorMessage: t("dashboard.student.loadError") },
+    );
+    const data = dashboardResult?.data ?? null;
+    const performance = dashboardResult?.performance ?? null;
 
     const coursesWithTests = useMemo(
         () =>
@@ -86,36 +91,12 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
     const recentLessonsExpand = useExpandableList(data?.recent_lessons ?? [], 4);
 
     useEffect(() => {
-        let cancelled = false;
-        const load = async (quiet?: boolean) => {
-            try {
-                if (!quiet) setLoading(true);
-                setError(null);
-                const [dashboardRes, performanceRes] = await Promise.all([
-                    API_getStudentDashboard(),
-                    API_getStudentPerformance(),
-                ]);
-                if (!cancelled) {
-                    setData(dashboardRes);
-                    setPerformance(performanceRes);
-                }
-            } catch (e) {
-                console.error("Error loading student dashboard:", e);
-                if (!cancelled) setError(t("dashboard.student.loadError"));
-            } finally {
-                if (!quiet && !cancelled) setLoading(false);
-            }
-        };
-        void load();
         const onRefresh = () => {
-            void load(true);
+            void refetch({ silent: true });
         };
         window.addEventListener(KURSA_DASHBOARD_REFRESH_EVENT, onRefresh);
-        return () => {
-            cancelled = true;
-            window.removeEventListener(KURSA_DASHBOARD_REFRESH_EVENT, onRefresh);
-        };
-    }, [location.key, t]);
+        return () => window.removeEventListener(KURSA_DASHBOARD_REFRESH_EVENT, onRefresh);
+    }, [refetch]);
 
     return (
         <div className="mx-auto max-w-6xl px-4 py-8">
@@ -184,11 +165,7 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                                     <StatCard
                                         icon={<BarChart3 className="size-5" />}
                                         label={t("dashboard.student.performance.avgScore")}
-                                        value={
-                                            performance.overall_avg_score != null
-                                                ? `${Math.round(performance.overall_avg_score)}%`
-                                                : "—"
-                                        }
+                                        value={formatOrDash(performance.overall_avg_score, formatPercent)}
                                         helper={t("dashboard.student.performance.avgScoreHelper")}
                                     />
                                     <StatCard
@@ -260,79 +237,12 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                                             {t("dashboard.student.performance.noAttempts")}
                                         </p>
                                     ) : (
-                                        <div className="mt-3 overflow-x-auto">
-                                            <table className="w-full min-w-[480px] text-left text-sm">
-                                                <thead>
-                                                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 dark:border-slate-700 dark:text-slate-400">
-                                                        <th className="pb-2 pr-3 font-medium">{t("dashboard.student.performance.table.course")}</th>
-                                                        <th className="pb-2 pr-3 font-medium">{t("dashboard.student.performance.table.lesson")}</th>
-                                                        <th className="pb-2 pr-3 font-medium">{t("dashboard.student.performance.table.score")}</th>
-                                                        <th className="pb-2 pr-3 font-medium">{t("dashboard.student.performance.table.status")}</th>
-                                                        <th className="pb-2 font-medium">{t("dashboard.student.performance.table.date")}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                                                    {recentAttemptsExpand.visibleItems.map((a) => (
-                                                        <tr key={a.id}>
-                                                            <td className="py-2 pr-3">
-                                                                <Link
-                                                                    to={`/course/${a.course_id}`}
-                                                                    state={courseNavReturn}
-                                                                    className="font-medium text-gray-900 hover:underline dark:text-slate-100"
-                                                                >
-                                                                    {a.course_title}
-                                                                </Link>
-                                                            </td>
-                                                            <td className="py-2 pr-3">
-                                                                <Link
-                                                                    to={`/course/${a.course_id}/lesson/${a.lesson_id}`}
-                                                                    state={courseNavReturn}
-                                                                    className="flex items-center gap-2 text-gray-700 hover:underline dark:text-slate-300"
-                                                                >
-                                                                    <LessonTypeIcon
-                                                                        lessonType={a.lesson_type as LessonType}
-                                                                        className="size-4 shrink-0"
-                                                                    />
-                                                                    <span className="min-w-0">
-                                                                        <span className="block font-medium text-gray-900 dark:text-slate-100">
-                                                                            {a.lesson_title}
-                                                                        </span>
-                                                                        <span className="block text-xs text-gray-500 dark:text-slate-400">
-                                                                            {lessonTypeLabels[a.lesson_type as LessonType] ?? a.lesson_type}
-                                                                        </span>
-                                                                    </span>
-                                                                </Link>
-                                                            </td>
-                                                            <td className="py-2 pr-3 font-medium text-gray-900 dark:text-slate-100">
-                                                                {Math.round(a.score)}%
-                                                            </td>
-                                                            <td className="py-2 pr-3">
-                                                                <span
-                                                                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                                                                        a.passed
-                                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-200"
-                                                                            : "bg-red-100 text-red-700 dark:bg-red-900/35 dark:text-red-200"
-                                                                    }`}
-                                                                >
-                                                                    {a.passed
-                                                                        ? t("dashboard.student.performance.passed")
-                                                                        : t("dashboard.student.performance.failed")}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-2 text-xs text-gray-500 dark:text-slate-400">
-                                                                {formatRelativeTime(a.attempted_at, i18n.language)}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                            <ShowMoreToggle
-                                                canExpand={recentAttemptsExpand.canExpand}
-                                                isExpanded={recentAttemptsExpand.isExpanded}
-                                                hiddenCount={recentAttemptsExpand.hiddenCount}
-                                                onToggle={recentAttemptsExpand.toggle}
-                                            />
-                                        </div>
+                                        <RecentAttemptsTable
+                                            expand={recentAttemptsExpand}
+                                            courseNavReturn={courseNavReturn}
+                                            lessonTypeLabels={lessonTypeLabels}
+                                            locale={i18n.language}
+                                        />
                                     )}
                                 </div>
                             </>
@@ -356,39 +266,12 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                             <>
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                     {completedCoursesExpand.visibleItems.map((c) => (
-                                        <article
+                                        <CompletedCourseCard
                                             key={c.course_id}
-                                            className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <Link
-                                                    to={`/course/${c.course_id}`}
-                                                    state={courseNavReturn}
-                                                    className="text-sm font-semibold text-gray-900 hover:underline dark:text-slate-100"
-                                                >
-                                                    {c.course_title}
-                                                </Link>
-                                                <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
-                                                    {t("dashboard.student.completedCourses.badge")}
-                                                </span>
-                                            </div>
-                                            <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-                                                {c.completed_at
-                                                    ? t("dashboard.student.completedCourses.finishedAgo", {
-                                                          time: formatRelativeTime(c.completed_at, i18n.language),
-                                                      })
-                                                    : t("dashboard.student.completedCourses.finished")}
-                                            </p>
-                                            <div className="mt-3 flex justify-end">
-                                                <Link
-                                                    to={`/course/${c.course_id}`}
-                                                    state={courseNavReturn}
-                                                    className="text-xs font-semibold text-uned-primary hover:text-uned-primary-hover dark:text-uned-primary"
-                                                >
-                                                    {t("dashboard.student.completedCourses.viewCourse")}
-                                                </Link>
-                                            </div>
-                                        </article>
+                                            course={c}
+                                            courseNavReturn={courseNavReturn}
+                                            locale={i18n.language}
+                                        />
                                     ))}
                                 </div>
                                 <ShowMoreToggle
@@ -426,57 +309,14 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                         ) : (
                             <>
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                    {recentCoursesExpand.visibleItems.map((c) => {
-                                        const continueHref = c.next_lesson_id
-                                            ? `/course/${c.course_id}/lesson/${c.next_lesson_id}`
-                                            : `/course/${c.course_id}`;
-                                        return (
-                                            <article
-                                                key={c.course_id}
-                                                className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800"
-                                            >
-                                                <Link
-                                                    to={`/course/${c.course_id}`}
-                                                    state={courseNavReturn}
-                                                    className="text-sm font-semibold text-gray-900 hover:underline dark:text-slate-100"
-                                                >
-                                                    {c.course_title}
-                                                </Link>
-                                                <div className="mt-2">
-                                                    <CourseProgressChart
-                                                        value={c.progress_percent}
-                                                        rightLabel={t(
-                                                            "dashboard.student.continueLearning.lessonsCount",
-                                                            {
-                                                                completed: c.completed_lessons_count,
-                                                                total: c.total_lessons,
-                                                            },
-                                                        )}
-                                                    />
-                                                </div>
-                                                <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
-                                                    <span>
-                                                        {t(
-                                                            "dashboard.student.continueLearning.lastActivity",
-                                                            {
-                                                                time: formatRelativeTime(
-                                                                    c.last_activity_at,
-                                                                    i18n.language,
-                                                                ),
-                                                            },
-                                                        )}
-                                                    </span>
-                                                    <Link
-                                                        to={continueHref}
-                                                        state={courseNavReturn}
-                                                        className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800"
-                                                    >
-                                                        {t("dashboard.student.continueLearning.continue")}
-                                                    </Link>
-                                                </div>
-                                            </article>
-                                        );
-                                    })}
+                                    {recentCoursesExpand.visibleItems.map((c) => (
+                                        <ContinueLearningCourseCard
+                                            key={c.course_id}
+                                            course={c}
+                                            courseNavReturn={courseNavReturn}
+                                            locale={i18n.language}
+                                        />
+                                    ))}
                                 </div>
                                 <ShowMoreToggle
                                     canExpand={recentCoursesExpand.canExpand}
@@ -499,40 +339,14 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                                 <>
                                     <ul className="mt-3 divide-y divide-gray-100 dark:divide-slate-700">
                                         {recentLessonsExpand.visibleItems.map((l) => (
-                                            <li
+                                            <RecentLessonItem
                                                 key={`${l.lesson_id}-${l.last_activity_at ?? ""}`}
-                                                className="flex items-start justify-between gap-3 py-3"
-                                            >
-                                                <div className="min-w-0">
-                                                    <Link
-                                                        to={`/course/${l.course_id}/lesson/${l.lesson_id}`}
-                                                        state={courseNavReturn}
-                                                        className="block truncate text-sm font-medium text-gray-900 hover:underline dark:text-slate-100"
-                                                    >
-                                                        {l.lesson_title}
-                                                    </Link>
-                                                    <Link
-                                                        to={`/course/${l.course_id}`}
-                                                        state={courseNavReturn}
-                                                        className="block truncate text-xs text-gray-500 hover:underline dark:text-slate-400"
-                                                    >
-                                                        {l.course_title}
-                                                    </Link>
-                                                </div>
-                                                <div className="flex shrink-0 flex-col items-end gap-1">
-                                                    <span
-                                                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${STATUS_BADGE_CLASS[l.status]}`}
-                                                    >
-                                                        {statusLabel[l.status]}
-                                                    </span>
-                                                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                                                        {formatRelativeTime(
-                                                            l.last_activity_at,
-                                                            i18n.language,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </li>
+                                                lesson={l}
+                                                courseNavReturn={courseNavReturn}
+                                                statusLabel={statusLabel[l.status]}
+                                                statusBadgeClassName={lessonProgressStatusBadgeClassName[l.status]}
+                                                locale={i18n.language}
+                                            />
                                         ))}
                                     </ul>
                                     <ShowMoreToggle

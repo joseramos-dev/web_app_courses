@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type {
+    ICourseSubmissionsList,
     ISubmission,
     SubmissionStatus,
 } from "../../../shared/interfaces/ISubmission";
 import { API_getCourseSubmissions } from "../../progress/submissionApi";
 import { formatRelativeTime } from "../../dashboard/components/formatRelativeTime";
-import { runWithToastSaving } from "../../../shared/utils/runWithToastSaving";
+import { useAsyncData } from "../../../shared/hooks/useAsyncData";
 import { GradeSubmissionModal } from "./GradeSubmissionModal";
 
 const STATUS_CLASS: Record<SubmissionStatus, string> = {
@@ -36,32 +37,18 @@ type Props = {
 export function SubmissionsPanel({ courseId }: Props) {
     const { t, i18n } = useTranslation();
     const statusLabel = getStatusLabel(t);
-    const [submissions, setSubmissions] = useState<ISubmission[]>([]);
-    const [pendingCount, setPendingCount] = useState(0);
-    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"pending" | "all">("pending");
     const [gradingSubmission, setGradingSubmission] = useState<ISubmission | null>(
         null,
     );
 
-    const loadSubmissions = useCallback(async () => {
-        const data = await runWithToastSaving(
-            setLoading,
-            () => API_getCourseSubmissions(courseId),
-            t("courseStudents.submissions.loadError"),
-        );
-        if (data) {
-            setSubmissions(data.submissions);
-            setPendingCount(data.pending_count);
-        } else {
-            setSubmissions([]);
-            setPendingCount(0);
-        }
-    }, [courseId, t]);
-
-    useEffect(() => {
-        void loadSubmissions();
-    }, [loadSubmissions]);
+    const { data, loading, setData } = useAsyncData<ICourseSubmissionsList>(
+        () => API_getCourseSubmissions(courseId),
+        [courseId],
+        { errorMessage: t("courseStudents.submissions.loadError") },
+    );
+    const submissions = data?.submissions ?? [];
+    const pendingCount = data?.pending_count ?? 0;
 
     const visibleSubmissions = useMemo(() => {
         if (filter === "all") return submissions;
@@ -69,11 +56,18 @@ export function SubmissionsPanel({ courseId }: Props) {
     }, [filter, submissions]);
 
     const handleGraded = (updated: ISubmission) => {
-        setSubmissions((prev) =>
-            prev.map((s) => (s.id === updated.id ? updated : s)),
-        );
-        setPendingCount((prev) =>
-            updated.status === "pending" ? prev : Math.max(0, prev - 1),
+        setData((prev) =>
+            prev
+                ? {
+                      submissions: prev.submissions.map((s) =>
+                          s.id === updated.id ? updated : s,
+                      ),
+                      pending_count:
+                          updated.status === "pending"
+                              ? prev.pending_count
+                              : Math.max(0, prev.pending_count - 1),
+                  }
+                : prev,
         );
     };
 

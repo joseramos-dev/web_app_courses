@@ -8,6 +8,7 @@ import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "../../shared/provider/AuthContext"
 import { useDebounce } from "../../shared/hooks/useDebounce"
+import { useAsyncData } from "../../shared/hooks/useAsyncData"
 import { paginationSx } from "../../shared/components/paginationSx"
 import { apiErrorMessage } from "../../shared/utils/apiError"
 import { DevSeedPanel } from "./components/DevSeedPanel"
@@ -19,9 +20,6 @@ const PAGE_SIZE = 10
 export const AdminPanel = () => {
     const { t } = useTranslation()
     const { user: currentUser } = useAuth()
-    const [users, setUsers] = useState<IUser[]>([])
-    const [total, setTotal] = useState(0)
-    const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState("")
     const [roleFilter, setRoleFilter] = useState<UserRoles[]>([])
     const [page, setPage] = useState(1)
@@ -35,29 +33,18 @@ export const AdminPanel = () => {
         setPage(1)
     }, [debouncedSearch, roleFilter])
 
-    useEffect(() => {
-        let cancelled = false
-        const load = async () => {
-            setLoading(true)
-            try {
-                const data = await API_getUsers({
-                    search: debouncedSearch || undefined,
-                    role: roleFilter.length ? roleFilter : undefined,
-                    limit: PAGE_SIZE,
-                    offset: (page - 1) * PAGE_SIZE,
-                })
-                if (cancelled) return
-                setUsers(data.users)
-                setTotal(data.total)
-            } finally {
-                if (!cancelled) setLoading(false)
-            }
-        }
-        void load()
-        return () => {
-            cancelled = true
-        }
-    }, [debouncedSearch, roleFilter, page])
+    const { data, loading, setData } = useAsyncData(
+        () =>
+            API_getUsers({
+                search: debouncedSearch || undefined,
+                role: roleFilter.length ? roleFilter : undefined,
+                limit: PAGE_SIZE,
+                offset: (page - 1) * PAGE_SIZE,
+            }),
+        [debouncedSearch, roleFilter, page],
+    )
+    const users = data?.users ?? []
+    const total = data?.total ?? 0
 
     const toggleRole = (role: UserRoles) => {
         setRoleFilter((current) =>
@@ -76,8 +63,15 @@ export const AdminPanel = () => {
         }
         try {
             const detail = await API_deleteUser(user.id!)
-            setUsers((currentUsers) => currentUsers.filter((_, currentIndex) => currentIndex !== index))
-            setTotal((current) => Math.max(0, current - 1))
+            setData((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          users: prev.users.filter((_, currentIndex) => currentIndex !== index),
+                          total: Math.max(0, prev.total - 1),
+                      }
+                    : prev,
+            )
             toast.success(detail)
         } catch (error) {
             toast.error(typeof error === "string" ? error : t("admin.deleteUserFailed"))
@@ -103,10 +97,15 @@ export const AdminPanel = () => {
                 from: t(`admin.roles.${user.role}`),
                 to: t(`admin.roles.${updatedUser.role}`),
             }))
-            setUsers((currentUsers) =>
-                currentUsers.map((currentUser) =>
-                    currentUser === user ? { ...currentUser, role } : currentUser
-                )
+            setData((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          users: prev.users.map((currentUser) =>
+                              currentUser === user ? { ...currentUser, role } : currentUser
+                          ),
+                      }
+                    : prev,
             )
         } catch (e) {
             toast.error(apiErrorMessage(e, t("admin.roleUpdateFailed")))

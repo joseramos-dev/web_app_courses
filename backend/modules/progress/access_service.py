@@ -83,13 +83,7 @@ def get_unlocked_lesson_ids(
             continue
         prev = lessons[idx - 1]
         prev_status = status_map.get(prev.id, LessonProgressStatus.NOT_STARTED)
-        self_status = status_map.get(lesson.id, LessonProgressStatus.NOT_STARTED)
         if prev_status == LessonProgressStatus.COMPLETED:
-            unlocked.add(lesson.id)
-        elif self_status in (
-            LessonProgressStatus.IN_PROGRESS,
-            LessonProgressStatus.COMPLETED,
-        ):
             unlocked.add(lesson.id)
     return unlocked
 

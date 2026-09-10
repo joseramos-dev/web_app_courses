@@ -33,6 +33,7 @@ import {
   type ICourseEditStats,
 } from "./api";
 import { runWithToastSaving } from "../../shared/utils/runWithToastSaving";
+import { useAsyncData } from "../../shared/hooks/useAsyncData";
 
 function emptyDraft(user: IUser): ICourses {
   return {
@@ -82,57 +83,50 @@ export function CourseEdit() {
   const mayAccessCreate =
     user && (user.role === "admin" || user.role === "instructor");
 
-  const [course, setCourse] = useState<ICourses | null>(null);
   const [draft, setDraft] = useState<ICourses | null>(null);
-  const [curriculum, setCurriculum] = useState<ICourseCurriculum | null>(null);
-  const [stats, setStats] = useState<ICourseEditStats | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    data,
+    loading: isLoading,
+    error,
+    setData,
+  } = useAsyncData<{
+    course: ICourses;
+    curriculum: ICourseCurriculum | null;
+    stats: ICourseEditStats | null;
+  } | null>(
+    () => {
+      if (isCreateMode) {
+        return Promise.resolve(
+          user ? { course: emptyDraft(user), curriculum: null, stats: null } : null,
+        );
+      }
+      if (!courseId || courseId === "new") return Promise.resolve(null);
+      const id = Number(courseId);
+      return Promise.all([
+        API_getCourseDetailById(id),
+        API_getCourseCurriculum(id),
+        API_getCourseEditStats(id),
+      ]).then(([course, curriculum, stats]) => ({ course, curriculum, stats }));
+    },
+    [isCreateMode, mayAccessCreate, user, courseId, t],
+    { errorMessage: t("courseEdit.loadError") },
+  );
+  const course = data?.course ?? null;
+  const curriculum = data?.curriculum ?? null;
+  const stats = data?.stats ?? null;
+
+  // Seeds/resyncs the editable draft whenever a fresh course object loads
+  // (create mode's synthetic empty course, or a real fetch).
+  useEffect(() => {
+    if (data?.course) setDraft(data.course);
+  }, [data]);
 
   const refreshCurriculum = async (id: number) => {
-    const data = await reloadCurriculum(id);
-    setCurriculum(data);
+    const curriculumData = await reloadCurriculum(id);
+    setData((prev) => (prev ? { ...prev, curriculum: curriculumData } : prev));
   };
-
-  useEffect(() => {
-    if (!isCreateMode || !mayAccessCreate || !user) return;
-    const initial = emptyDraft(user);
-    setCourse(initial);
-    setDraft(initial);
-    setCurriculum(null);
-    setStats(null);
-    setError(null);
-    setIsLoading(false);
-  }, [isCreateMode, mayAccessCreate, user, courseId]);
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!courseId || courseId === "new") return;
-      try {
-        setIsLoading(true);
-        setError(null);
-        const id = Number(courseId);
-        const [detail, curriculumData, editStats] = await Promise.all([
-          API_getCourseDetailById(id),
-          API_getCourseCurriculum(id),
-          API_getCourseEditStats(id),
-        ]);
-        setCourse(detail);
-        setDraft(detail);
-        setCurriculum(curriculumData);
-        setStats(editStats);
-      } catch (e) {
-        console.error(e);
-        setError(t("courseEdit.loadError"));
-        setCourse(null);
-        setDraft(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    void fetchCourse();
-  }, [courseId, t]);
 
   const canEdit = useMemo(() => {
     if (!user) return false;
@@ -179,7 +173,7 @@ export function CourseEdit() {
     if (!canEdit || !courseId || courseId === "new") return;
     try {
       const updated = await API_updateCourse(Number(courseId), draft);
-      setCourse(updated);
+      setData((prev) => (prev ? { ...prev, course: updated } : prev));
       setDraft(updated);
       toast.success(t("courseEdit.toast.courseSaved"));
       navigate(`/course/${courseId}`, { replace: true });
@@ -284,7 +278,9 @@ export function CourseEdit() {
             courseId={numericCourseId}
             curriculum={curriculum}
             disabled={!canEdit}
-            onCurriculumChange={setCurriculum}
+            onCurriculumChange={(next) =>
+              setData((prev) => (prev ? { ...prev, curriculum: next } : prev))
+            }
             onCreateLesson={async (payload: ILessonCreate) => {
               const created = await API_createLesson(numericCourseId, payload);
               await refreshCurriculum(numericCourseId);

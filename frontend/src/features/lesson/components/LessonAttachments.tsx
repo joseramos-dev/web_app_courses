@@ -4,12 +4,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import type { ILessonFile } from "../../course_edit/lessonTypes";
 import { api } from "../../../shared/api/api";
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+import { formatFileSize } from "../../../shared/utils/formatFileSize";
 
 type Props = {
   files: ILessonFile[];
