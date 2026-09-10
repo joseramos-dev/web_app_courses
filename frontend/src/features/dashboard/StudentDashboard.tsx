@@ -23,6 +23,9 @@ import { DashboardPanel } from "./components/DashboardPanel";
 import { EmptyStateCard } from "./components/EmptyStateCard";
 import { KURSA_DASHBOARD_REFRESH_EVENT } from "../../shared/constants/appEvents";
 import { RecommendedCoursesCarousel } from "../../shared/components/RecommendedCoursesCarousel";
+import { getLessonTypeLabels } from "../../shared/types/LessonTypes";
+import { LessonTypeIcon } from "../../shared/components/LessonTypeIcon";
+import type { LessonType } from "../course_edit/lessonTypes";
 
 const STATUS_BADGE_CLASS: Record<LessonProgressStatus, string> = {
     not_started: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
@@ -42,6 +45,7 @@ function getStatusLabel(
 
 export const StudentDashboard = ({ user }: { user: IUser }) => {
     const { t, i18n } = useTranslation();
+    const lessonTypeLabels = getLessonTypeLabels(t);
     const weekdayFormatter = useMemo(
         () => new Intl.DateTimeFormat(i18n.language, { weekday: "short" }),
         [i18n.language],
@@ -283,9 +287,20 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                                                                 <Link
                                                                     to={`/course/${a.course_id}/lesson/${a.lesson_id}`}
                                                                     state={courseNavReturn}
-                                                                    className="text-gray-700 hover:underline dark:text-slate-300"
+                                                                    className="flex items-center gap-2 text-gray-700 hover:underline dark:text-slate-300"
                                                                 >
-                                                                    {a.lesson_title}
+                                                                    <LessonTypeIcon
+                                                                        lessonType={a.lesson_type as LessonType}
+                                                                        className="size-4 shrink-0"
+                                                                    />
+                                                                    <span className="min-w-0">
+                                                                        <span className="block font-medium text-gray-900 dark:text-slate-100">
+                                                                            {a.lesson_title}
+                                                                        </span>
+                                                                        <span className="block text-xs text-gray-500 dark:text-slate-400">
+                                                                            {lessonTypeLabels[a.lesson_type as LessonType] ?? a.lesson_type}
+                                                                        </span>
+                                                                    </span>
                                                                 </Link>
                                                             </td>
                                                             <td className="py-2 pr-3 font-medium text-gray-900 dark:text-slate-100">
@@ -545,7 +560,7 @@ export const StudentDashboard = ({ user }: { user: IUser }) => {
                                             new Date(d.date),
                                         ),
                                         value: d.lessons_completed,
-                                        title: `${d.date}: ${t("charts.completed", { count: d.lessons_completed })}`,
+                                        title: d.date,
                                     }))}
                                     showValues
                                 />

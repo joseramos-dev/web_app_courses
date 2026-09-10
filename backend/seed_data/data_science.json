@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'data science'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "data science",
+  "topics": [
+    {
+      "name": "Fundamentos de datos",
+      "lessons": [
+        {
+          "title": "Que es un conjunto de datos",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Un conjunto de datos es una tabla donde cada **fila** es una observacion y cada **columna** una variable.\n\nAntes de analizar nada conviene responder tres preguntas: que representa cada fila, que tipo tiene cada columna y cuantos valores faltan. Saltarse este paso es la causa mas comun de conclusiones equivocadas."
+        },
+        {
+          "title": "Tipos de variables y escalas",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que representa una fila en un conjunto de datos tabular?",
+              "options": [
+                {
+                  "text": "Una observacion individual",
+                  "is_correct": true
+                },
+                {
+                  "text": "Una variable del estudio",
+                  "is_correct": false
+                },
+                {
+                  "text": "El promedio de la muestra",
+                  "is_correct": false
+                },
+                {
+                  "text": "Un valor perdido",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es una comprobacion imprescindible antes de analizar?",
+              "options": [
+                {
+                  "text": "Revisar los valores faltantes",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ordenar alfabeticamente las filas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Convertir todo a texto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Eliminar la primera columna",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Analisis exploratorio",
+      "lessons": [
+        {
+          "title": "Estadisticos descriptivos",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "El analisis exploratorio busca entender los datos antes de modelarlos.\n\nLa **media** resume el centro pero se deja arrastrar por los valores extremos; la **mediana** resiste mucho mejor. La **desviacion tipica** mide la dispersion. Comparar media y mediana es la forma mas rapida de detectar asimetria o valores atipicos."
+        },
+        {
+          "title": "Visualizacion con histogramas",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que medidas describen la tendencia central?",
+              "options": [
+                {
+                  "text": "Media",
+                  "is_correct": true
+                },
+                {
+                  "text": "Mediana",
+                  "is_correct": true
+                },
+                {
+                  "text": "Moda",
+                  "is_correct": true
+                },
+                {
+                  "text": "Desviacion tipica",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que la mediana resiste mejor los valores atipicos?",
+              "options": [
+                {
+                  "text": "Depende de la posicion central, no de la magnitud",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ignora la mitad de los datos extremos",
+                  "is_correct": true
+                },
+                {
+                  "text": "No se calcula sumando todos los valores",
+                  "is_correct": true
+                },
+                {
+                  "text": "Siempre coincide con la media",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Limpieza y preparacion",
+      "lessons": [
+        {
+          "title": "Valores faltantes y atipicos",
+          "lesson_type": "text",
+          "duration_minutes": 20,
+          "body": "En la practica, preparar los datos ocupa mas tiempo que modelarlos.\n\nAnte un valor faltante caben tres opciones: eliminar la fila, imputar un valor o tratarlo como categoria propia. La eleccion depende de **por que** falta el dato: no es lo mismo un sensor averiado que una pregunta que el encuestado prefirio no responder."
+        },
+        {
+          "title": "Normalizacion y escalado",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que hay que valorar antes de imputar un valor faltante?",
+              "options": [
+                {
+                  "text": "El motivo por el que falta el dato",
+                  "is_correct": true
+                },
+                {
+                  "text": "El orden alfabetico de la columna",
+                  "is_correct": false
+                },
+                {
+                  "text": "El tamano del fichero",
+                  "is_correct": false
+                },
+                {
+                  "text": "El formato de exportacion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Para que sirve normalizar una variable?",
+              "options": [
+                {
+                  "text": "Para llevar las variables a una escala comparable",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para eliminar filas duplicadas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para cambiar el tipo de dato a texto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para ordenar el conjunto de datos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Modelos predictivos",
+      "lessons": [
+        {
+          "title": "Regresion y clasificacion",
+          "lesson_type": "text",
+          "duration_minutes": 19,
+          "body": "Los problemas supervisados se dividen en dos familias segun lo que se quiere predecir.\n\nLa **regresion** estima un valor continuo, como un precio. La **clasificacion** asigna una categoria, como spam o no spam. El tipo de la variable objetivo determina el modelo, la metrica y la forma de interpretar el resultado."
+        },
+        {
+          "title": "Arboles de decision explicados",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que problema resuelve un modelo de clasificacion?",
+              "options": [
+                {
+                  "text": "Asignar una categoria a cada observacion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Predecir un valor numerico continuo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Agrupar datos sin etiquetas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reducir el numero de columnas",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que tecnica reduce la dimensionalidad de un conjunto de datos?",
+              "options": [
+                {
+                  "text": "PCA",
+                  "is_correct": true
+                },
+                {
+                  "text": "Bagging",
+                  "is_correct": false
+                },
+                {
+                  "text": "One-hot encoding",
+                  "is_correct": false
+                },
+                {
+                  "text": "Validacion cruzada",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion de modelos",
+      "lessons": [
+        {
+          "title": "Metricas y sobreajuste",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Un modelo que acierta el 99 % en entrenamiento y el 60 % en datos nuevos no es un buen modelo: esta **sobreajustado**.\n\nPor eso se separa siempre un conjunto de prueba que el modelo no ha visto. Y la exactitud no basta: con clases desbalanceadas hay que mirar precision, exhaustividad y su media armonica, la F1."
+        },
+        {
+          "title": "Validacion cruzada paso a paso",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que sintomas indican sobreajuste?",
+              "options": [
+                {
+                  "text": "Gran diferencia entre error de entrenamiento y de prueba",
+                  "is_correct": true
+                },
+                {
+                  "text": "Rendimiento excelente solo con los datos vistos",
+                  "is_correct": true
+                },
+                {
+                  "text": "El modelo memoriza el ruido de la muestra",
+                  "is_correct": true
+                },
+                {
+                  "text": "El error es alto en entrenamiento y en prueba",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que metricas conviene mirar con clases desbalanceadas?",
+              "options": [
+                {
+                  "text": "Precision",
+                  "is_correct": true
+                },
+                {
+                  "text": "Exhaustividad",
+                  "is_correct": true
+                },
+                {
+                  "text": "F1",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo la exactitud global",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Comunicacion de resultados",
+      "lessons": [
+        {
+          "title": "Contar una historia con datos",
+          "lesson_type": "text",
+          "duration_minutes": 14,
+          "body": "Un analisis que nadie entiende no sirve de nada.\n\nUn buen informe empieza por la conclusion, no por el metodo. Los graficos deben tener un unico mensaje y ejes bien etiquetados, y toda cifra necesita su contexto: un 15 % de aumento no significa nada sin saber sobre que base y en cuanto tiempo."
+        },
+        {
+          "title": "Buenas practicas de visualizacion",
+          "lesson_type": "video",
+          "duration_minutes": 11
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Como conviene estructurar un informe de analisis?",
+              "options": [
+                {
+                  "text": "Empezando por la conclusion principal",
+                  "is_correct": true
+                },
+                {
+                  "text": "Empezando por el detalle del codigo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Ocultando las limitaciones del estudio",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sin incluir graficos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que le falta a la afirmacion 'las ventas subieron un 15 %'?",
+              "options": [
+                {
+                  "text": "El contexto: base de comparacion y periodo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Un grafico de sectores",
+                  "is_correct": false
+                },
+                {
+                  "text": "El nombre del analista",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, esta completa",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "El recorrido ha sido el ciclo completo del dato: **entenderlo**, **limpiarlo**, **modelarlo**, **evaluarlo** y **comunicarlo**.\n\nDe todas las fases, la limpieza es la que mas tiempo consume y la que menos se luce, pero es la que sostiene la validez de todo lo demas."
+        },
+        {
+          "title": "Un proyecto de principio a fin",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que fase suele consumir mas tiempo en un proyecto real?",
+              "options": [
+                {
+                  "text": "La preparacion y limpieza de los datos",
+                  "is_correct": true
+                },
+                {
+                  "text": "La eleccion del color de los graficos",
+                  "is_correct": false
+                },
+                {
+                  "text": "La instalacion de las librerias",
+                  "is_correct": false
+                },
+                {
+                  "text": "La redaccion del titulo",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que se reserva un conjunto de prueba?",
+              "options": [
+                {
+                  "text": "Para estimar el rendimiento sobre datos no vistos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para aumentar el tamano del entrenamiento",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para acelerar el calculo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para eliminar valores atipicos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

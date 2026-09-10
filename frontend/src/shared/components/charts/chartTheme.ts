@@ -14,6 +14,16 @@ export const CHART_BAR_FILL = CHART_PRIMARY;
 /** Secondary series: cohort averages, lines, second comparison group. */
 export const CHART_SECONDARY = "var(--chart-series-2)";
 
+/**
+ * A second series that has to be told apart at a glance.
+ *
+ * `CHART_SECONDARY` is the neighbouring green, which reads fine when the two
+ * series differ in shape (a line over bars, as in the cohort chart) but not
+ * when both are bars side by side: green-400 next to green-500 is a single
+ * block of colour. This is the same palette, a different hue.
+ */
+export const CHART_CONTRAST = "var(--chart-series-3)";
+
 /** @deprecated Use CHART_SECONDARY — kept for existing imports. */
 export const CHART_LINE_STROKE = CHART_SECONDARY;
 

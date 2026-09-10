@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../../shared/povider/AuthContext";
+import { useAuth } from "../../../shared/provider/AuthContext";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
 import type {
   IEnrollmentDetail,
@@ -16,6 +16,11 @@ import {
   DEFAULT_COURSE_RETURN,
   type CourseNavState,
 } from "../../../shared/types/CourseNavState";
+import {
+  isCourseStaff,
+  isLessonUnlocked,
+  pickFirstUnlockedLessonId,
+} from "../../../shared/utils/lessonAccessUtils";
 
 type ActionKind =
   | "enroll"
@@ -28,17 +33,32 @@ type ActionKind =
 function pickNextLesson(
   lessons: ILesson[],
   enrollment: IEnrollmentDetail | null,
+  course: ICourses | null,
+  isStaff: boolean,
 ): ILesson | null {
   if (lessons.length === 0) return null;
-  const sorted = [...lessons].sort((a, b) => a.position - b.position);
-  if (!enrollment) return sorted[0];
+  if (enrollment?.current_lesson_id) {
+    const current = lessons.find((l) => l.id === enrollment.current_lesson_id);
+    if (current && isLessonUnlocked(course, enrollment, current.id, isStaff)) {
+      return current;
+    }
+  }
   const completedSet = new Set(
-    enrollment.lesson_progress
+    (enrollment?.lesson_progress ?? [])
       .filter((lp) => lp.status === "completed")
       .map((lp) => lp.lesson_id),
   );
-  const next = sorted.find((l) => !completedSet.has(l.id));
-  return next ?? sorted[0];
+  const next = lessons.find(
+    (l) => !completedSet.has(l.id) && isLessonUnlocked(course, enrollment, l.id, isStaff),
+  );
+  if (next) return next;
+  const fallbackId = pickFirstUnlockedLessonId(
+    lessons.map((l) => l.id),
+    course,
+    enrollment,
+    isStaff,
+  );
+  return fallbackId != null ? lessons.find((l) => l.id === fallbackId) ?? null : null;
 }
 
 type Props = {
@@ -108,6 +128,8 @@ export function DetailActionButton({
     }
   };
 
+  const isStaff = isCourseStaff(user, course);
+
   const handleContinue = async () => {
     if (!course) return;
     if (lessons.length === 0) {
@@ -132,7 +154,7 @@ export function DetailActionButton({
       }
       return;
     }
-    const next = pickNextLesson(lessons, enrollment);
+    const next = pickNextLesson(lessons, enrollment, course, isStaff ?? false);
     if (!next) {
       toast(t("courseDetail.toast.noLessonsYet"));
       return;

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
-import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import type {
     ISubmission,
@@ -8,6 +7,7 @@ import type {
 } from "../../../shared/interfaces/ISubmission";
 import { API_getCourseSubmissions } from "../../progress/submissionApi";
 import { formatRelativeTime } from "../../dashboard/components/formatRelativeTime";
+import { runWithToastSaving } from "../../../shared/utils/runWithToastSaving";
 import { GradeSubmissionModal } from "./GradeSubmissionModal";
 
 const STATUS_CLASS: Record<SubmissionStatus, string> = {
@@ -45,18 +45,17 @@ export function SubmissionsPanel({ courseId }: Props) {
     );
 
     const loadSubmissions = useCallback(async () => {
-        try {
-            setLoading(true);
-            const data = await API_getCourseSubmissions(courseId);
+        const data = await runWithToastSaving(
+            setLoading,
+            () => API_getCourseSubmissions(courseId),
+            t("courseStudents.submissions.loadError"),
+        );
+        if (data) {
             setSubmissions(data.submissions);
             setPendingCount(data.pending_count);
-        } catch (e) {
-            console.error(e);
-            toast.error(t("courseStudents.submissions.loadError"));
+        } else {
             setSubmissions([]);
             setPendingCount(0);
-        } finally {
-            setLoading(false);
         }
     }, [courseId, t]);
 

@@ -2,7 +2,7 @@ import axios from "axios";
 import { api } from "../../shared/api/api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
 import type { IEnrollment, IEnrollmentDetail } from "../../shared/interfaces/IEnrollment";
-import type { ILesson } from "../course_edit/lessonTypes";
+import type { ICourseCurriculum } from "../course_edit/lessonTypes";
 
 export const API_getCourseDetailById = async (course_Id: number): Promise<ICourses> => {
     try {
@@ -14,8 +14,12 @@ export const API_getCourseDetailById = async (course_Id: number): Promise<ICours
     }
 };
 
-export const API_getCourseLessons = async (courseId: number): Promise<ILesson[]> => {
-    const { data } = await api.get<ILesson[]>(`/courses/${courseId}/lessons`);
+export const API_getCourseCurriculum = async (
+    courseId: number,
+): Promise<ICourseCurriculum> => {
+    const { data } = await api.get<ICourseCurriculum>(
+        `/courses/${courseId}/curriculum`,
+    );
     return data;
 };
 

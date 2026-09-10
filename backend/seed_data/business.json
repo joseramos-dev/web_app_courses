@@ -1,0 +1,293 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'business'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "business",
+  "topics": [
+    {
+      "name": "Fundamentos de la empresa",
+      "lessons": [
+        {
+          "title": "Que es un modelo de negocio",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Un **modelo de negocio** describe como una organizacion crea, entrega y captura valor.\n\nNo basta con tener un buen producto: hay que decidir a quien se le vende, por que canal, con que estructura de costes y de donde salen los ingresos. Herramientas como el *Business Model Canvas* permiten poner esas nueve piezas sobre una misma hoja y detectar incoherencias antes de invertir."
+        },
+        {
+          "title": "Tipos de organizacion empresarial",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que describe principalmente un modelo de negocio?",
+              "options": [
+                {"text": "Como la organizacion crea, entrega y captura valor", "is_correct": true},
+                {"text": "El organigrama de los empleados", "is_correct": false},
+                {"text": "El calendario fiscal del ejercicio", "is_correct": false},
+                {"text": "La ubicacion fisica de las oficinas", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Cuantos bloques tiene el Business Model Canvas?",
+              "options": [
+                {"text": "Nueve", "is_correct": true},
+                {"text": "Cuatro", "is_correct": false},
+                {"text": "Doce", "is_correct": false},
+                {"text": "Seis", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Marketing y clientes",
+      "lessons": [
+        {
+          "title": "Segmentacion de mercado",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Segmentar consiste en dividir un mercado amplio en grupos con necesidades parecidas.\n\nLos criterios habituales son demograficos, geograficos, conductuales y psicograficos. Un segmento util debe ser **medible**, **accesible** y lo bastante **grande** como para que merezca la pena atenderlo con una propuesta propia."
+        },
+        {
+          "title": "El embudo de conversion",
+          "lesson_type": "video",
+          "duration_minutes": 10
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que criterios se usan habitualmente para segmentar un mercado?",
+              "options": [
+                {"text": "Demograficos", "is_correct": true},
+                {"text": "Conductuales", "is_correct": true},
+                {"text": "Geograficos", "is_correct": true},
+                {"text": "El color corporativo de la empresa", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Que condiciones debe cumplir un segmento para ser util?",
+              "options": [
+                {"text": "Ser medible", "is_correct": true},
+                {"text": "Ser accesible", "is_correct": true},
+                {"text": "Tener un tamano suficiente", "is_correct": true},
+                {"text": "Estar formado solo por clientes nuevos", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Finanzas para no financieros",
+      "lessons": [
+        {
+          "title": "Leer una cuenta de resultados",
+          "lesson_type": "text",
+          "duration_minutes": 20,
+          "body": "La cuenta de resultados responde a una pregunta simple: gano o perdio dinero la empresa en el periodo?\n\nSe lee de arriba abajo: **ingresos**, menos coste de ventas da el *margen bruto*; restando gastos operativos se llega al **EBITDA**; y tras amortizaciones, intereses e impuestos aparece el resultado neto. Cada escalon explica una parte distinta del negocio."
+        },
+        {
+          "title": "Flujo de caja frente a beneficio",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que mide el margen bruto?",
+              "options": [
+                {"text": "Ingresos menos coste de ventas", "is_correct": true},
+                {"text": "El beneficio despues de impuestos", "is_correct": false},
+                {"text": "El dinero disponible en caja", "is_correct": false},
+                {"text": "El valor total de los activos", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Una empresa puede tener beneficio contable y quedarse sin liquidez porque...",
+              "options": [
+                {"text": "El beneficio no coincide con el flujo de caja", "is_correct": true},
+                {"text": "El beneficio siempre es dinero en el banco", "is_correct": false},
+                {"text": "Las amortizaciones salen de la caja cada mes", "is_correct": false},
+                {"text": "Los impuestos se pagan por adelantado", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Liderazgo y equipos",
+      "lessons": [
+        {
+          "title": "Estilos de liderazgo",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "No existe un estilo de liderazgo mejor que los demas: existe el adecuado a la situacion.\n\nEl liderazgo **directivo** funciona en crisis o con equipos sin experiencia; el **participativo** aprovecha el criterio del equipo cuando lo tiene; el **delegador** libera al responsable cuando hay madurez suficiente. Confundirlos es la causa habitual de friccion."
+        },
+        {
+          "title": "Como dar retroalimentacion util",
+          "lesson_type": "video",
+          "duration_minutes": 11
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 7,
+          "questions": [
+            {
+              "prompt": "Cuando resulta mas adecuado un liderazgo directivo?",
+              "options": [
+                {"text": "En situaciones de crisis o con equipos sin experiencia", "is_correct": true},
+                {"text": "Siempre, con cualquier equipo", "is_correct": false},
+                {"text": "Solo con equipos muy autonomos", "is_correct": false},
+                {"text": "Unicamente en empresas grandes", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Que caracteriza al liderazgo delegador?",
+              "options": [
+                {"text": "Requiere madurez y autonomia en el equipo", "is_correct": true},
+                {"text": "Supervisa cada tarea en detalle", "is_correct": false},
+                {"text": "Evita que el equipo tome decisiones", "is_correct": false},
+                {"text": "Se aplica solo a personal temporal", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Estrategia y competencia",
+      "lessons": [
+        {
+          "title": "Las cinco fuerzas de Porter",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "El modelo de Porter analiza el atractivo de un sector a partir de cinco presiones: rivalidad entre competidores, amenaza de nuevos entrantes, amenaza de sustitutos, poder de negociacion de los proveedores y poder de los clientes.\n\nUn sector donde las cinco fuerzas son intensas tiende a margenes bajos, por muy bien gestionada que este una empresa concreta."
+        },
+        {
+          "title": "Ventaja competitiva sostenible",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Cuales son fuerzas del modelo de Porter?",
+              "options": [
+                {"text": "Amenaza de nuevos entrantes", "is_correct": true},
+                {"text": "Poder de negociacion de los proveedores", "is_correct": true},
+                {"text": "Amenaza de productos sustitutivos", "is_correct": true},
+                {"text": "Antiguedad media de la plantilla", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Que indica que un sector sea poco atractivo?",
+              "options": [
+                {"text": "Rivalidad muy intensa entre competidores", "is_correct": true},
+                {"text": "Clientes con mucho poder de negociacion", "is_correct": true},
+                {"text": "Barreras de entrada muy bajas", "is_correct": true},
+                {"text": "Que existan pocos sustitutos", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Operaciones y procesos",
+      "lessons": [
+        {
+          "title": "Cadena de valor",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "La cadena de valor descompone la empresa en actividades que aportan valor al cliente.\n\nSe distinguen actividades **primarias** (logistica, operaciones, marketing, servicio) y **de apoyo** (infraestructura, recursos humanos, tecnologia, compras). Analizarlas por separado permite ver donde se genera realmente el margen y donde solo se acumula coste."
+        },
+        {
+          "title": "Introduccion a la mejora continua",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Cual es una actividad primaria de la cadena de valor?",
+              "options": [
+                {"text": "Logistica de entrada", "is_correct": true},
+                {"text": "Gestion de recursos humanos", "is_correct": false},
+                {"text": "Desarrollo tecnologico", "is_correct": false},
+                {"text": "Infraestructura de la empresa", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Para que sirve analizar la cadena de valor?",
+              "options": [
+                {"text": "Para identificar donde se genera el margen", "is_correct": true},
+                {"text": "Para calcular el impuesto de sociedades", "is_correct": false},
+                {"text": "Para fijar el horario laboral", "is_correct": false},
+                {"text": "Para elegir el domicilio social", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Antes de la prueba final conviene repasar los cuatro ejes del curso: el **modelo de negocio** como marco, el **cliente** como origen de los ingresos, las **finanzas** como lenguaje comun y la **estrategia** como forma de sostener la ventaja en el tiempo.\n\nSi alguno de esos bloques quedo flojo, es buen momento para volver sobre el."
+        },
+        {
+          "title": "Casos de empresas reales",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que elemento conecta la segmentacion con las finanzas de la empresa?",
+              "options": [
+                {"text": "Los ingresos provienen de los segmentos atendidos", "is_correct": true},
+                {"text": "La segmentacion fija el tipo impositivo", "is_correct": false},
+                {"text": "Los segmentos determinan las amortizaciones", "is_correct": false},
+                {"text": "No existe relacion entre ambos", "is_correct": false}
+              ]
+            },
+            {
+              "prompt": "Una ventaja competitiva es sostenible cuando...",
+              "options": [
+                {"text": "Resulta dificil de imitar por los competidores", "is_correct": true},
+                {"text": "Se basa solo en bajar el precio", "is_correct": false},
+                {"text": "Depende de una promocion puntual", "is_correct": false},
+                {"text": "La conoce toda la competencia", "is_correct": false}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

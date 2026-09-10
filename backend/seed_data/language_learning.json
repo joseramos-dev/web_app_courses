@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'language learning'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "language learning",
+  "topics": [
+    {
+      "name": "Fonetica y pronunciacion",
+      "lessons": [
+        {
+          "title": "Sonidos y acento",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Aprender a pronunciar empieza por aprender a **escuchar**.\n\nCada lengua tiene un inventario de sonidos propio, y el oido adulto tiende a asimilar los sonidos nuevos a los de la lengua materna. Por eso la practica util no es repetir mucho, sino discriminar primero pares minimos que suenan casi iguales."
+        },
+        {
+          "title": "Ejercicios de discriminacion auditiva",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Por que cuesta pronunciar sonidos de otra lengua?",
+              "options": [
+                {
+                  "text": "El oido tiende a asimilarlos a los de la lengua materna",
+                  "is_correct": true
+                },
+                {
+                  "text": "Los musculos no pueden producirlos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo se aprende en la infancia",
+                  "is_correct": false
+                },
+                {
+                  "text": "Depende del alfabeto usado",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que es un par minimo?",
+              "options": [
+                {
+                  "text": "Dos palabras que se diferencian en un solo sonido",
+                  "is_correct": true
+                },
+                {
+                  "text": "Dos palabras con el mismo significado",
+                  "is_correct": false
+                },
+                {
+                  "text": "Una palabra con dos acentos posibles",
+                  "is_correct": false
+                },
+                {
+                  "text": "Dos idiomas emparentados",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vocabulario",
+      "lessons": [
+        {
+          "title": "Como fijar palabras nuevas",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Memorizar listas funciona mal porque las palabras se guardan sin contexto.\n\nLo que si funciona es la **repeticion espaciada**: revisar cada palabra justo antes de olvidarla. Y aprenderlas dentro de una frase, no aisladas, porque el significado real depende de con que otras palabras aparece."
+        },
+        {
+          "title": "Tecnicas de memorizacion eficaz",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que estrategias ayudan a fijar vocabulario?",
+              "options": [
+                {
+                  "text": "Repeticion espaciada",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aprender la palabra en contexto",
+                  "is_correct": true
+                },
+                {
+                  "text": "Asociarla a una imagen o experiencia",
+                  "is_correct": true
+                },
+                {
+                  "text": "Leer la lista una sola vez",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que es mejor aprender palabras en frases?",
+              "options": [
+                {
+                  "text": "El significado depende de las palabras que la acompanan",
+                  "is_correct": true
+                },
+                {
+                  "text": "Se retiene mejor con contexto",
+                  "is_correct": true
+                },
+                {
+                  "text": "Se aprende su uso gramatical a la vez",
+                  "is_correct": true
+                },
+                {
+                  "text": "Porque asi se memorizan mas rapido de una lista",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gramatica basica",
+      "lessons": [
+        {
+          "title": "Estructura de la frase",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La gramatica no es un conjunto de reglas arbitrarias: describe como una lengua organiza el significado.\n\nEl orden de las palabras, la concordancia y los tiempos verbales indican quien hace que y cuando. Dos lenguas pueden expresar lo mismo con recursos muy distintos, y traducir literalmente suele producir frases correctas pero poco naturales."
+        },
+        {
+          "title": "Los tiempos verbales explicados",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que funcion cumple la gramatica de una lengua?",
+              "options": [
+                {
+                  "text": "Organizar como se expresa el significado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Imponer reglas sin proposito",
+                  "is_correct": false
+                },
+                {
+                  "text": "Fijar la pronunciacion de cada palabra",
+                  "is_correct": false
+                },
+                {
+                  "text": "Determinar el vocabulario disponible",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que la traduccion literal suele sonar poco natural?",
+              "options": [
+                {
+                  "text": "Cada lengua usa recursos distintos para lo mismo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Las palabras nunca coinciden en significado",
+                  "is_correct": false
+                },
+                {
+                  "text": "La gramatica es identica en todos los idiomas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Los traductores cometen errores siempre",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Comprension lectora",
+      "lessons": [
+        {
+          "title": "Estrategias de lectura",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "No hace falta entender todas las palabras para entender un texto.\n\nLas estrategias utiles son el **skimming**, leer por encima para captar la idea general, y el **scanning**, buscar un dato concreto. Deducir el significado por el contexto entrena mas que consultar el diccionario en cada linea."
+        },
+        {
+          "title": "Leer prensa en otro idioma",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "En que consiste el skimming?",
+              "options": [
+                {
+                  "text": "Leer por encima para captar la idea general",
+                  "is_correct": true
+                },
+                {
+                  "text": "Buscar un dato concreto en el texto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Traducir palabra por palabra",
+                  "is_correct": false
+                },
+                {
+                  "text": "Leer en voz alta",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que es preferible ante una palabra desconocida?",
+              "options": [
+                {
+                  "text": "Deducir su significado por el contexto",
+                  "is_correct": true
+                },
+                {
+                  "text": "Detener la lectura y consultar el diccionario siempre",
+                  "is_correct": false
+                },
+                {
+                  "text": "Saltarse el parrafo entero",
+                  "is_correct": false
+                },
+                {
+                  "text": "Traducir la frase completa",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Expresion oral",
+      "lessons": [
+        {
+          "title": "Hablar con fluidez",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "La fluidez no es hablar rapido ni sin errores: es mantener la comunicacion.\n\nLas estrategias que mas ayudan son las de **compensacion**: parafrasear cuando falta una palabra, usar conectores para ganar tiempo y aceptar el error como parte del proceso. Quien espera a hablar perfecto no llega a hablar."
+        },
+        {
+          "title": "Conversaciones de la vida cotidiana",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que estrategias favorecen la fluidez?",
+              "options": [
+                {
+                  "text": "Parafrasear cuando falta una palabra",
+                  "is_correct": true
+                },
+                {
+                  "text": "Usar conectores para ganar tiempo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aceptar el error como parte del aprendizaje",
+                  "is_correct": true
+                },
+                {
+                  "text": "Callar hasta dominar la gramatica",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que significa ser fluido en un idioma?",
+              "options": [
+                {
+                  "text": "Mantener la comunicacion sin bloqueos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Poder expresar la idea aunque falte vocabulario",
+                  "is_correct": true
+                },
+                {
+                  "text": "Hacerse entender con naturalidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Hablar sin cometer ningun error",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cultura y contexto",
+      "lessons": [
+        {
+          "title": "La lengua en su sociedad",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Una lengua no se separa de su cultura.\n\nEl **registro** adecuado, las formulas de cortesia o el grado de proximidad varian de una sociedad a otra, y usar la traduccion correcta con el registro equivocado produce mas malentendidos que un error gramatical."
+        },
+        {
+          "title": "Diferencias culturales en la comunicacion",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que consecuencia tiene usar un registro inadecuado?",
+              "options": [
+                {
+                  "text": "Puede causar mas malentendidos que un error gramatical",
+                  "is_correct": true
+                },
+                {
+                  "text": "No afecta a la comunicacion",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo importa en textos escritos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Mejora la percepcion del hablante",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que aspectos culturales influyen en la lengua?",
+              "options": [
+                {
+                  "text": "Las formulas de cortesia y el grado de proximidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Unicamente el alfabeto empleado",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo la velocidad del habla",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, la lengua es independiente de la cultura",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de aprendizaje de idiomas y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

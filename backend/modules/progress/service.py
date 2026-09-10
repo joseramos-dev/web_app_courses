@@ -8,7 +8,6 @@ from core.i18n import http_error
 
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
 from modules.lessons.model import (
-    AnswerOptionModel,
     LessonModel,
     LessonType,
     QuestionModel,
@@ -170,7 +169,21 @@ def _recalc_enrollment_progress(
     if total_lessons > 0 and completed >= total_lessons:
         enrollment.status = EnrollmentStatus.COMPLETED
         enrollment.completed_at = _now()
+    else:
+        if enrollment.status == EnrollmentStatus.COMPLETED:
+            enrollment.status = EnrollmentStatus.IN_PROGRESS
+            enrollment.completed_at = None
     db.flush()
+
+
+def recalc_course_enrollments_progress(db: Session, course_id: int) -> None:
+    enrollments = (
+        db.query(EnrollmentModel)
+        .filter(EnrollmentModel.course_id == course_id)
+        .all()
+    )
+    for enrollment in enrollments:
+        _recalc_enrollment_progress(db, enrollment)
 
 
 # ---------- Public API ----------

@@ -74,11 +74,13 @@ class LessonSchema(BaseModel):
 
     id: int
     course_id: int
+    topic_id: int
     title: str
     lesson_type: LessonType
     position: int
     body: Optional[str] = None
     video_url: Optional[str] = None
+    duration_seconds: Optional[int] = None
     max_score: Optional[float] = None
     passing_score: Optional[float] = None
     allows_file_submission: Optional[bool] = None
@@ -89,9 +91,11 @@ class LessonSchema(BaseModel):
 class LessonCreateSchema(BaseModel):
     title: str
     lesson_type: LessonType
+    topic_id: int
     position: int
     body: Optional[str] = None
     video_url: Optional[str] = None
+    duration_seconds: Optional[int] = None
     max_score: Optional[float] = 100.0
     passing_score: Optional[float] = 70.0
     allows_file_submission: Optional[bool] = True
@@ -100,9 +104,11 @@ class LessonCreateSchema(BaseModel):
 class LessonUpdateSchema(BaseModel):
     title: Optional[str] = None
     lesson_type: Optional[LessonType] = None
+    topic_id: Optional[int] = None
     position: Optional[int] = None
     body: Optional[str] = None
     video_url: Optional[str] = None
+    duration_seconds: Optional[int] = None
     max_score: Optional[float] = None
     passing_score: Optional[float] = None
     allows_file_submission: Optional[bool] = None

@@ -25,6 +25,7 @@ class RecentAttemptSchema(BaseModel):
     course_title: str
     lesson_id: int
     lesson_title: str
+    lesson_type: str
     score: float
     passed: bool
     attempted_at: datetime

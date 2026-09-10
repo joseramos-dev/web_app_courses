@@ -17,8 +17,10 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
+from modules.recommendations.aux_content_based import ScoringCourse
+from modules.recommendations.aux_history_based import HistoryProfile, build_history_profile
 from modules.recommendations.schema import RecommendationSourceType
-from modules.recommendations.service import recommend_courses_content_based
+from modules.recommendations.service import RecommendationContext, recommend_courses_content_based
 
 NOW = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
@@ -45,6 +47,7 @@ def _course(
         subcategory=None,
         intro=None,
         rating=rating,
+        avg_rating=rating,
         duration_seconds=duration_seconds,
         difficulty=difficulty,
         created_at=NOW,
@@ -67,11 +70,25 @@ def _empty_profile():
     )
 
 
+def _to_scoring(course) -> ScoringCourse:
+    return ScoringCourse(
+        id=course.id,
+        site=course.site,
+        category=course.category,
+        language=course.language,
+        course_type=course.course_type,
+        duration_seconds=course.duration_seconds,
+        difficulty=course.difficulty,
+        avg_rating=course.rating,
+    )
+
+
 @pytest.fixture
 def mock_db(mocker):
     db = mocker.Mock()
     query = mocker.Mock()
     query.filter.return_value = query
+    query.options.return_value = query
     query.join.return_value = query
     query.all.return_value = []
     db.query.return_value = query
@@ -79,9 +96,6 @@ def mock_db(mocker):
 
 
 def test_history_only_recommends_affined_course(mock_db, mocker):
-    # Sin preferencias explícitas, solo debe recomendarse el curso candidato
-    # que comparte site+category+language con el historial completado; el
-    # candidato totalmente distinto queda fuera y la fuente debe ser HISTORY.
     completed = [
         _course(
             101,
@@ -112,28 +126,31 @@ def test_history_only_recommends_affined_course(mock_db, mocker):
         duration_seconds=8 * 24 * 3600,
     )
 
-    mocker.patch(
-        "modules.recommendations.service.get_or_create_recommendation",
-        return_value=_empty_profile(),
+    ctx = RecommendationContext(
+        user_id=1,
+        profile=_empty_profile(),
+        sites=set(),
+        categories=set(),
+        languages=set(),
+        course_types=set(),
+        duration_buckets=set(),
+        difficulties=set(),
+        enrolled_ids={101, 102},
+        completed_courses=completed,
+        history_profile=build_history_profile(completed),
+        active_enrollment_count=2,
     )
+
     mocker.patch(
-        "modules.recommendations.service.enrolled_course_ids",
-        return_value={101, 102},
-    )
-    mocker.patch(
-        "modules.recommendations.service.fetch_completed_courses",
-        return_value=completed,
-    )
-    mocker.patch(
-        "modules.recommendations.service.fetch_completed_with_ratings",
-        return_value=[],
+        "modules.recommendations.service.fetch_candidate_courses_light",
+        return_value=[_to_scoring(candidate_affined), _to_scoring(candidate_different)],
     )
     mock_db.query.return_value.all.return_value = [
         candidate_affined,
         candidate_different,
     ]
 
-    result = recommend_courses_content_based(mock_db, user_id=1, limit=5)
+    result = recommend_courses_content_based(mock_db, ctx, 5)
     ids = [rec.course.id for rec in result.recommendations]
 
     assert ids == [201]
@@ -141,16 +158,20 @@ def test_history_only_recommends_affined_course(mock_db, mocker):
 
 
 def test_no_preferences_nor_completed_returns_empty(mock_db, mocker):
-    # Un usuario sin preferencias guardadas ni cursos completados no tiene
-    # base para el content-based, así que debe recibir una lista vacía.
-    mocker.patch(
-        "modules.recommendations.service.get_or_create_recommendation",
-        return_value=_empty_profile(),
-    )
-    mocker.patch(
-        "modules.recommendations.service.fetch_completed_courses",
-        return_value=[],
+    ctx = RecommendationContext(
+        user_id=99,
+        profile=_empty_profile(),
+        sites=set(),
+        categories=set(),
+        languages=set(),
+        course_types=set(),
+        duration_buckets=set(),
+        difficulties=set(),
+        enrolled_ids=set(),
+        completed_courses=[],
+        history_profile=HistoryProfile(),
+        active_enrollment_count=0,
     )
 
-    result = recommend_courses_content_based(mock_db, user_id=99, limit=5)
+    result = recommend_courses_content_based(mock_db, ctx, 5)
     assert result.recommendations == []

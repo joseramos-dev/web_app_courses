@@ -2,12 +2,12 @@ import math
 from collections import defaultdict
 from typing import Dict, Set
 
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from modules.course_ratings.model import CourseRatingModel
+from modules.courses.model import CourseModel
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
-from modules.recommendations.aux_content_based import enrolled_course_ids
 
 PROGRESS_WEIGHT = 0.5
 RATING_WEIGHT = 0.5
@@ -16,6 +16,8 @@ RATING_MAX = 5
 MIN_ENROLLMENTS_FOR_COLLABORATIVE = 3
 COLLABORATIVE_BLEND_WEIGHT = 0.5
 PREFERENCE_BLEND_WEIGHT = 0.5
+
+_ACTIVE_STATUSES = [EnrollmentStatus.IN_PROGRESS, EnrollmentStatus.COMPLETED]
 
 UserCourseWeights = Dict[int, Dict[int, float]]
 
@@ -44,13 +46,45 @@ def cosine_similarity(
     return dot / (norm_a * norm_b)
 
 
-def build_weighted_enrollment_map(db: Session) -> UserCourseWeights:
+def build_weighted_enrollment_map(db: Session, user_id: int) -> UserCourseWeights:
+    """Interaction weights for `user_id` and for the users who can influence
+    their recommendations.
+
+    Only users sharing at least one course with the target are loaded, which is
+    equivalent to loading everyone rather than an approximation of it: two users
+    with no course in common have disjoint weight vectors, so their dot product
+    -- and therefore their cosine similarity -- is exactly 0, and
+    `_score_collaborative_candidates` already discards every neighbour scoring
+    <= 0. Everyone left out contributed nothing.
+
+    Restricting the query is what lets this run per request: the previous
+    version read the whole table and hid the cost behind a 10-minute
+    process-global cache, which went stale on every new enrollment and gave
+    different answers depending on which uvicorn worker served the request.
+    """
+    target_course_ids = select(EnrollmentModel.course_id).where(
+        EnrollmentModel.user_id == user_id,
+        EnrollmentModel.status.in_(_ACTIVE_STATUSES),
+    )
+    # Superset of the real neighbours: `is_public` is not applied here, so a
+    # course the main query later filters out can still pull a user in. That is
+    # harmless (their similarity comes out 0 anyway) and guarantees we never
+    # drop a neighbour that would have counted.
+    neighbour_ids = select(EnrollmentModel.user_id).where(
+        EnrollmentModel.course_id.in_(target_course_ids),
+        EnrollmentModel.status.in_(_ACTIVE_STATUSES),
+    )
+
     rows = (
         db.query(
             EnrollmentModel.user_id,
             EnrollmentModel.course_id,
             EnrollmentModel.progress_percent,
             CourseRatingModel.score,
+        )
+        .join(
+            CourseModel,
+            CourseModel.id == EnrollmentModel.course_id,
         )
         .outerjoin(
             CourseRatingModel,
@@ -60,32 +94,19 @@ def build_weighted_enrollment_map(db: Session) -> UserCourseWeights:
             ),
         )
         .filter(
-            EnrollmentModel.status.in_(
-                [EnrollmentStatus.IN_PROGRESS, EnrollmentStatus.COMPLETED]
-            )
+            EnrollmentModel.user_id.in_(neighbour_ids),
+            EnrollmentModel.status.in_(_ACTIVE_STATUSES),
+            CourseModel.is_public.is_(True),
         )
         .all()
     )
 
     enrollment_map: UserCourseWeights = defaultdict(dict)
-    for user_id, course_id, progress_percent, rating_score in rows:
-        enrollment_map[user_id][course_id] = course_interaction_weight(
+    for row_user_id, course_id, progress_percent, rating_score in rows:
+        enrollment_map[row_user_id][course_id] = course_interaction_weight(
             float(progress_percent), rating_score
         )
     return dict(enrollment_map)
-
-
-def count_active_enrollments(db: Session, user_id: int) -> int:
-    return (
-        db.query(EnrollmentModel.id)
-        .filter(
-            EnrollmentModel.user_id == user_id,
-            EnrollmentModel.status.in_(
-                [EnrollmentStatus.IN_PROGRESS, EnrollmentStatus.COMPLETED]
-            ),
-        )
-        .count()
-    )
 
 
 def _score_collaborative_candidates(
@@ -112,13 +133,19 @@ def _score_collaborative_candidates(
     return dict(course_scores)
 
 
-def collaborative_course_scores(db: Session, user_id: int) -> Dict[int, float]:
+def collaborative_course_scores(
+    db: Session, user_id: int, excluded: Set[int] | None = None
+) -> Dict[int, float]:
     """Normalized collaborative scores in [0, 1] for non-enrolled courses."""
-    enrollment_map = build_weighted_enrollment_map(db)
+    enrollment_map = build_weighted_enrollment_map(db, user_id)
     if not enrollment_map.get(user_id):
         return {}
 
-    excluded = enrolled_course_ids(db, user_id)
+    if excluded is None:
+        from modules.recommendations.aux_content_based import enrolled_course_ids
+
+        excluded = enrolled_course_ids(db, user_id)
+
     raw_scores = _score_collaborative_candidates(enrollment_map, user_id, excluded)
     if not raw_scores:
         return {}

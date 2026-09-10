@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { ISubmission } from "../../../shared/interfaces/ISubmission";
 import { API_gradeSubmission } from "../../progress/submissionApi";
 import { api } from "../../../shared/api/api";
+import { runWithToastSaving } from "../../../shared/utils/runWithToastSaving";
 
 type Props = {
     courseId: number;
@@ -80,13 +81,17 @@ export function GradeSubmissionModal({
             }
         }
 
-        try {
-            setSubmitting(true);
-            const updated = await API_gradeSubmission(courseId, submission.id, {
-                score: action === "grade" ? scoreNum : null,
-                feedback: feedback.trim() || null,
-                action,
-            });
+        const updated = await runWithToastSaving(
+            setSubmitting,
+            () =>
+                API_gradeSubmission(courseId, submission.id, {
+                    score: action === "grade" ? scoreNum : null,
+                    feedback: feedback.trim() || null,
+                    action,
+                }),
+            t("courseStudents.gradeModal.updateFailed"),
+        );
+        if (updated) {
             toast.success(
                 action === "grade"
                     ? t("courseStudents.gradeModal.gradedSuccess")
@@ -94,11 +99,6 @@ export function GradeSubmissionModal({
             );
             onGraded(updated);
             onClose();
-        } catch (e) {
-            console.error(e);
-            toast.error(t("courseStudents.gradeModal.updateFailed"));
-        } finally {
-            setSubmitting(false);
         }
     };
 
@@ -168,7 +168,7 @@ export function GradeSubmissionModal({
                                 }
                             }}
                             placeholder={t("courseStudents.gradeModal.scorePlaceholder", { maxScore })}
-                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-accent focus:outline-none focus:ring-2 focus:ring-uned-accent/25 dark:focus:border-uned-accent"
                         />
                     </label>
 
@@ -181,7 +181,7 @@ export function GradeSubmissionModal({
                             onChange={(e) => setFeedback(e.target.value)}
                             rows={4}
                             placeholder={t("courseStudents.gradeModal.feedbackPlaceholder")}
-                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-accent focus:outline-none focus:ring-2 focus:ring-uned-accent/25 dark:focus:border-uned-accent"
                         />
                     </label>
                 </div>

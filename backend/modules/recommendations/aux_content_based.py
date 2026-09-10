@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from typing import List, Set, Tuple
 
-from sqlalchemy.orm import Session
+from sqlalchemy import or_
+from sqlalchemy.orm import Query, Session
 
-from modules.courses.duration_utils import duration_bucket
+from modules.courses.duration_utils import duration_bucket, duration_bucket_or_conditions
 from modules.courses.model import (
     Category,
     CourseModel,
@@ -12,12 +14,10 @@ from modules.courses.model import (
     Language,
     Site,
 )
+from modules.courses.query_utils import with_course_computed_columns
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
 from modules.recommendations.aux_history_based import (
-    CompletedWithRating,
     HistoryProfile,
-    RATING_MAX,
-    similar_completed_rating_score,
     history_match_ratio,
 )
 from modules.recommendations.model import RecommendationModel
@@ -27,11 +27,22 @@ from modules.recommendations.schema import (
 )
 
 ScoredEntry = Tuple[float, float, int]
-HybridScoredEntry = Tuple[float, float, float, int, RecommendationSourceType]
+HybridScoredEntry = Tuple[float, float, int, RecommendationSourceType]
 
-CONTENT_WEIGHT = 0.65
-RATING_WEIGHT = 0.35
-DEFAULT_RATING_NORMALIZED = 0.5
+CANDIDATE_CAP = 400
+RATING_MAX = 5
+
+
+@dataclass(frozen=True)
+class ScoringCourse:
+    id: int
+    site: Site
+    category: Category
+    language: Language
+    course_type: CourseType
+    duration_seconds: int | None
+    difficulty: Difficulty
+    avg_rating: float | None
 
 
 def enum_values(values: list | None, enum_cls) -> Set:
@@ -70,7 +81,7 @@ def profile_has_history(profile: HistoryProfile) -> bool:
 
 
 def preference_match_ratio(
-    course: CourseModel,
+    course,
     sites: Set[Site],
     categories: Set[Category],
     languages: Set[Language],
@@ -78,10 +89,6 @@ def preference_match_ratio(
     duration_buckets: Set[DurationBucket],
     difficulties: Set[Difficulty],
 ) -> float:
-    """
-    Score in [0, 1]: share of *selected* dimensions the course satisfies.
-    Unselected dimensions are ignored. Partial matches are allowed (e.g. 2/4 → 0.5).
-    """
     selected = 0
     matches = 0
 
@@ -126,22 +133,6 @@ def resolve_source_type(
     return RecommendationSourceType.PREFERENCES
 
 
-def compute_rating_signal(
-    course: CourseModel,
-    completed_with_ratings: List[CompletedWithRating],
-) -> float:
-    similar_score = similar_completed_rating_score(course, completed_with_ratings)
-    if similar_score is not None:
-        return similar_score
-    if course.rating is not None:
-        return float(course.rating) / RATING_MAX
-    return DEFAULT_RATING_NORMALIZED
-
-
-def compute_final_score(content_score: float, rating_signal: float) -> float:
-    return CONTENT_WEIGHT * content_score + RATING_WEIGHT * rating_signal
-
-
 def recommendation_percent(normalized_score: float) -> float:
     return round(normalized_score * 100, 1)
 
@@ -180,15 +171,8 @@ def enrolled_course_ids(db: Session, user_id: int) -> Set[int]:
     return {row[0] for row in rows}
 
 
-def fetch_candidate_courses(db: Session, excluded: Set[int]) -> List[CourseModel]:
-    query = db.query(CourseModel)
-    if excluded:
-        query = query.filter(CourseModel.id.notin_(excluded))
-    return query.all()
-
-
-def score_courses_hybrid(
-    courses: List[CourseModel],
+def apply_candidate_prefilter(
+    query: Query,
     sites: Set[Site],
     categories: Set[Category],
     languages: Set[Language],
@@ -196,7 +180,130 @@ def score_courses_hybrid(
     duration_buckets: Set[DurationBucket],
     difficulties: Set[Difficulty],
     history_profile: HistoryProfile,
-    completed_with_ratings: List[CompletedWithRating],
+    *,
+    use_preferences: bool,
+) -> Query:
+    conditions = []
+
+    if use_preferences:
+        if sites:
+            conditions.append(CourseModel.site.in_(sites))
+        if categories:
+            conditions.append(CourseModel.category.in_(categories))
+        if languages:
+            conditions.append(CourseModel.language.in_(languages))
+        if course_types:
+            conditions.append(CourseModel.course_type.in_(course_types))
+        if duration_buckets:
+            conditions.extend(duration_bucket_or_conditions(list(duration_buckets)))
+        if difficulties:
+            conditions.append(CourseModel.difficulty.in_(difficulties))
+    elif profile_has_history(history_profile):
+        if history_profile.sites:
+            conditions.append(CourseModel.site.in_(history_profile.sites.keys()))
+        if history_profile.categories:
+            conditions.append(
+                CourseModel.category.in_(history_profile.categories.keys())
+            )
+        if history_profile.languages:
+            conditions.append(
+                CourseModel.language.in_(history_profile.languages.keys())
+            )
+        if history_profile.course_types:
+            conditions.append(
+                CourseModel.course_type.in_(history_profile.course_types.keys())
+            )
+        if history_profile.duration_buckets:
+            conditions.extend(
+                duration_bucket_or_conditions(
+                    list(history_profile.duration_buckets.keys())
+                )
+            )
+        if history_profile.difficulties:
+            conditions.append(
+                CourseModel.difficulty.in_(history_profile.difficulties.keys())
+            )
+
+    if conditions:
+        query = query.filter(or_(*conditions))
+    return query
+
+
+def fetch_candidate_courses_light(
+    db: Session,
+    excluded: Set[int],
+    sites: Set[Site],
+    categories: Set[Category],
+    languages: Set[Language],
+    course_types: Set[CourseType],
+    duration_buckets: Set[DurationBucket],
+    difficulties: Set[Difficulty],
+    history_profile: HistoryProfile,
+) -> List[ScoringCourse]:
+    query = db.query(
+        CourseModel.id,
+        CourseModel.site,
+        CourseModel.category,
+        CourseModel.language,
+        CourseModel.course_type,
+        CourseModel.duration_seconds,
+        CourseModel.difficulty,
+        CourseModel.avg_rating,
+    ).filter(CourseModel.is_public.is_(True))
+
+    if excluded:
+        query = query.filter(CourseModel.id.notin_(excluded))
+
+    use_preferences = has_any_preferences(
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+    )
+    query = apply_candidate_prefilter(
+        query,
+        sites,
+        categories,
+        languages,
+        course_types,
+        duration_buckets,
+        difficulties,
+        history_profile,
+        use_preferences=use_preferences,
+    )
+
+    query = query.order_by(
+        CourseModel.avg_rating.desc().nullslast(),
+        CourseModel.id,
+    ).limit(CANDIDATE_CAP)
+
+    rows = query.all()
+    return [
+        ScoringCourse(
+            id=row.id,
+            site=row.site,
+            category=row.category,
+            language=row.language,
+            course_type=row.course_type,
+            duration_seconds=row.duration_seconds,
+            difficulty=row.difficulty,
+            avg_rating=row.avg_rating,
+        )
+        for row in rows
+    ]
+
+
+def score_courses_hybrid(
+    courses: List[ScoringCourse],
+    sites: Set[Site],
+    categories: Set[Category],
+    languages: Set[Language],
+    course_types: Set[CourseType],
+    duration_buckets: Set[DurationBucket],
+    difficulties: Set[Difficulty],
+    history_profile: HistoryProfile,
 ) -> List[HybridScoredEntry]:
     use_history = profile_has_history(history_profile)
     scored: List[HybridScoredEntry] = []
@@ -218,14 +325,28 @@ def score_courses_hybrid(
         if content_score <= 0.0:
             continue
 
-        rating_signal = compute_rating_signal(course, completed_with_ratings)
-        final_score = compute_final_score(content_score, rating_signal)
+        tiebreaker_rating = (
+            float(course.avg_rating) / RATING_MAX
+            if course.avg_rating is not None
+            else 0.0
+        )
         source_type = resolve_source_type(preference_ratio, history_ratio)
         scored.append(
-            (final_score, content_score, rating_signal, course.id, source_type)
+            (content_score, tiebreaker_rating, course.id, source_type)
         )
 
     return scored
+
+
+def _hydrate_courses_by_id(db: Session, course_ids: List[int]) -> dict[int, CourseModel]:
+    if not course_ids:
+        return {}
+    course_rows = (
+        with_course_computed_columns(
+            db.query(CourseModel).filter(CourseModel.id.in_(course_ids))
+        ).all()
+    )
+    return {course.id: course for course in course_rows}
 
 
 def build_recommendations(
@@ -234,8 +355,7 @@ def build_recommendations(
     source_type: RecommendationSourceType,
 ) -> List[CourseRecommendationSchema]:
     top_ids = [course_id for _, _, course_id in top]
-    course_rows = db.query(CourseModel).filter(CourseModel.id.in_(top_ids)).all()
-    course_by_id = {course.id: course for course in course_rows}
+    course_by_id = _hydrate_courses_by_id(db, top_ids)
 
     recommendations: List[CourseRecommendationSchema] = []
     for ratio, _rating, course_id in top:
@@ -256,19 +376,18 @@ def build_hybrid_recommendations(
     db: Session,
     top: List[HybridScoredEntry],
 ) -> List[CourseRecommendationSchema]:
-    top_ids = [course_id for _, _, _, course_id, _ in top]
-    course_rows = db.query(CourseModel).filter(CourseModel.id.in_(top_ids)).all()
-    course_by_id = {course.id: course for course in course_rows}
+    top_ids = [course_id for _, _, course_id, _ in top]
+    course_by_id = _hydrate_courses_by_id(db, top_ids)
 
     recommendations: List[CourseRecommendationSchema] = []
-    for final_score, _content_score, _rating_signal, course_id, source_type in top:
+    for content_score, _tiebreaker, course_id, source_type in top:
         course = course_by_id.get(course_id)
         if course is None:
             continue
         recommendations.append(
             CourseRecommendationSchema(
                 course=course,
-                recommendation_percent=recommendation_percent(final_score),
+                recommendation_percent=recommendation_percent(content_score),
                 source_type=source_type,
             )
         )

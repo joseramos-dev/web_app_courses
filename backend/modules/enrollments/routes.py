@@ -12,6 +12,7 @@ from modules.enrollments.schema import (
     EnrollmentDetailSchema,
 )
 from modules.enrollments.service import (
+    build_enrollment_detail,
     enroll_user_in_course,
     finalize_enrollment_if_course_has_no_lessons,
     get_enrollment,
@@ -75,7 +76,7 @@ def get_my_enrollment_for_course(
     enrollment = get_enrollment_with_lesson_progress(db, user.id, course_id)
     if not enrollment:
         raise http_error(404, "not_enrolled_in_course")
-    return enrollment
+    return build_enrollment_detail(db, enrollment, user)
 
 
 @enrollments_router.post(
@@ -107,4 +108,4 @@ def complete_enrollment_without_lessons(
     out = get_enrollment_with_lesson_progress(db, user.id, course_id)
     if not out:
         raise http_error(404, "not_enrolled_in_course")
-    return out
+    return build_enrollment_detail(db, out, user)

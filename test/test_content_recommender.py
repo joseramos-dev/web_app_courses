@@ -17,7 +17,9 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
-from modules.recommendations.service import recommend_courses_content_based
+from modules.recommendations.aux_content_based import ScoringCourse
+from modules.recommendations.aux_history_based import HistoryProfile
+from modules.recommendations.service import RecommendationContext, recommend_courses_content_based
 
 NOW = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
@@ -44,6 +46,7 @@ def _course(
         subcategory=None,
         intro=None,
         rating=rating,
+        avg_rating=rating,
         duration_seconds=duration_seconds,
         difficulty=difficulty,
         created_at=NOW,
@@ -52,6 +55,19 @@ def _course(
         instructor_name=None,
         lessons_count=0,
         ratings_count=0,
+    )
+
+
+def _to_scoring(course) -> ScoringCourse:
+    return ScoringCourse(
+        id=course.id,
+        site=course.site,
+        category=course.category,
+        language=course.language,
+        course_type=course.course_type,
+        duration_seconds=course.duration_seconds,
+        difficulty=course.difficulty,
+        avg_rating=course.rating,
     )
 
 
@@ -94,6 +110,7 @@ def mock_db(mocker, courses):
     db = mocker.Mock()
     query = mocker.Mock()
     query.filter.return_value = query
+    query.options.return_value = query
     query.all.return_value = courses
     db.query.return_value = query
     return db
@@ -112,37 +129,79 @@ def _profile(**prefs):
     )
 
 
-def test_recommendation_percentages(mock_db, mocker):
-    # Comprueba que los porcentajes de recomendación coinciden con los
-    # valores esperados para un perfil de preferencias y quedan entre 0% y 100%.
+def test_recommendation_percentages(mock_db, mocker, courses):
     profile = _profile(
         sites=[Site.COURSERA],
         categories=[Category.BUSINESS],
         languages=[Language.ENGLISH],
     )
-    expected = {1: 71.3, 2: 71.3, 3: 71.3}
+    expected = {1: 66.7, 2: 66.7, 3: 66.7}
+
+    ctx = RecommendationContext(
+        user_id=1,
+        profile=profile,
+        sites={Site.COURSERA},
+        categories={Category.BUSINESS},
+        languages={Language.ENGLISH},
+        course_types=set(),
+        duration_buckets=set(),
+        difficulties=set(),
+        enrolled_ids=set(),
+        completed_courses=[],
+        history_profile=HistoryProfile(),
+        active_enrollment_count=0,
+    )
 
     mocker.patch(
-        "modules.recommendations.service.get_or_create_recommendation",
-        return_value=profile,
-    )
-    mocker.patch(
-        "modules.recommendations.service.enrolled_course_ids",
-        return_value=set(),
-    )
-    mocker.patch(
-        "modules.recommendations.service.fetch_completed_courses",
-        return_value=[],
-    )
-    mocker.patch(
-        "modules.recommendations.service.fetch_completed_with_ratings",
-        return_value=[],
+        "modules.recommendations.service.fetch_candidate_courses_light",
+        return_value=[_to_scoring(c) for c in courses],
     )
 
-    result = recommend_courses_content_based(mock_db, user_id=1, limit=10)
+    result = recommend_courses_content_based(mock_db, ctx, 10)
     got = {rec.course.id: rec.recommendation_percent for rec in result.recommendations}
 
     assert got == expected
 
     for percent in got.values():
         assert 0 < percent < 100
+
+
+def test_exclude_current_recommendations_on_refresh(mock_db, mocker, courses):
+    profile = _profile(
+        sites=[Site.COURSERA],
+        categories=[Category.BUSINESS],
+        languages=[Language.ENGLISH],
+    )
+    ctx = RecommendationContext(
+        user_id=1,
+        profile=profile,
+        sites={Site.COURSERA},
+        categories={Category.BUSINESS},
+        languages={Language.ENGLISH},
+        course_types=set(),
+        duration_buckets=set(),
+        difficulties=set(),
+        enrolled_ids=set(),
+        completed_courses=[],
+        history_profile=HistoryProfile(),
+        active_enrollment_count=0,
+    )
+
+    def fetch_side_effect(_db, excluded, *_args, **_kwargs):
+        return [_to_scoring(c) for c in courses if c.id not in excluded]
+
+    mocker.patch(
+        "modules.recommendations.service.fetch_candidate_courses_light",
+        side_effect=fetch_side_effect,
+    )
+
+    first = recommend_courses_content_based(mock_db, ctx, 10)
+    first_ids = {rec.course.id for rec in first.recommendations}
+
+    second = recommend_courses_content_based(
+        mock_db, ctx, 10, exclude=first_ids
+    )
+    second_ids = {rec.course.id for rec in second.recommendations}
+
+    assert first_ids
+    assert second_ids.isdisjoint(first_ids)

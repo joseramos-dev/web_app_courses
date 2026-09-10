@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'social sciences'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "social sciences",
+  "topics": [
+    {
+      "name": "Introduccion a la sociologia",
+      "lessons": [
+        {
+          "title": "Sociedad y estructura social",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "La sociologia estudia como las estructuras colectivas condicionan la conducta individual.\n\nConceptos como **rol**, **norma** e **institucion** explican por que personas muy distintas actuan de forma parecida en la misma posicion social. La mirada sociologica consiste precisamente en ver lo colectivo detras de lo que parece decision personal."
+        },
+        {
+          "title": "Los clasicos de la sociologia",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que estudia principalmente la sociologia?",
+              "options": [
+                {
+                  "text": "Como las estructuras sociales condicionan la conducta",
+                  "is_correct": true
+                },
+                {
+                  "text": "La psicologia de cada individuo aislado",
+                  "is_correct": false
+                },
+                {
+                  "text": "El funcionamiento del sistema nervioso",
+                  "is_correct": false
+                },
+                {
+                  "text": "La historia de los reinos antiguos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que explica que personas distintas actuen igual en la misma posicion?",
+              "options": [
+                {
+                  "text": "Los roles y normas asociados a esa posicion",
+                  "is_correct": true
+                },
+                {
+                  "text": "La coincidencia estadistica",
+                  "is_correct": false
+                },
+                {
+                  "text": "Su personalidad individual",
+                  "is_correct": false
+                },
+                {
+                  "text": "El azar",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Metodos de investigacion social",
+      "lessons": [
+        {
+          "title": "Cuantitativo y cualitativo",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Los metodos **cuantitativos** miden y generalizan a partir de muestras; los **cualitativos** profundizan en el significado que los actores dan a su experiencia.\n\nNo compiten: responden a preguntas distintas. La encuesta dice cuantos, la entrevista dice por que. Combinarlos suele dar la imagen mas completa."
+        },
+        {
+          "title": "Diseno de una encuesta",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que caracteriza a los metodos cuantitativos?",
+              "options": [
+                {
+                  "text": "Permiten generalizar a partir de muestras",
+                  "is_correct": true
+                },
+                {
+                  "text": "Miden variables de forma sistematica",
+                  "is_correct": true
+                },
+                {
+                  "text": "Usan analisis estadistico",
+                  "is_correct": true
+                },
+                {
+                  "text": "Buscan el significado subjetivo de la experiencia",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Para que sirve un metodo cualitativo?",
+              "options": [
+                {
+                  "text": "Comprender el significado que dan los actores",
+                  "is_correct": true
+                },
+                {
+                  "text": "Profundizar en casos concretos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Explorar fenomenos poco conocidos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Calcular margenes de error muestral",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Economia y sociedad",
+      "lessons": [
+        {
+          "title": "Desigualdad y mercado",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La economia no ocurre en el vacio: esta insertada en normas y relaciones sociales.\n\nLa **desigualdad** se mide con indicadores como el indice de Gini, pero interpretarla exige mirar tambien la movilidad social: no es lo mismo una sociedad desigual con posibilidad de ascenso que una desigual y bloqueada."
+        },
+        {
+          "title": "Como se mide la desigualdad",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que mide el indice de Gini?",
+              "options": [
+                {
+                  "text": "El grado de desigualdad en la distribucion de la renta",
+                  "is_correct": true
+                },
+                {
+                  "text": "El crecimiento del producto interior bruto",
+                  "is_correct": false
+                },
+                {
+                  "text": "La tasa de inflacion",
+                  "is_correct": false
+                },
+                {
+                  "text": "El numero de habitantes",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que hay que mirar la movilidad social junto a la desigualdad?",
+              "options": [
+                {
+                  "text": "Una sociedad desigual y bloqueada no equivale a una con ascenso posible",
+                  "is_correct": true
+                },
+                {
+                  "text": "La movilidad sustituye al indice de Gini",
+                  "is_correct": false
+                },
+                {
+                  "text": "Ambas miden exactamente lo mismo",
+                  "is_correct": false
+                },
+                {
+                  "text": "La movilidad solo importa en paises ricos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ciencia politica",
+      "lessons": [
+        {
+          "title": "Sistemas y participacion",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Un sistema politico organiza como se toman las decisiones colectivas y quien puede influir en ellas.\n\nLa **separacion de poderes** distribuye la autoridad para que ninguna instancia la concentre. Y los sistemas electorales no son neutros: la misma distribucion de votos produce parlamentos distintos segun la formula de reparto."
+        },
+        {
+          "title": "Sistemas electorales comparados",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Cual es el proposito de la separacion de poderes?",
+              "options": [
+                {
+                  "text": "Evitar que una sola instancia concentre la autoridad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Acelerar la toma de decisiones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reducir el numero de instituciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Eliminar las elecciones",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que implica que un sistema electoral no sea neutro?",
+              "options": [
+                {
+                  "text": "La misma distribucion de votos da resultados distintos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que los votos no se cuentan",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que siempre gana el mismo partido",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que no hay reglas de reparto",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Psicologia social",
+      "lessons": [
+        {
+          "title": "Influencia y comportamiento grupal",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "El grupo cambia lo que hacemos, incluso cuando creemos decidir solos.\n\nFenomenos como la **conformidad**, la **obediencia a la autoridad** o la difusion de responsabilidad explican conductas que resultan incomprensibles mirando solo al individuo. Los experimentos clasicos de Asch y Milgram mostraron hasta que punto."
+        },
+        {
+          "title": "Los experimentos clasicos revisados",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que fenomenos estudia la psicologia social?",
+              "options": [
+                {
+                  "text": "La conformidad con el grupo",
+                  "is_correct": true
+                },
+                {
+                  "text": "La obediencia a la autoridad",
+                  "is_correct": true
+                },
+                {
+                  "text": "La difusion de responsabilidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "La estructura del sistema nervioso",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que ensena la difusion de responsabilidad?",
+              "options": [
+                {
+                  "text": "Cuantas mas personas presencian algo, menos actua cada una",
+                  "is_correct": true
+                },
+                {
+                  "text": "La responsabilidad percibida se reparte",
+                  "is_correct": true
+                },
+                {
+                  "text": "Puede reducir la ayuda en emergencias",
+                  "is_correct": true
+                },
+                {
+                  "text": "Los grupos siempre actuan mas rapido",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Etica en la investigacion",
+      "lessons": [
+        {
+          "title": "Consentimiento y responsabilidad",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Investigar con personas exige mas que rigor metodologico.\n\nEl **consentimiento informado**, el anonimato de los participantes y la evaluacion previa de riesgos son requisitos, no formalidades. Varios experimentos historicamente celebres serian hoy inadmisibles, y esa revision forma parte del progreso de la disciplina."
+        },
+        {
+          "title": "Comites de etica y su funcion",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que exige el consentimiento informado?",
+              "options": [
+                {
+                  "text": "Que el participante conozca y acepte en que consiste el estudio",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que el investigador firme el protocolo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que el estudio sea publicado",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que se pague a los participantes",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que varios experimentos clasicos serian hoy inadmisibles?",
+              "options": [
+                {
+                  "text": "Porque los criterios eticos se han hecho mas exigentes",
+                  "is_correct": true
+                },
+                {
+                  "text": "Porque sus resultados eran falsos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Porque usaban demasiados participantes",
+                  "is_correct": false
+                },
+                {
+                  "text": "Porque no se publicaron",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de ciencias sociales y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

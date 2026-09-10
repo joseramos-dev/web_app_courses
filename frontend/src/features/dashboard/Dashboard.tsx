@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../shared/povider/AuthContext";
+import { useAuth } from "../../shared/provider/AuthContext";
 import { GuestAuthGate } from "../../shared/components/RouteGuards";
 import { StudentDashboard } from "./StudentDashboard";
 import { InstructorDashboard } from "./InstructorDashboard";

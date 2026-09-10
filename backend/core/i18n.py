@@ -95,6 +95,26 @@ MESSAGES: dict[str, dict[str, str]] = {
         "es": "Debes matricularte en el curso primero",
         "en": "You must enroll in the course first",
     },
+    "submission_file_forbidden": {
+        "es": "Solo puedes acceder a tus propias entregas",
+        "en": "You can only access your own submissions",
+    },
+    "test_needs_one_correct": {
+        "es": "Una pregunta de tipo test debe tener exactamente una opcion correcta",
+        "en": "A test question must have exactly one correct option",
+    },
+    "multiple_needs_two_correct": {
+        "es": "Una pregunta de seleccion multiple debe tener al menos dos opciones correctas",
+        "en": "A multiple-selection question must have at least two correct options",
+    },
+    "question_needs_correct_option": {
+        "es": "La pregunta debe tener al menos una opcion correcta",
+        "en": "The question must have at least one correct option",
+    },
+    "mime_content_mismatch": {
+        "es": "El contenido del fichero no corresponde a un {mime_type} válido",
+        "en": "The file content is not a valid {mime_type}",
+    },
     "only_students_enroll": {
         "es": "Solo los estudiantes pueden matricularse en cursos",
         "en": "Only students can enroll in courses",
@@ -167,9 +187,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "es": "Error de base de datos al actualizar el rol del usuario",
         "en": "Database error when updating user role",
     },
-    "cannot_remove_own_admin": {
-        "es": "No puedes quitarte el rol de administrador a ti mismo",
-        "en": "Cannot remove your own admin role",
+    "cannot_change_own_role": {
+        "es": "No puedes cambiar tu propio rol",
+        "en": "You cannot change your own role",
     },
     "cannot_delete_self": {
         "es": "No puedes eliminar tu propia cuenta",
@@ -318,6 +338,102 @@ MESSAGES: dict[str, dict[str, str]] = {
     "course_deleted": {
         "es": "Curso eliminado",
         "en": "Course deleted",
+    },
+    "notification_not_found": {
+        "es": "Notificación no encontrada",
+        "en": "Notification not found",
+    },
+    "notification_submission_title": {
+        "es": "Nueva entrega",
+        "en": "New submission",
+    },
+    "notification_submission_body": {
+        "es": "{student_name} ha entregado la lección «{lesson_title}»",
+        "en": "{student_name} submitted lesson «{lesson_title}»",
+    },
+    "notification_grade_title": {
+        "es": "Entrega calificada",
+        "en": "Submission graded",
+    },
+    "notification_grade_body": {
+        "es": "Tu entrega de «{lesson_title}» ha sido calificada con {score}",
+        "en": "Your submission for «{lesson_title}» was graded with {score}",
+    },
+    "notification_grade_returned_title": {
+        "es": "Entrega devuelta",
+        "en": "Submission returned",
+    },
+    "notification_grade_returned_body": {
+        "es": "Tu entrega de «{lesson_title}» ha sido devuelta (nota: {score})",
+        "en": "Your submission for «{lesson_title}» was returned (score: {score})",
+    },
+    "notification_new_lesson_title": {
+        "es": "Nueva lección disponible",
+        "en": "New lesson available",
+    },
+    "notification_new_lesson_body": {
+        "es": "Se ha añadido «{lesson_title}» al curso «{course_title}»",
+        "en": "«{lesson_title}» was added to course «{course_title}»",
+    },
+    "notification_lesson_removed_title": {
+        "es": "Lección eliminada",
+        "en": "Lesson removed",
+    },
+    "notification_lesson_removed_body": {
+        "es": "Se ha eliminado «{lesson_title}» del curso «{course_title}»",
+        "en": "«{lesson_title}» was removed from course «{course_title}»",
+    },
+    "notification_course_public_title": {
+        "es": "Curso ahora es público",
+        "en": "Course is now public",
+    },
+    "notification_course_public_body": {
+        "es": "El curso «{course_title}» ya es visible en el catálogo.",
+        "en": "Course «{course_title}» is now visible in the catalog.",
+    },
+    "notification_course_private_title": {
+        "es": "Curso ahora es privado",
+        "en": "Course is now private",
+    },
+    "notification_course_private_body": {
+        "es": "El curso «{course_title}» ya no aparece en el catálogo público.",
+        "en": "Course «{course_title}» is no longer listed in the public catalog.",
+    },
+    "topic_not_found": {
+        "es": "Tema no encontrado",
+        "en": "Topic not found",
+    },
+    "topic_not_empty": {
+        "es": "No se puede borrar un tema que contiene lecciones",
+        "en": "Cannot delete a topic that contains lessons",
+    },
+    "topic_deleted": {
+        "es": "Tema eliminado",
+        "en": "Topic deleted",
+    },
+    "lesson_locked": {
+        "es": "Esta lección está bloqueada. Completa la lección anterior.",
+        "en": "This lesson is locked. Complete the previous lesson first.",
+    },
+    "password_reset_requested": {
+        "es": "Si el email existe, recibirás un enlace para restablecer tu contraseña.",
+        "en": "If the email exists, you will receive a link to reset your password.",
+    },
+    "password_reset_success": {
+        "es": "Contraseña restablecida correctamente.",
+        "en": "Password reset successfully.",
+    },
+    "reset_token_invalid": {
+        "es": "El enlace de restablecimiento no es válido.",
+        "en": "The reset link is not valid.",
+    },
+    "reset_token_expired": {
+        "es": "El enlace de restablecimiento ha caducado.",
+        "en": "The reset link has expired.",
+    },
+    "password_too_short": {
+        "es": "La contraseña debe tener al menos {min_length} caracteres.",
+        "en": "Password must be at least {min_length} characters.",
     },
 }
 

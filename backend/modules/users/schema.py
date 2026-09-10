@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from modules.users.model import UserRole
@@ -13,6 +13,13 @@ class UserSchema(BaseModel):
     email: str
     role: UserRole
     time_creation: datetime
+
+
+class UserPaginatedSchema(BaseModel):
+    users: List[UserSchema]
+    total: int
+    limit: int
+    offset: int
 
 
 class UserCreateSchema(BaseModel):

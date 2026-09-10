@@ -8,11 +8,14 @@ export type LessonType =
 export interface ILesson {
   id: number;
   course_id: number;
+  topic_id: number;
   title: string;
   lesson_type: LessonType;
   position: number;
   body?: string | null;
   video_url?: string | null;
+  /** Declared by the author. Topic and course durations are the sum of these. */
+  duration_seconds?: number | null;
   max_score?: number | null;
   passing_score?: number | null;
   allows_file_submission?: boolean;
@@ -23,12 +26,31 @@ export interface ILesson {
   updated_at?: string;
 }
 
+export interface ITopic {
+  id: number;
+  course_id: number;
+  name: string;
+  position: number;
+}
+
+export interface ITopicWithLessons extends ITopic {
+  lessons: ILesson[];
+  /** Computed by the API as the sum of the topic's lesson durations. */
+  duration_seconds?: number | null;
+}
+
+export interface ICourseCurriculum {
+  topics: ITopicWithLessons[];
+}
+
 export interface ILessonCreate {
   title: string;
   lesson_type: LessonType;
+  topic_id: number;
   position: number;
   body?: string | null;
   video_url?: string | null;
+  duration_seconds?: number | null;
   max_score?: number | null;
   passing_score?: number | null;
   allows_file_submission?: boolean;

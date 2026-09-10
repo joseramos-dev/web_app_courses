@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { IUser } from "../../../shared/interfaces/IUser";
+import { useClickOutside } from "../../../shared/hooks/useClickOutside";
 
 type Props = {
   instructors: IUser[];
@@ -49,20 +50,14 @@ export function InstructorCombobox({
   }, [query, open]);
 
   // Close on outside click and forget any in-progress query.
-  useEffect(() => {
-    if (!open) return;
-    const onDocMouseDown = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-        setQuery("");
-      }
-    };
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
-  }, [open]);
+  useClickOutside(
+    containerRef,
+    () => {
+      setOpen(false);
+      setQuery("");
+    },
+    open,
+  );
 
   // Keep the highlighted item in view when navigating with the keyboard.
   useEffect(() => {
@@ -148,7 +143,7 @@ export function InstructorCombobox({
             setQuery(e.target.value);
           }}
           onKeyDown={onKeyDown}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pr-10 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pr-10 text-sm text-gray-900 shadow-sm focus:border-uned-primary focus:outline-none focus:ring-2 focus:ring-uned-primary/25 disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-uned-primary disabled:dark:bg-slate-800/60"
         />
         {value !== null && !disabled ? (
           <button

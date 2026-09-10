@@ -1,21 +1,22 @@
-from datetime import datetime
 import enum
 
 from sqlalchemy.sql import func
 
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from core.database import Base
 from sqlalchemy import (
     Column,
+    Float,
     Integer,
     String,
     DateTime,
     ForeignKey,
     Text,
+    Boolean,
     Enum as SqlEnum,
     select,
 )
-from sqlalchemy.sql.functions import now
 
 
 # Site
@@ -111,6 +112,11 @@ class Difficulty(str, enum.Enum):
     ADVANCED = "advanced"
 
 
+class LessonAccessMode(str, enum.Enum):
+    OPEN = "open"
+    PROGRESSIVE = "progressive"
+
+
 class CourseModel(Base):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True, index=True)
@@ -138,26 +144,69 @@ class CourseModel(Base):
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-    instructor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    instructor_id = Column(
+        # SET NULL, not the default NO ACTION: deleting an account must not be
+        # blocked by the courses it authored, and the catalogue already holds
+        # ownerless courses (every imported one).
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    is_public = Column(Boolean, nullable=False, default=True, server_default="true")
+    intro_video_url = Column(String, nullable=True)
+    lesson_access_mode = Column(
+        SqlEnum(
+            LessonAccessMode,
+            values_callable=lambda obj: [e.value for e in obj],
+            name="lessonaccessmode",
+        ),
+        nullable=False,
+        server_default=LessonAccessMode.OPEN.value,
+    )
+    avg_rating = Column(Float, nullable=True)
+    ratings_count = Column(Integer, nullable=False, default=0, server_default="0")
+
+    @hybrid_property
+    def rating(self):
+        return self.avg_rating
+
+    @rating.setter
+    def rating(self, value):
+        self.avg_rating = value
+
+    @rating.expression
+    def rating(cls):
+        return cls.avg_rating
+
     lessons = relationship(
         "LessonModel",
         back_populates="course",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    topics = relationship(
+        "TopicModel",
+        back_populates="course",
+        cascade="all, delete-orphan",
+        order_by="TopicModel.position",
+    )
 
 
 # ***************** VIRTUAL COLUMNS *****************
-from modules.lessons.model import LessonModel  
+from modules.lessons.model import LessonModel
 from modules.users.model import UserModel
-from modules.course_ratings.model import CourseRatingModel
+from modules.topics.model import TopicModel
+from sqlalchemy.orm import aliased
+
+_InstructorCourse = aliased(CourseModel, name="instructor_course_count_alias")
 
 CourseModel.lessons_count = column_property(
     select(func.count(LessonModel.id))
     .where(LessonModel.course_id == CourseModel.id)
     .correlate_except(LessonModel)
     .scalar_subquery(),
-    deferred=False,
+    deferred=True,
 )
 
 CourseModel.instructor_name = column_property(
@@ -165,21 +214,24 @@ CourseModel.instructor_name = column_property(
     .where(UserModel.id == CourseModel.instructor_id)
     .correlate_except(UserModel)
     .scalar_subquery(),
-    deferred=False,
+    deferred=True,
 )
 
-CourseModel.rating = column_property(
-    select(func.avg(CourseRatingModel.score))
-    .where(CourseRatingModel.course_id == CourseModel.id)
-    .correlate_except(CourseRatingModel)
+CourseModel.instructor_courses_count = column_property(
+    select(func.count(_InstructorCourse.id))
+    .where(
+        _InstructorCourse.instructor_id == CourseModel.instructor_id,
+        _InstructorCourse.is_public.is_(True),
+    )
+    .correlate(CourseModel)
     .scalar_subquery(),
-    deferred=False,
+    deferred=True,
 )
 
-CourseModel.ratings_count = column_property(
-    select(func.count(CourseRatingModel.id))
-    .where(CourseRatingModel.course_id == CourseModel.id)
-    .correlate_except(CourseRatingModel)
+CourseModel.topics_count = column_property(
+    select(func.count(TopicModel.id))
+    .where(TopicModel.course_id == CourseModel.id)
+    .correlate_except(TopicModel)
     .scalar_subquery(),
-    deferred=False,
+    deferred=True,
 )

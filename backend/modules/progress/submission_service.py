@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from core.i18n import http_error
 from modules.courses.instructor_service import assert_can_manage_course
+from modules.courses.model import CourseModel
 from modules.enrollments.model import EnrollmentModel
 from modules.lessons.model import LessonFileModel, LessonModel, LessonType
 from modules.progress.model import (
@@ -21,6 +22,10 @@ from modules.progress.service import (
     _require_lesson,
 )
 from modules.users.model import UserModel
+from modules.notifications.service import (
+    notify_grade_to_student,
+    notify_submission_to_instructor,
+)
 
 
 def _require_assignment_lesson(db: Session, lesson_id: int) -> LessonModel:
@@ -136,6 +141,17 @@ def submit_assignment(
     enrollment.last_activity_at = now
     if enrollment.started_at is None:
         enrollment.started_at = now
+
+    course = db.query(CourseModel).filter(CourseModel.id == lesson.course_id).first()
+    student = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if course and course.instructor_id and student:
+        notify_submission_to_instructor(
+            db,
+            instructor_id=course.instructor_id,
+            student_name=student.name,
+            lesson_title=lesson.title,
+            course_id=lesson.course_id,
+        )
 
     db.commit()
     db.refresh(submission)
@@ -255,6 +271,16 @@ def grade_submission(
                 score,
             )
             lesson_completed = True
+
+    notify_grade_to_student(
+        db,
+        student_user_id=enrollment.user_id,
+        lesson_title=lesson.title,
+        score=score,
+        course_id=course_id,
+        lesson_id=lesson.id,
+        returned=returned,
+    )
 
     db.commit()
     db.refresh(submission)

@@ -25,17 +25,19 @@ from modules.users.model import UserRole
 from conftest import auth_headers, make_user
 
 
-def test_admin_cannot_remove_own_admin_role(client, db):
+def test_admin_cannot_change_own_role(client, db):
     # Bug corregido: un admin podía quitarse a sí mismo el rol de admin
     # mediante PATCH /users/{id}/role/{role}, quedándose sin poder revertirlo.
-    # Ahora ese endpoint debe rechazarlo con 403 y dejar el rol intacto.
+    # El endpoint rechaza ahora *cualquier* cambio sobre uno mismo, incluido
+    # reasignarse el rol que ya tiene: aunque parezca inocuo, dispararía los
+    # efectos del cambio de rol.
     admin = make_user(db, name="self_admin", password="secret123", role=UserRole.ADMIN)
     headers = auth_headers(client, "self_admin", "secret123")
 
-    resp = client.patch(f"/users/{admin.id}/role/student", headers=headers)
-
-    assert resp.status_code == 403
-    assert resp.json()["detail"] == "No puedes quitarte el rol de administrador a ti mismo"
+    for role in ("student", "instructor", "admin"):
+        resp = client.patch(f"/users/{admin.id}/role/{role}", headers=headers)
+        assert resp.status_code == 403, role
+        assert resp.json()["detail"] == "No puedes cambiar tu propio rol"
 
     db.refresh(admin)
     assert admin.role == UserRole.ADMIN

@@ -4,29 +4,23 @@ import { useNavigate } from "react-router-dom";
 import type { IUser } from "../interfaces/IUser";
 import type { IAuthContext } from "../interfaces/IAuthContext";
 import type { IToken } from "../interfaces/IToken";
-import { registerAuthHandlers, setAuthHeader } from "../api/api";
-import { API_logoutToken, API_refreshToken } from "../../features/auth/api";
+import { refreshAccessTokenOnce, registerAuthHandlers, setAuthHeader } from "../api/api";
+import { API_getMe, API_logoutToken, API_refreshToken } from "../../features/auth/api";
+import {
+    invalidateRecommendationsCache,
+    pruneStaleRecommendationsCache,
+} from "../utils/recommendationsCache";
 
 const AuthContext = createContext<IAuthContext | null>(null);
 
-const REFRESH_TOKEN_KEY = "refresh_token";
-const ACCESS_TOKEN_KEY = "token";
-const USER_KEY = "user";
-
-function persistSession(user: IUser, token: IToken) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    localStorage.setItem(ACCESS_TOKEN_KEY, token.access_token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, token.refresh_token);
-    setAuthHeader(token.access_token);
-}
-
-function clearSessionStorage() {
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    setAuthHeader(null);
-}
-
+/**
+ * No token is ever persisted by JavaScript.
+ *
+ * The refresh token lives in an HttpOnly cookie that only the backend can read
+ * or write, so an XSS cannot steal a long-lived session. The access token is
+ * held in memory by the Axios layer and is gone on reload; the session is
+ * restored on boot by exchanging the cookie for a new one.
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<IUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,30 +29,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userRef = useRef(user);
     userRef.current = user;
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem(USER_KEY);
-        const savedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-        const savedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
-
-        if (savedUser && savedToken && savedRefresh) {
-            try {
-                const parsedUser = JSON.parse(savedUser);
-                setUser(parsedUser);
-                setAuthHeader(savedToken);
-            } catch (error) {
-                console.error("Failed to restore auth from storage:", error);
-                clearSessionStorage();
-            }
-        }
-        setIsLoading(false);
-    }, []);
-
     const performLogout = (showToast = true) => {
         if (showToast) {
             toast.error("Tu sesión ha expirado. Vuelve a iniciar sesión.");
         }
         setUser(null);
-        clearSessionStorage();
+        setAuthHeader(null);
+        invalidateRecommendationsCache();
         navigate(`/`);
     };
 
@@ -68,12 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         registerAuthHandlers(
             async () => {
-                const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-                if (!refreshToken) return null;
                 try {
-                    const token = await API_refreshToken(refreshToken);
-                    localStorage.setItem(ACCESS_TOKEN_KEY, token.access_token);
-                    localStorage.setItem(REFRESH_TOKEN_KEY, token.refresh_token);
+                    const token = await API_refreshToken();
                     setAuthHeader(token.access_token);
                     return token.access_token;
                 } catch {
@@ -88,25 +61,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         );
     }, []);
 
+    // Runs after the handlers above are registered, so the boot refresh goes
+    // through the same shared promise the interceptor uses. Refreshing twice
+    // concurrently would revoke the cookie the second call is still using.
+    useEffect(() => {
+        let cancelled = false;
+
+        const restoreSession = async () => {
+            try {
+                const accessToken = await refreshAccessTokenOnce();
+                if (!accessToken) throw new Error("no session");
+                const me = await API_getMe();
+                if (cancelled) return;
+                setUser(me);
+                pruneStaleRecommendationsCache(me.id);
+            } catch {
+                // No valid refresh cookie: the visitor is simply anonymous.
+                if (!cancelled) {
+                    setAuthHeader(null);
+                    invalidateRecommendationsCache();
+                }
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        };
+
+        void restoreSession();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const login = (nextUser: IUser, token: IToken) => {
+        invalidateRecommendationsCache();
         setUser(nextUser);
-        persistSession(nextUser, token);
+        setAuthHeader(token.access_token);
         navigate(`/`);
     };
 
     const logout = async () => {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-        if (refreshToken) {
-            await API_logoutToken(refreshToken);
-        }
+        await API_logoutToken();
         setUser(null);
-        clearSessionStorage();
+        setAuthHeader(null);
+        invalidateRecommendationsCache();
         navigate(`/`);
     };
 
     const updateUser = (next: IUser) => {
         setUser(next);
-        localStorage.setItem(USER_KEY, JSON.stringify(next));
     };
 
     const isAdmin = () => {

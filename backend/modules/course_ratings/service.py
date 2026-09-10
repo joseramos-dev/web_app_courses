@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from core.i18n import http_error
+from modules.course_ratings.stats import refresh_course_rating_stats
 
 from modules.course_ratings.model import CourseRatingModel
 from modules.courses.service import get_course_detail
@@ -35,6 +36,8 @@ def upsert_course_rating(db: Session, user_id: int, course_id: int, score: int):
             score=score,
         )
         db.add(row)
+    db.commit()
+    refresh_course_rating_stats(db, course_id)
     db.commit()
     db.refresh(row)
     return row

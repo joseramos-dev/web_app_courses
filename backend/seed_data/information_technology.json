@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'information technology'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "information technology",
+  "topics": [
+    {
+      "name": "Redes y comunicaciones",
+      "lessons": [
+        {
+          "title": "El modelo TCP/IP",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Internet funciona por capas: cada una resuelve un problema y confia en la de abajo.\n\nLa capa de **enlace** mueve bits entre dos maquinas vecinas, la de **red** los encamina de origen a destino mediante direcciones IP, la de **transporte** garantiza el orden y la entrega con TCP, y la de **aplicacion** define protocolos como HTTP."
+        },
+        {
+          "title": "Como viaja un paquete por la red",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "De que se encarga la capa de red?",
+              "options": [
+                {
+                  "text": "De encaminar los paquetes desde el origen al destino",
+                  "is_correct": true
+                },
+                {
+                  "text": "De definir el formato de las paginas web",
+                  "is_correct": false
+                },
+                {
+                  "text": "De cifrar las contrasenas",
+                  "is_correct": false
+                },
+                {
+                  "text": "De comprimir los ficheros",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que protocolo garantiza la entrega ordenada de los datos?",
+              "options": [
+                {
+                  "text": "TCP",
+                  "is_correct": true
+                },
+                {
+                  "text": "UDP",
+                  "is_correct": false
+                },
+                {
+                  "text": "ARP",
+                  "is_correct": false
+                },
+                {
+                  "text": "DHCP",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sistemas operativos",
+      "lessons": [
+        {
+          "title": "Procesos, memoria y ficheros",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "El sistema operativo es el arbitro que reparte los recursos de la maquina.\n\nGestiona **procesos** decidiendo cual usa la CPU en cada instante, administra la **memoria** dando a cada proceso su propio espacio, y organiza el **almacenamiento** en un sistema de ficheros con permisos."
+        },
+        {
+          "title": "Comandos esenciales de terminal",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que funciones corresponden al sistema operativo?",
+              "options": [
+                {
+                  "text": "Planificar el uso de la CPU",
+                  "is_correct": true
+                },
+                {
+                  "text": "Gestionar la memoria de los procesos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Administrar el sistema de ficheros",
+                  "is_correct": true
+                },
+                {
+                  "text": "Compilar el codigo fuente de las aplicaciones",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que aporta que cada proceso tenga su propio espacio de memoria?",
+              "options": [
+                {
+                  "text": "Aislamiento entre aplicaciones",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que un fallo no arrastre a todo el sistema",
+                  "is_correct": true
+                },
+                {
+                  "text": "Mayor seguridad frente a accesos indebidos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Mayor velocidad de disco",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Seguridad informatica",
+      "lessons": [
+        {
+          "title": "Principios basicos",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La seguridad se apoya en tres propiedades: **confidencialidad**, **integridad** y **disponibilidad**.\n\nA ellas se suman dos principios practicos: minimo privilegio, dar solo los permisos imprescindibles, y defensa en profundidad, no confiar en una unica barrera. La mayoria de incidentes reales explotan configuraciones descuidadas, no fallos exoticos."
+        },
+        {
+          "title": "Contrasenas y segundo factor",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que establece el principio de minimo privilegio?",
+              "options": [
+                {
+                  "text": "Conceder solo los permisos imprescindibles",
+                  "is_correct": true
+                },
+                {
+                  "text": "Dar permisos de administrador por comodidad",
+                  "is_correct": false
+                },
+                {
+                  "text": "Eliminar todas las contrasenas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cifrar unicamente los correos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cuales son las tres propiedades clasicas de la seguridad?",
+              "options": [
+                {
+                  "text": "Confidencialidad, integridad y disponibilidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Velocidad, coste y tamano",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cifrado, copia y borrado",
+                  "is_correct": false
+                },
+                {
+                  "text": "Usuario, contrasena y token",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Infraestructura y nube",
+      "lessons": [
+        {
+          "title": "Servidores, contenedores y servicios",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "La nube no es el ordenador de otro sin mas: es un modelo de consumo bajo demanda.\n\nUna **maquina virtual** emula un ordenador completo; un **contenedor** comparte el nucleo del anfitrion y arranca en segundos. Los servicios gestionados van un paso mas alla y hacen desaparecer el servidor de la ecuacion."
+        },
+        {
+          "title": "Introduccion a los contenedores",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Cual es la diferencia principal entre contenedor y maquina virtual?",
+              "options": [
+                {
+                  "text": "El contenedor comparte el nucleo del sistema anfitrion",
+                  "is_correct": true
+                },
+                {
+                  "text": "El contenedor necesita mas memoria",
+                  "is_correct": false
+                },
+                {
+                  "text": "La maquina virtual arranca mas rapido",
+                  "is_correct": false
+                },
+                {
+                  "text": "No existe ninguna diferencia",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que caracteriza al modelo de nube?",
+              "options": [
+                {
+                  "text": "Consumo de recursos bajo demanda",
+                  "is_correct": true
+                },
+                {
+                  "text": "Compra obligatoria de hardware propio",
+                  "is_correct": false
+                },
+                {
+                  "text": "Imposibilidad de escalar",
+                  "is_correct": false
+                },
+                {
+                  "text": "Ausencia de costes",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Soporte y resolucion de incidencias",
+      "lessons": [
+        {
+          "title": "Metodo de diagnostico",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Diagnosticar bien es descartar hipotesis en orden, no probar cosas al azar.\n\nEl metodo util es siempre el mismo: reproducir el problema, delimitar cuando empezo y que cambio, aislar la capa responsable y solo entonces aplicar la solucion. Documentar el resultado evita repetir el trabajo la proxima vez."
+        },
+        {
+          "title": "Casos practicos de diagnostico",
+          "lesson_type": "video",
+          "duration_minutes": 11
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que pasos forman parte de un buen diagnostico?",
+              "options": [
+                {
+                  "text": "Reproducir el problema",
+                  "is_correct": true
+                },
+                {
+                  "text": "Identificar que cambio recientemente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aislar la capa responsable",
+                  "is_correct": true
+                },
+                {
+                  "text": "Reiniciar sin analizar nada",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que conviene documentar la incidencia resuelta?",
+              "options": [
+                {
+                  "text": "Evita repetir el mismo analisis en el futuro",
+                  "is_correct": true
+                },
+                {
+                  "text": "Permite que otros aprendan del caso",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ayuda a detectar problemas recurrentes",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumenta la velocidad de la red",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gestion de datos y respaldo",
+      "lessons": [
+        {
+          "title": "Copias de seguridad",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Una copia de seguridad que nunca se ha restaurado no es una copia de seguridad: es una suposicion.\n\nLa regla **3-2-1** resume la buena practica: tres copias de los datos, en dos soportes distintos, con una fuera del emplazamiento. Y probar la restauracion periodicamente, que es la parte que casi siempre se omite."
+        },
+        {
+          "title": "Estrategias de respaldo",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que establece la regla 3-2-1 de copias de seguridad?",
+              "options": [
+                {
+                  "text": "Tres copias, en dos soportes, una fuera del emplazamiento",
+                  "is_correct": true
+                },
+                {
+                  "text": "Tres copias diarias en el mismo disco",
+                  "is_correct": false
+                },
+                {
+                  "text": "Dos copias cada tres meses",
+                  "is_correct": false
+                },
+                {
+                  "text": "Una copia por usuario",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el error mas frecuente con las copias de seguridad?",
+              "options": [
+                {
+                  "text": "No probar nunca la restauracion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Hacer demasiadas copias",
+                  "is_correct": false
+                },
+                {
+                  "text": "Guardarlas cifradas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Documentar el procedimiento",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "El curso ha cubierto las cuatro patas del oficio: **redes**, **sistemas**, **seguridad** e **infraestructura**, con el diagnostico como hilo conductor.\n\nLa idea que mas se repite: casi ningun incidente grave nace de un fallo sofisticado, sino de una configuracion descuidada o de una copia que nadie comprobo."
+        },
+        {
+          "title": "Montaje de un entorno completo",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que tienen en comun la mayoria de incidentes de seguridad reales?",
+              "options": [
+                {
+                  "text": "Aprovechan configuraciones descuidadas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Requieren tecnicas muy sofisticadas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo afectan a grandes empresas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Son imposibles de prevenir",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que capa del modelo TCP/IP define protocolos como HTTP?",
+              "options": [
+                {
+                  "text": "La capa de aplicacion",
+                  "is_correct": true
+                },
+                {
+                  "text": "La capa de enlace",
+                  "is_correct": false
+                },
+                {
+                  "text": "La capa de red",
+                  "is_correct": false
+                },
+                {
+                  "text": "La capa de transporte",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

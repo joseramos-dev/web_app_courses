@@ -16,7 +16,9 @@ from modules.enrollments.model import EnrollmentModel
 from modules.progress.model import LessonProgressModel, StudyActivityModel, LessonAttemptModel, LessonSubmissionModel
 from modules.course_ratings.model import CourseRatingModel
 from modules.recommendations.model import RecommendationModel
-from modules.auth.model import RefreshTokenModel
+from modules.auth.model import RefreshTokenModel, PasswordResetTokenModel
+from modules.notifications.model import NotificationModel
+from modules.topics.model import TopicModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

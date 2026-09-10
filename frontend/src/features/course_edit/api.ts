@@ -10,6 +10,8 @@ import type {
 } from "../../shared/types/CourseTypes";
 import type {
   ILesson,
+  ICourseCurriculum,
+  ITopic,
   ILessonCreate,
   ILessonFile,
   IQuestionAdmin,
@@ -28,7 +30,9 @@ export type ICourseCreatePayload = {
   difficulty?: DifficultyTypes;
   subcategory?: string | null;
   intro?: string | null;
-  duration_seconds?: number | null;
+  intro_video_url?: string | null;
+  is_public?: boolean;
+  lesson_access_mode?: "open" | "progressive";
   instructor_id?: number | null;
 };
 
@@ -45,7 +49,9 @@ export function buildCourseCreatePayload(draft: ICourses, isAdmin: boolean): ICo
   if (url) payload.url = url;
   if (draft.subcategory != null) payload.subcategory = draft.subcategory;
   if (draft.intro != null) payload.intro = draft.intro;
-  if (draft.duration_seconds != null) payload.duration_seconds = draft.duration_seconds;
+  if (draft.intro_video_url != null) payload.intro_video_url = draft.intro_video_url;
+  if (draft.is_public != null) payload.is_public = draft.is_public;
+  if (draft.lesson_access_mode != null) payload.lesson_access_mode = draft.lesson_access_mode;
   if (isAdmin) payload.instructor_id = draft.instructor_id;
   return payload;
 }
@@ -68,10 +74,11 @@ export async function API_deleteCourse(courseId: number) {
 // Used by the admin-only instructor picker inside CourseEditForm. Returns
 // only users with role=instructor so the dropdown stays small and focused.
 export async function API_getInstructors() {
-  const { data } = await api.get<IUser[]>(`/users/`, {
-    params: { role: "instructor" },
+  // The endpoint is paginated; the picker wants every instructor at once.
+  const { data } = await api.get<{ users: IUser[] }>(`/users/`, {
+    params: { role: "instructor", limit: 200 },
   });
-  return data;
+  return data.users;
 }
 
 export async function API_getLessonsByCourse(courseId: number) {
@@ -96,6 +103,52 @@ export async function API_deleteLesson(lessonId: number) {
 
 export async function API_reorderLessons(courseId: number, orderedLessonIds: number[]) {
   const { data } = await api.post<ILesson[]>(`/courses/${courseId}/lessons/reorder`, {
+    ordered_lesson_ids: orderedLessonIds,
+  });
+  return data;
+}
+
+export interface ICourseEditStats {
+  enrollments_count: number;
+  topics_count: number;
+  lessons_count: number;
+  duration_seconds: number | null;
+}
+
+export async function API_getCourseEditStats(courseId: number) {
+  const { data } = await api.get<ICourseEditStats>(`/courses/${courseId}/edit-stats`);
+  return data;
+}
+
+export async function API_getCourseCurriculum(courseId: number) {
+  const { data } = await api.get<ICourseCurriculum>(`/courses/${courseId}/curriculum`);
+  return data;
+}
+
+export async function API_createTopic(courseId: number, name: string) {
+  const { data } = await api.post<ITopic>(`/courses/${courseId}/topics`, { name });
+  return data;
+}
+
+export async function API_updateTopic(topicId: number, payload: { name?: string; position?: number }) {
+  const { data } = await api.patch<ITopic>(`/courses/topics/${topicId}`, payload);
+  return data;
+}
+
+export async function API_deleteTopic(topicId: number) {
+  const { data } = await api.delete<{ detail: string }>(`/courses/topics/${topicId}`);
+  return data;
+}
+
+export async function API_reorderTopics(courseId: number, orderedTopicIds: number[]) {
+  const { data } = await api.post<ITopic[]>(`/courses/${courseId}/topics/reorder`, {
+    ordered_topic_ids: orderedTopicIds,
+  });
+  return data;
+}
+
+export async function API_reorderLessonsInTopic(topicId: number, orderedLessonIds: number[]) {
+  const { data } = await api.post<ILesson[]>(`/courses/topics/${topicId}/lessons/reorder`, {
     ordered_lesson_ids: orderedLessonIds,
   });
   return data;

@@ -1,10 +1,11 @@
-from typing import Annotated
+from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
 from core.dependencies import require_role
+from core.rate_limit import limiter
 from modules.auth.service import get_current_user
 from modules.recommendations.schema import (
     ListCourseRecommendationsSchema,
@@ -29,12 +30,15 @@ recommendations_router = APIRouter(
     response_model=ListCourseRecommendationsSchema,
     status_code=status.HTTP_200_OK,
 )
+@limiter.limit("10/minute")
 def get_my_recommendations(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     _user=Depends(require_role(["student", "admin"])),
     limit: int = Query(8, ge=1, le=50),
+    exclude: List[int] = Query(default=[]),
 ):
-    return recommend_courses(db, _user.id, limit)
+    return recommend_courses(db, _user.id, limit, exclude=set(exclude))
 
 
 @recommendations_router.get(

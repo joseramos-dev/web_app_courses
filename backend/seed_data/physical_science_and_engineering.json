@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'physical science and engineering'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "physical science and engineering",
+  "topics": [
+    {
+      "name": "Mecanica clasica",
+      "lessons": [
+        {
+          "title": "Las leyes de Newton",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Las tres leyes de Newton describen el movimiento de los cuerpos.\n\nLa **primera** establece que un cuerpo mantiene su estado si no actua una fuerza neta. La **segunda** relaciona fuerza, masa y aceleracion mediante F = m*a. La **tercera** afirma que a toda accion corresponde una reaccion igual y opuesta."
+        },
+        {
+          "title": "Experimentos clasicos de mecanica",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que expresa la segunda ley de Newton?",
+              "options": [
+                {
+                  "text": "La fuerza es igual a masa por aceleracion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Todo cuerpo permanece en reposo indefinidamente",
+                  "is_correct": false
+                },
+                {
+                  "text": "La energia siempre se conserva",
+                  "is_correct": false
+                },
+                {
+                  "text": "La accion anula a la reaccion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que ocurre si la fuerza neta sobre un cuerpo es cero?",
+              "options": [
+                {
+                  "text": "Mantiene su velocidad constante",
+                  "is_correct": true
+                },
+                {
+                  "text": "Se detiene inmediatamente",
+                  "is_correct": false
+                },
+                {
+                  "text": "Acelera de forma uniforme",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cambia de direccion",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Termodinamica",
+      "lessons": [
+        {
+          "title": "Energia, calor y trabajo",
+          "lesson_type": "text",
+          "duration_minutes": 19,
+          "body": "El primer principio de la termodinamica es la conservacion de la energia: la energia no se crea ni se destruye, solo se transforma.\n\nEl segundo introduce la **entropia** y explica por que ciertos procesos ocurren en un solo sentido: el calor fluye del cuerpo caliente al frio y nunca al reves de forma espontanea."
+        },
+        {
+          "title": "El motor termico explicado",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que afirma el primer principio de la termodinamica?",
+              "options": [
+                {
+                  "text": "La energia se conserva",
+                  "is_correct": true
+                },
+                {
+                  "text": "La energia solo se transforma",
+                  "is_correct": true
+                },
+                {
+                  "text": "El calor es una forma de transferencia de energia",
+                  "is_correct": true
+                },
+                {
+                  "text": "La entropia siempre disminuye",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que describe el segundo principio?",
+              "options": [
+                {
+                  "text": "La direccion en que ocurren los procesos",
+                  "is_correct": true
+                },
+                {
+                  "text": "El aumento de entropia en sistemas aislados",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que el calor fluye del cuerpo caliente al frio",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que toda la energia puede convertirse en trabajo util",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Electricidad y magnetismo",
+      "lessons": [
+        {
+          "title": "Circuitos basicos",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La ley de Ohm relaciona las tres magnitudes fundamentales de un circuito: V = I * R.\n\nEn un circuito en **serie** la corriente es la misma en todos los elementos y las tensiones se suman. En **paralelo** ocurre al reves: la tension es comun y las corrientes se reparten."
+        },
+        {
+          "title": "Montaje de un circuito sencillo",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que expresa la ley de Ohm?",
+              "options": [
+                {
+                  "text": "La tension es igual a intensidad por resistencia",
+                  "is_correct": true
+                },
+                {
+                  "text": "La potencia es igual a masa por velocidad",
+                  "is_correct": false
+                },
+                {
+                  "text": "La resistencia es constante en todo material",
+                  "is_correct": false
+                },
+                {
+                  "text": "La corriente no depende de la tension",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que ocurre en un circuito en serie?",
+              "options": [
+                {
+                  "text": "La corriente es la misma en todos los elementos",
+                  "is_correct": true
+                },
+                {
+                  "text": "La tension es la misma en todos los elementos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Las resistencias se reducen entre si",
+                  "is_correct": false
+                },
+                {
+                  "text": "La corriente se reparte entre las ramas",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Materiales y estructuras",
+      "lessons": [
+        {
+          "title": "Esfuerzo y deformacion",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Todo material responde a una carga deformandose.\n\nMientras la deformacion sea **elastica**, el material recupera su forma al retirar la carga. Superado el limite elastico la deformacion es **plastica** y permanente. Conocer donde esta ese limite es lo que separa una estructura segura de un colapso."
+        },
+        {
+          "title": "Ensayos de resistencia de materiales",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que caracteriza a una deformacion elastica?",
+              "options": [
+                {
+                  "text": "El material recupera su forma al retirar la carga",
+                  "is_correct": true
+                },
+                {
+                  "text": "La deformacion es permanente",
+                  "is_correct": false
+                },
+                {
+                  "text": "El material se rompe de inmediato",
+                  "is_correct": false
+                },
+                {
+                  "text": "No depende de la carga aplicada",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que sucede al superar el limite elastico?",
+              "options": [
+                {
+                  "text": "La deformacion pasa a ser permanente",
+                  "is_correct": true
+                },
+                {
+                  "text": "El material se vuelve mas rigido",
+                  "is_correct": false
+                },
+                {
+                  "text": "La carga deja de tener efecto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Se recupera la forma original",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Metodo cientifico",
+      "lessons": [
+        {
+          "title": "Hipotesis y experimentacion",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "El metodo cientifico convierte una intuicion en conocimiento comprobable.\n\nEl ciclo es siempre el mismo: observar, formular una **hipotesis falsable**, disenar un experimento que pueda refutarla, medir y contrastar. Una hipotesis que no se puede refutar con ningun experimento no es cientifica."
+        },
+        {
+          "title": "Diseno experimental y variables",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que caracteristicas debe tener una hipotesis cientifica?",
+              "options": [
+                {
+                  "text": "Ser falsable",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ser contrastable con experimentos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Estar formulada con precision",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ser imposible de refutar",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que elementos forman parte del diseno experimental?",
+              "options": [
+                {
+                  "text": "Variable independiente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Variable dependiente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Grupo de control",
+                  "is_correct": true
+                },
+                {
+                  "text": "La opinion del investigador sobre el resultado",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ingenieria aplicada",
+      "lessons": [
+        {
+          "title": "Del calculo al prototipo",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Un diseno de ingenieria no termina en el calculo: termina cuando el prototipo funciona.\n\nEntre ambos hay un ciclo de **iteracion**: se construye, se mide, se identifica la desviacion respecto al modelo y se corrige. Los margenes de seguridad existen precisamente porque el modelo nunca captura toda la realidad."
+        },
+        {
+          "title": "De la maqueta al producto final",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Por que se aplican margenes de seguridad en ingenieria?",
+              "options": [
+                {
+                  "text": "Porque el modelo no captura toda la realidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para encarecer el proyecto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Porque lo exige el cliente siempre",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para simplificar los calculos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que caracteriza al proceso de diseno en ingenieria?",
+              "options": [
+                {
+                  "text": "Es iterativo: construir, medir y corregir",
+                  "is_correct": true
+                },
+                {
+                  "text": "Es lineal y se hace una sola vez",
+                  "is_correct": false
+                },
+                {
+                  "text": "Termina con el calculo teorico",
+                  "is_correct": false
+                },
+                {
+                  "text": "No admite modificaciones tras el primer prototipo",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de ciencia e ingenieria y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

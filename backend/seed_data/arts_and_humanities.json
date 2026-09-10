@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'arts and humanities'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "arts and humanities",
+  "topics": [
+    {
+      "name": "Historia del arte",
+      "lessons": [
+        {
+          "title": "Corrientes y periodos",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "La historia del arte se ordena en periodos que responden a su contexto.\n\nEl **Renacimiento** recupera la proporcion clasica y la perspectiva; el **Barroco** busca el movimiento y el contraste de luz; el **Impresionismo** abandona el detalle para capturar la percepcion. Cada ruptura se entiende mejor sabiendo contra que reaccionaba."
+        },
+        {
+          "title": "Recorrido por las grandes obras",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que caracteriza al Impresionismo?",
+              "options": [
+                {
+                  "text": "Capta la percepcion de la luz por encima del detalle",
+                  "is_correct": true
+                },
+                {
+                  "text": "Busca la proporcion clasica",
+                  "is_correct": false
+                },
+                {
+                  "text": "Se centra en la simetria arquitectonica",
+                  "is_correct": false
+                },
+                {
+                  "text": "Rechaza el uso del color",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que recupera el Renacimiento?",
+              "options": [
+                {
+                  "text": "La proporcion y la perspectiva clasicas",
+                  "is_correct": true
+                },
+                {
+                  "text": "La abstraccion geometrica",
+                  "is_correct": false
+                },
+                {
+                  "text": "El arte puramente conceptual",
+                  "is_correct": false
+                },
+                {
+                  "text": "La ausencia de figura humana",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Literatura y narrativa",
+      "lessons": [
+        {
+          "title": "Estructura del relato",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Toda narracion se sostiene sobre tres elementos: **personaje**, **conflicto** y **transformacion**.\n\nSin conflicto no hay tension, y sin transformacion el relato no deja huella. El narrador decide desde donde se cuenta, y esa eleccion condiciona lo que el lector puede llegar a saber."
+        },
+        {
+          "title": "Analisis de un texto literario",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que elementos sostienen una narracion?",
+              "options": [
+                {
+                  "text": "Personaje",
+                  "is_correct": true
+                },
+                {
+                  "text": "Conflicto",
+                  "is_correct": true
+                },
+                {
+                  "text": "Transformacion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Numero de paginas",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que decide el punto de vista narrativo?",
+              "options": [
+                {
+                  "text": "Desde donde se cuenta la historia",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que informacion recibe el lector",
+                  "is_correct": true
+                },
+                {
+                  "text": "El grado de cercania con el personaje",
+                  "is_correct": true
+                },
+                {
+                  "text": "El genero literario obligatoriamente",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Filosofia",
+      "lessons": [
+        {
+          "title": "Grandes preguntas y corrientes",
+          "lesson_type": "text",
+          "duration_minutes": 19,
+          "body": "La filosofia no busca respuestas comodas, sino preguntas bien formuladas.\n\nLa **epistemologia** se ocupa de que podemos conocer y con que garantia; la **etica** de como debemos actuar; la **metafisica** de que hay y como es. Muchas discusiones se disuelven al identificar a cual de estas ramas pertenece la pregunta."
+        },
+        {
+          "title": "Los dialogos de Platon",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "De que se ocupa la epistemologia?",
+              "options": [
+                {
+                  "text": "Del conocimiento y sus limites",
+                  "is_correct": true
+                },
+                {
+                  "text": "De la conducta moral",
+                  "is_correct": false
+                },
+                {
+                  "text": "De la naturaleza de la realidad",
+                  "is_correct": false
+                },
+                {
+                  "text": "De la belleza artistica",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que rama de la filosofia estudia como debemos actuar?",
+              "options": [
+                {
+                  "text": "La etica",
+                  "is_correct": true
+                },
+                {
+                  "text": "La metafisica",
+                  "is_correct": false
+                },
+                {
+                  "text": "La logica formal",
+                  "is_correct": false
+                },
+                {
+                  "text": "La estetica",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Musica y expresion",
+      "lessons": [
+        {
+          "title": "Ritmo, melodia y armonia",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "La musica se construye sobre tres dimensiones que actuan a la vez.\n\nEl **ritmo** organiza el tiempo, la **melodia** es la sucesion de alturas que se recuerda, y la **armonia** el soporte de sonidos simultaneos que da color. Cambiar solo la armonia de una melodia conocida basta para transformar su caracter."
+        },
+        {
+          "title": "Como escuchar una obra sinfonica",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que dimension musical organiza el tiempo?",
+              "options": [
+                {
+                  "text": "El ritmo",
+                  "is_correct": true
+                },
+                {
+                  "text": "La melodia",
+                  "is_correct": false
+                },
+                {
+                  "text": "La armonia",
+                  "is_correct": false
+                },
+                {
+                  "text": "El timbre",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que ocurre si se cambia la armonia de una melodia conocida?",
+              "options": [
+                {
+                  "text": "Cambia su caracter aunque la melodia sea la misma",
+                  "is_correct": true
+                },
+                {
+                  "text": "La melodia deja de reconocerse siempre",
+                  "is_correct": false
+                },
+                {
+                  "text": "No se percibe ninguna diferencia",
+                  "is_correct": false
+                },
+                {
+                  "text": "Se altera unicamente el volumen",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pensamiento critico",
+      "lessons": [
+        {
+          "title": "Argumentar y detectar falacias",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Un argumento se compone de premisas y una conclusion que pretende seguirse de ellas.\n\nUna **falacia** es un razonamiento que parece valido pero no lo es. Las mas frecuentes atacan a la persona en lugar del argumento, o deforman la postura contraria para rebatirla con comodidad. Reconocerlas mejora tanto el debate propio como la lectura ajena."
+        },
+        {
+          "title": "Falacias en el discurso publico",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que elementos forman un argumento?",
+              "options": [
+                {
+                  "text": "Premisas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Una conclusion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Una relacion de inferencia entre ambas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Una cita de autoridad obligatoria",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cuales son falacias argumentativas?",
+              "options": [
+                {
+                  "text": "Atacar a la persona en lugar del argumento",
+                  "is_correct": true
+                },
+                {
+                  "text": "Deformar la postura contraria para rebatirla",
+                  "is_correct": true
+                },
+                {
+                  "text": "Apelar solo a la emocion como prueba",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aportar datos verificables",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Patrimonio y cultura",
+      "lessons": [
+        {
+          "title": "Conservacion del legado",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "El patrimonio cultural incluye tanto lo **material** (edificios, obras, documentos) como lo **inmaterial** (lenguas, tradiciones, saberes).\n\nConservar no es congelar: es decidir que se transmite y en que condiciones. Toda restauracion implica interpretar, y por eso la documentacion del proceso importa tanto como el resultado."
+        },
+        {
+          "title": "Restauracion: criterios y limites",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que incluye el patrimonio inmaterial?",
+              "options": [
+                {
+                  "text": "Lenguas, tradiciones y saberes",
+                  "is_correct": true
+                },
+                {
+                  "text": "Unicamente edificios historicos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo documentos escritos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Exclusivamente obras pictoricas",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que importa documentar una restauracion?",
+              "options": [
+                {
+                  "text": "Porque toda restauracion implica interpretar",
+                  "is_correct": true
+                },
+                {
+                  "text": "Porque lo exige el seguro",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para acelerar los trabajos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para evitar publicar el resultado",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de artes y humanidades y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

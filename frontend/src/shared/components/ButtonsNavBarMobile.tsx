@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useAuth } from "../povider/AuthContext";
+import { useAuth } from "../provider/AuthContext";
 import type { AuthType } from "../types/AuthTypes";
 import { LogOut, Menu, X } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "../../features/notifications/components/NotificationBell";
 
 export const ButtonsNavBarMobile = (
     { isAdmin, setAuthType }: { isAdmin: boolean, setAuthType: (authType: AuthType) => void }
@@ -28,7 +29,8 @@ export const ButtonsNavBarMobile = (
         ].join(" ");
 
     return (
-        <div className="flex md:hidden items-center ml-auto relative">
+        <div className="flex md:hidden items-center ml-auto gap-1 relative">
+            {user ? <NotificationBell variant="mobile" /> : null}
             <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-full text-header-foreground transition-colors hover:bg-white/10"

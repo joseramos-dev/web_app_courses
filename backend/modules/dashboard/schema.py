@@ -3,7 +3,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from modules.courses.model import Category, Difficulty, Site
+from modules.courses.model import Category, Difficulty, DurationBucket, Site
 from modules.lessons.model import LessonType
 from modules.progress.model import LessonProgressStatus
 
@@ -52,6 +52,27 @@ class SiteStatSchema(BaseModel):
 class DifficultyStatSchema(BaseModel):
     difficulty: Difficulty
     enrollments_count: int
+
+
+class DurationStatSchema(BaseModel):
+    """Enrollments and rating for one duration bucket."""
+
+    duration_bucket: DurationBucket
+    enrollments_count: int
+    avg_rating: Optional[float] = None
+    ratings_count: int
+
+
+class CategoryRatingSchema(BaseModel):
+    """Average rating of a category, with the sample it rests on.
+
+    `ratings_count` is not decoration: an average over four votes says very
+    little, so the caller shows it next to the bar and orders by it.
+    """
+
+    category: Category
+    avg_rating: float
+    ratings_count: int
 
 
 class EnrollmentCohortSchema(BaseModel):
@@ -168,6 +189,8 @@ class AdminDashboardSchema(BaseModel):
     category_distribution: List[CategoryStatSchema]
     site_distribution: List[SiteStatSchema]
     difficulty_distribution: List[DifficultyStatSchema]
+    duration_distribution: List[DurationStatSchema]
+    category_ratings: List[CategoryRatingSchema]
     enrollment_cohorts: List[EnrollmentCohortSchema]
     last_30_days: List[DailyActivitySchema]
 

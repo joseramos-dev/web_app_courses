@@ -4,6 +4,7 @@ from fastapi import APIRouter, Body, Depends, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from core.i18n import http_error
 from modules.auth.service import get_current_user
 from modules.lessons.schema import LessonAnswerSubmitSchema
 from modules.progress.performance_schema import (
@@ -20,14 +21,10 @@ from modules.progress.schema import (
 )
 from modules.progress.submission_schema import (
     AssignmentSubmitSchema,
-    GradeSubmissionResultSchema,
-    GradeSubmissionSchema,
-    SubmissionListSchema,
     SubmissionSchema,
 )
 from modules.progress.submission_service import (
     get_submission,
-    grade_submission,
     submit_assignment,
 )
 from modules.progress.service import (
@@ -36,11 +33,20 @@ from modules.progress.service import (
     start_lesson,
 )
 from modules.enrollments.model import EnrollmentStatus
+from modules.lessons.model import LessonModel
+from modules.progress.access_service import assert_lesson_unlocked
 
 progress_router = APIRouter(
     prefix="/progress",
     tags=["progress"],
 )
+
+
+def _require_lesson(db: Session, lesson_id: int) -> LessonModel:
+    lesson = db.query(LessonModel).filter(LessonModel.id == lesson_id).first()
+    if not lesson:
+        raise http_error(404, "lesson_not_found")
+    return lesson
 
 
 @progress_router.get(
@@ -96,6 +102,8 @@ def start(
     Used by the lesson page on mount to build the IN_PROGRESS state and
     bump today's study activity counter.
     """
+    lesson = _require_lesson(db, lesson_id)
+    assert_lesson_unlocked(db, lesson, user)
     return start_lesson(db, user.id, lesson_id)
 
 
@@ -115,6 +123,8 @@ def complete(
     Body is required for TEST / MULTIPLE_SELECTION lessons (list of
     selected option ids per question) and ignored for TEXT / VIDEO.
     """
+    lesson = _require_lesson(db, lesson_id)
+    assert_lesson_unlocked(db, lesson, user)
     answers = payload.answers if payload else []
     lp, enrollment, passed, score = complete_lesson(
         db, user.id, lesson_id, answers
@@ -140,6 +150,8 @@ def submit_lesson_assignment(
     user=Depends(get_current_user),
 ):
     """Submit or resubmit an assignment (text and/or file path)."""
+    lesson = _require_lesson(db, lesson_id)
+    assert_lesson_unlocked(db, lesson, user)
     return submit_assignment(
         db,
         user.id,
@@ -160,4 +172,6 @@ def get_lesson_submission(
     user=Depends(get_current_user),
 ):
     """Return the current user's submission for an assignment lesson."""
+    lesson = _require_lesson(db, lesson_id)
+    assert_lesson_unlocked(db, lesson, user)
     return get_submission(db, user.id, lesson_id)

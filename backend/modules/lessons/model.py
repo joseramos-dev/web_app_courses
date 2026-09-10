@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import enum
 from sqlalchemy.sql import func
 
@@ -30,13 +29,23 @@ class LessonModel(Base):
     __tablename__ = "lessons"
     id = Column(Integer, primary_key=True, index=True)
     course_id = Column(
-        Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False
+        Integer,
+        ForeignKey("courses.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    topic_id = Column(
+        Integer, ForeignKey("topics.id", ondelete="CASCADE"), nullable=False, index=True
     )
     title = Column(String, nullable=False)
     lesson_type = Column(SqlEnum(LessonType), nullable=False)
     position = Column(Integer, nullable=False)
     body = Column(Text, nullable=True)  # markdown for TEXT / ASSIGNMENT instructions
     video_url = Column(String, nullable=True)  # for LessonType.VIDEO
+    # Declared by whoever writes the lesson. Topic and course durations are the
+    # sum of these, so this is the single place a duration is entered.
+    # Nullable: a lesson without a declared duration simply adds 0.
+    duration_seconds = Column(Integer, nullable=True)
     max_score = Column(
         Float, nullable=True, default=100.0, server_default="100"
     )  # ASSIGNMENT
@@ -53,6 +62,7 @@ class LessonModel(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
     course = relationship("CourseModel", back_populates="lessons")
+    topic = relationship("TopicModel", back_populates="lessons")
     questions = relationship(
         "QuestionModel",
         back_populates="lesson",
@@ -66,7 +76,7 @@ class LessonModel(Base):
         order_by="LessonFileModel.uploaded_at",
     )
     __table_args__ = (
-        UniqueConstraint("course_id", "position", name="uq_course_position"),
+        UniqueConstraint("topic_id", "position", name="uq_topic_lesson_position"),
     )
 
 
@@ -129,6 +139,12 @@ class LessonFileModel(Base):
     storage_name = Column(String, nullable=False, unique=True)
     mime_type = Column(String, nullable=False)
     size_bytes = Column(Integer, nullable=False)
+    # False: material published by the course staff, visible to every enrolled
+    # student. True: a student's assignment upload, private to its author and
+    # the course staff.
+    is_submission = Column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     uploaded_by = Column(
         Integer,
         ForeignKey("users.id"),

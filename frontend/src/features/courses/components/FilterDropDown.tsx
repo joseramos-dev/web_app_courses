@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useClickOutside } from '../../../shared/hooks/useClickOutside';
 
 interface FilterDropDownProps {
     label?: string;
@@ -63,19 +64,7 @@ export const FilterDropDown = ({
     };
 
     // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    useClickOutside(dropdownRef, () => setIsOpen(false));
 
     // Get display text
     const getDisplayText = () => {
@@ -112,7 +101,7 @@ export const FilterDropDown = ({
                             placeholder={t("courses.filterDropdown.searchPlaceholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-slate-900 placeholder:text-gray-400 focus:border-uned-accent focus:outline-none focus:ring-2 focus:ring-uned-accent/25"
                             autoFocus
                         />
                     </div>
@@ -125,7 +114,7 @@ export const FilterDropDown = ({
                                 type="checkbox"
                                 checked={selected.length === options.length && options.length > 0}
                                 onChange={handleSelectAll}
-                                className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-gray-400"
+                                className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-uned-accent/25"
                             />
                             <span className="ml-3 text-gray-800 font-medium">{t("courses.filterDropdown.selectAll")}</span>
                         </label>
@@ -142,7 +131,7 @@ export const FilterDropDown = ({
                                         type="checkbox"
                                         checked={selected.includes(option)}
                                         onChange={() => handleSelectItem(option)}
-                                        className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-gray-400"
+                                        className="w-4 h-4 text-gray-500 rounded focus:ring-2 focus:ring-uned-accent/25"
                                     />
                                     <span className="ml-3 text-gray-800">{displayLabel(option)}</span>
                                 </label>

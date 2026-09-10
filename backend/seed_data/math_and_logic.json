@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'math and logic'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "math and logic",
+  "topics": [
+    {
+      "name": "Aritmetica y algebra",
+      "lessons": [
+        {
+          "title": "Operaciones y ecuaciones",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "El algebra generaliza la aritmetica sustituyendo numeros concretos por **simbolos**.\n\nResolver una ecuacion consiste en aislar la incognita aplicando la misma operacion a ambos lados de la igualdad. Ese principio, mantener el equilibrio, es el unico que hace falta memorizar: todo lo demas se deduce de el."
+        },
+        {
+          "title": "Resolucion de ecuaciones paso a paso",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Cual es el principio basico para resolver una ecuacion?",
+              "options": [
+                {
+                  "text": "Aplicar la misma operacion a ambos lados de la igualdad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Cambiar de signo todos los terminos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Eliminar los denominadores siempre primero",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir la incognita por cero",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que aporta el algebra frente a la aritmetica?",
+              "options": [
+                {
+                  "text": "Permite trabajar con simbolos y generalizar",
+                  "is_correct": true
+                },
+                {
+                  "text": "Elimina la necesidad de operar",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo sirve para numeros enteros",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituye a la geometria",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Logica proposicional",
+      "lessons": [
+        {
+          "title": "Conectivas y tablas de verdad",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "La logica proposicional estudia como se combinan enunciados que pueden ser verdaderos o falsos.\n\nLas conectivas basicas son la **conjuncion**, la **disyuncion**, la **negacion** y la **implicacion**. La implicacion es la que mas confunde: solo es falsa cuando el antecedente es verdadero y el consecuente falso."
+        },
+        {
+          "title": "Construir una tabla de verdad",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Cuando es falsa una implicacion?",
+              "options": [
+                {
+                  "text": "Cuando el antecedente es verdadero y el consecuente falso",
+                  "is_correct": true
+                },
+                {
+                  "text": "Siempre que el antecedente sea falso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cuando ambos son verdaderos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cuando ambos son falsos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que valor tiene una conjuncion si uno de sus terminos es falso?",
+              "options": [
+                {
+                  "text": "Falso",
+                  "is_correct": true
+                },
+                {
+                  "text": "Verdadero",
+                  "is_correct": false
+                },
+                {
+                  "text": "Depende del orden",
+                  "is_correct": false
+                },
+                {
+                  "text": "Indeterminado",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Conjuntos y funciones",
+      "lessons": [
+        {
+          "title": "Relaciones entre elementos",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Un **conjunto** es una coleccion de elementos sin repeticion ni orden.\n\nUna **funcion** asigna a cada elemento del dominio exactamente un elemento del codominio. Esa exigencia, uno y solo uno, es lo que distingue una funcion de una relacion cualquiera."
+        },
+        {
+          "title": "Dominio, recorrido y grafica",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que caracteriza a una funcion?",
+              "options": [
+                {
+                  "text": "Asigna a cada elemento del dominio un unico valor",
+                  "is_correct": true
+                },
+                {
+                  "text": "Tiene un dominio definido",
+                  "is_correct": true
+                },
+                {
+                  "text": "Puede representarse graficamente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Puede asignar dos valores distintos al mismo elemento",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que propiedades tiene un conjunto?",
+              "options": [
+                {
+                  "text": "Sus elementos no se repiten",
+                  "is_correct": true
+                },
+                {
+                  "text": "El orden de sus elementos es irrelevante",
+                  "is_correct": true
+                },
+                {
+                  "text": "Puede ser finito o infinito",
+                  "is_correct": true
+                },
+                {
+                  "text": "Siempre esta ordenado de menor a mayor",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Probabilidad",
+      "lessons": [
+        {
+          "title": "Sucesos y calculo de probabilidades",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La probabilidad de un suceso es un numero entre 0 y 1 que mide su verosimilitud.\n\nEn el caso equiprobable se calcula como casos favorables entre casos posibles. Dos sucesos son **independientes** cuando la ocurrencia de uno no altera la probabilidad del otro, y entonces la probabilidad conjunta es el producto de ambas."
+        },
+        {
+          "title": "La paradoja del cumpleanos",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que rango de valores puede tomar una probabilidad?",
+              "options": [
+                {
+                  "text": "Entre 0 y 1",
+                  "is_correct": true
+                },
+                {
+                  "text": "Entre -1 y 1",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cualquier numero real",
+                  "is_correct": false
+                },
+                {
+                  "text": "Entre 0 y 100 siempre",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cuando son independientes dos sucesos?",
+              "options": [
+                {
+                  "text": "Cuando la ocurrencia de uno no altera la probabilidad del otro",
+                  "is_correct": true
+                },
+                {
+                  "text": "Cuando nunca ocurren a la vez",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cuando tienen la misma probabilidad",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cuando su suma vale 1",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Razonamiento y demostracion",
+      "lessons": [
+        {
+          "title": "Tipos de demostracion",
+          "lesson_type": "text",
+          "duration_minutes": 19,
+          "body": "Demostrar es convencer sin lugar a duda, no solo comprobar casos.\n\nLa demostracion **directa** parte de la hipotesis y llega a la tesis. La **por contradiccion** supone lo contrario y encuentra un absurdo. La **por induccion** prueba el caso base y el paso inductivo, cubriendo asi infinitos casos de una vez."
+        },
+        {
+          "title": "Induccion matematica con ejemplos",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que dos elementos requiere una demostracion por induccion?",
+              "options": [
+                {
+                  "text": "El caso base y el paso inductivo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Una hipotesis y un contraejemplo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Dos casos particulares cualesquiera",
+                  "is_correct": false
+                },
+                {
+                  "text": "La comprobacion de todos los casos",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "En que consiste una demostracion por contradiccion?",
+              "options": [
+                {
+                  "text": "Suponer lo contrario y llegar a un absurdo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Comprobar los primeros cien casos",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reformular el enunciado",
+                  "is_correct": false
+                },
+                {
+                  "text": "Buscar un ejemplo que lo confirme",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Matematica aplicada",
+      "lessons": [
+        {
+          "title": "Modelos y optimizacion",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Un modelo matematico es una simplificacion deliberada de la realidad.\n\nOptimizar consiste en encontrar el mejor valor de una funcion objetivo dentro de un conjunto de restricciones. La utilidad del resultado depende por completo de lo bien que el modelo represente el problema real: un optimo de un mal modelo no sirve de nada."
+        },
+        {
+          "title": "Problemas de optimizacion resueltos",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que elementos definen un problema de optimizacion?",
+              "options": [
+                {
+                  "text": "Una funcion objetivo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Un conjunto de restricciones",
+                  "is_correct": true
+                },
+                {
+                  "text": "Variables de decision",
+                  "is_correct": true
+                },
+                {
+                  "text": "Un resultado conocido de antemano",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que hay que tener en cuenta al usar un modelo matematico?",
+              "options": [
+                {
+                  "text": "Es una simplificacion de la realidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Sus conclusiones dependen de sus supuestos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Conviene validar el modelo con datos reales",
+                  "is_correct": true
+                },
+                {
+                  "text": "Su resultado es siempre exacto",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de matematicas y logica y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

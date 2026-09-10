@@ -4,7 +4,10 @@ import { Activity, BookOpen, Star, TrendingUp, UserCheck, Users } from "lucide-r
 import { useTranslation } from "react-i18next";
 import type { IUser } from "../../shared/interfaces/IUser";
 import type { IAdminDashboard } from "../../shared/interfaces/IDashboard";
-import { getDifficultyLabels } from "../../shared/types/CourseTypes";
+import {
+    getDifficultyLabels,
+    getDurationBucketShortLabels,
+} from "../../shared/types/CourseTypes";
 import { API_getAdminDashboard } from "./api";
 import { StatCard } from "./components/StatCard";
 import { useExpandableList } from "./components/useExpandableList";
@@ -14,9 +17,11 @@ import { DashboardStateGate } from "./components/DashboardStateGate";
 import { DashboardPanel } from "./components/DashboardPanel";
 import { RankedList } from "./components/RankedList";
 import { ActivityBarChart } from "../../shared/components/charts/ActivityBarChart";
+import { CategoryRatingChart } from "../../shared/components/charts/CategoryRatingChart";
 import { CohortComparisonChart } from "../../shared/components/charts/CohortComparisonChart";
 import { DistributionBarChart } from "../../shared/components/charts/DistributionBarChart";
 import { DistributionPieChart } from "../../shared/components/charts/DistributionPieChart";
+import { DurationRatingChart } from "../../shared/components/charts/DurationRatingChart";
 import {
     formatCategoryLabel,
     formatCohortMonth,
@@ -29,6 +34,7 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
         [i18n.language],
     );
     const difficultyLabels = getDifficultyLabels(t);
+    const durationLabels = getDurationBucketShortLabels(t);
     const courseNavReturn = useCourseNavReturn();
     const [data, setData] = useState<IAdminDashboard | null>(null);
     const [loading, setLoading] = useState(true);
@@ -91,6 +97,27 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
             value: d.enrollments_count,
         }));
     }, [data]);
+
+    const durationChartData = useMemo(() => {
+        if (!data) return [];
+        return data.duration_distribution.map((d) => ({
+            label: durationLabels[d.duration_bucket],
+            enrollments_count: d.enrollments_count,
+            avg_rating: d.avg_rating,
+            ratings_count: d.ratings_count,
+        }));
+    }, [data, durationLabels]);
+
+    // Already ordered by number of votes by the API, deliberately: read left to
+    // right, the averages rest on ever fewer opinions.
+    const categoryRatingData = useMemo(() => {
+        if (!data) return [];
+        return data.category_ratings.map((c) => ({
+            label: formatCategoryLabel(c.category, t),
+            avg_rating: c.avg_rating,
+            ratings_count: c.ratings_count,
+        }));
+    }, [data, t]);
 
     const cohortChartData = useMemo(() => {
         if (!data) return [];
@@ -281,7 +308,7 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                     data={data.last_30_days.map((d) => ({
                                         label: "",
                                         value: d.lessons_completed,
-                                        title: `${dayFormatter.format(new Date(d.date))}: ${t("charts.completed", { count: d.lessons_completed })}`,
+                                        title: dayFormatter.format(new Date(d.date)),
                                     }))}
                                 />
                                 <div className="mt-1 flex justify-between text-[10px] text-gray-400 dark:text-slate-500">
@@ -327,6 +354,33 @@ export const AdminDashboard = ({ user }: { user: IUser }) => {
                                 <DistributionBarChart
                                     data={difficultyChartData}
                                     height={180}
+                                />
+                            </div>
+                        </DashboardPanel>
+                    </section>
+
+                    {/* Duración + valoración por categoría */}
+                    <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <DashboardPanel
+                            title={t("dashboard.admin.durationDistribution.title")}
+                            description={t("dashboard.admin.durationDistribution.description")}
+                        >
+                            <div className="mt-4">
+                                <DurationRatingChart
+                                    data={durationChartData}
+                                    height={200}
+                                />
+                            </div>
+                        </DashboardPanel>
+
+                        <DashboardPanel
+                            title={t("dashboard.admin.categoryRatings.title")}
+                            description={t("dashboard.admin.categoryRatings.description")}
+                        >
+                            <div className="mt-4">
+                                <CategoryRatingChart
+                                    data={categoryRatingData}
+                                    height={200}
                                 />
                             </div>
                         </DashboardPanel>

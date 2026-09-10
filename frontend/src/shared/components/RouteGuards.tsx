@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
-import { useAuth } from "../povider/AuthContext";
+import { useAuth } from "../provider/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import type { ReactNode } from "react";
 

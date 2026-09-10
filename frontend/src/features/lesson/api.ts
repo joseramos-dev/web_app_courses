@@ -1,5 +1,7 @@
 import { api } from "../../shared/api/api";
 import type { ILesson, IQuestionPublic } from "../course_edit/lessonTypes";
+import { API_getCourseCurriculum } from "../course_detail/api";
+import { flattenCurriculumLessons } from "../../shared/utils/curriculumUtils";
 import type { ILessonProgress } from "../../shared/interfaces/IEnrollment";
 
 export interface ILessonAnswer {
@@ -52,6 +54,8 @@ export const API_completeLesson = async (
 export const API_getCourseLessonsForNav = async (
     courseId: number,
 ): Promise<ILesson[]> => {
-    const { data } = await api.get<ILesson[]>(`/courses/${courseId}/lessons`);
-    return data;
+    const curriculum = await API_getCourseCurriculum(courseId);
+    return flattenCurriculumLessons(curriculum.topics);
 };
+
+export const API_getCourseCurriculumForPlayer = API_getCourseCurriculum;

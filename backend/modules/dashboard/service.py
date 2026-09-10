@@ -13,7 +13,9 @@ from typing import Dict, List, Literal, Optional, Tuple
 from sqlalchemy import case, distinct, func
 from sqlalchemy.orm import Session
 
-from modules.courses.model import CourseModel
+from modules.course_ratings.model import CourseRatingModel
+from modules.courses.duration_utils import FIVE_HOURS_SECONDS, TEN_HOURS_SECONDS
+from modules.courses.model import CourseModel, DurationBucket
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
 from modules.lessons.model import LessonModel
 from modules.progress.model import (
@@ -26,10 +28,12 @@ from modules.progress.model import (
 from modules.users.model import UserModel, UserRole
 from modules.dashboard.schema import (
     AdminDashboardSchema,
+    CategoryRatingSchema,
     CategoryStatSchema,
     CompletedCourseRowSchema,
     DailyActivitySchema,
     DifficultyStatSchema,
+    DurationStatSchema,
     EnrollmentCohortSchema,
     InstructorCourseRowSchema,
     InstructorDashboardSchema,
@@ -151,6 +155,97 @@ def _get_category_distribution(db: Session) -> List[CategoryStatSchema]:
     return [
         CategoryStatSchema(category=cat, enrollments_count=int(cnt))
         for cat, cnt in rows
+    ]
+
+
+def _duration_bucket_column():
+    """The SQL twin of `duration_bucket()`, sharing its cut points.
+
+    Reusing the constants rather than repeating the numbers is what keeps this
+    chart and the catalogue filter from ever disagreeing about what "short"
+    means. Courses without a duration are filtered out by the callers instead
+    of silently landing in the last branch.
+    """
+    return case(
+        (CourseModel.duration_seconds < FIVE_HOURS_SECONDS, DurationBucket.SHORT.value),
+        (CourseModel.duration_seconds <= TEN_HOURS_SECONDS, DurationBucket.MEDIUM.value),
+        else_=DurationBucket.LONG.value,
+    )
+
+
+def _get_duration_distribution(db: Session) -> List[DurationStatSchema]:
+    """Enrollments and average rating per duration bucket.
+
+    Two queries rather than one: a course with three enrollments and two
+    ratings would appear six times in a single join, inflating both figures.
+    """
+    bucket = _duration_bucket_column()
+    has_duration = CourseModel.duration_seconds.isnot(None) & (
+        CourseModel.duration_seconds > 0
+    )
+
+    enrollment_rows = (
+        db.query(bucket.label("bucket"), func.count(EnrollmentModel.id))
+        .join(EnrollmentModel, EnrollmentModel.course_id == CourseModel.id)
+        .filter(has_duration)
+        .group_by(bucket)
+        .all()
+    )
+    rating_rows = (
+        db.query(
+            bucket.label("bucket"),
+            func.avg(CourseRatingModel.score),
+            func.count(CourseRatingModel.id),
+        )
+        .join(CourseRatingModel, CourseRatingModel.course_id == CourseModel.id)
+        .filter(has_duration)
+        .group_by(bucket)
+        .all()
+    )
+
+    enrollments = {name: int(count) for name, count in enrollment_rows}
+    ratings = {
+        name: (float(avg) if avg is not None else None, int(count))
+        for name, avg, count in rating_rows
+    }
+
+    # Every bucket is listed even when empty, and in duration order: the axis
+    # is ordinal, so sorting it by size would be misleading.
+    result = []
+    for member in DurationBucket:
+        avg_rating, ratings_count = ratings.get(member.value, (None, 0))
+        result.append(
+            DurationStatSchema(
+                duration_bucket=member,
+                enrollments_count=enrollments.get(member.value, 0),
+                avg_rating=round(avg_rating, 2) if avg_rating is not None else None,
+                ratings_count=ratings_count,
+            )
+        )
+    return result
+
+
+def _get_category_ratings(db: Session) -> List[CategoryRatingSchema]:
+    """Average rating per category, ordered by how many votes back it up."""
+    rows = (
+        db.query(
+            CourseModel.category,
+            func.avg(CourseRatingModel.score),
+            func.count(CourseRatingModel.id),
+        )
+        .join(CourseRatingModel, CourseRatingModel.course_id == CourseModel.id)
+        .group_by(CourseModel.category)
+        .order_by(func.count(CourseRatingModel.id).desc())
+        .all()
+    )
+    return [
+        CategoryRatingSchema(
+            category=category,
+            avg_rating=round(float(avg), 2),
+            ratings_count=int(count),
+        )
+        for category, avg, count in rows
+        if avg is not None
     ]
 
 
@@ -704,6 +799,9 @@ def get_admin_summary(db: Session) -> AdminDashboardSchema:
         for diff, cnt in difficulty_rows
     ]
 
+    duration_distribution = _get_duration_distribution(db)
+    category_ratings = _get_category_ratings(db)
+
     cohort_since = date.today().replace(day=1) - timedelta(days=365)
     cohort_rows = (
         db.query(
@@ -734,6 +832,8 @@ def get_admin_summary(db: Session) -> AdminDashboardSchema:
         category_distribution=category_distribution,
         site_distribution=site_distribution,
         difficulty_distribution=difficulty_distribution,
+        duration_distribution=duration_distribution,
+        category_ratings=category_ratings,
         enrollment_cohorts=enrollment_cohorts,
         last_30_days=last_30_days,
     )

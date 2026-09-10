@@ -147,6 +147,7 @@ def get_student_performance(
             CourseModel.title,
             LessonModel.id,
             LessonModel.title,
+            LessonModel.lesson_type,
         )
         .join(EnrollmentModel, EnrollmentModel.id == LessonAttemptModel.enrollment_id)
         .join(CourseModel, CourseModel.id == EnrollmentModel.course_id)
@@ -164,11 +165,12 @@ def get_student_performance(
             course_title=course_title,
             lesson_id=lesson_id,
             lesson_title=lesson_title,
+            lesson_type=lesson_type.value if hasattr(lesson_type, "value") else str(lesson_type),
             score=float(attempt.score),
             passed=bool(attempt.passed),
             attempted_at=attempt.attempted_at,
         )
-        for attempt, course_id, course_title, lesson_id, lesson_title in recent_rows
+        for attempt, course_id, course_title, lesson_id, lesson_title, lesson_type in recent_rows
     ]
 
     return StudentPerformanceSchema(

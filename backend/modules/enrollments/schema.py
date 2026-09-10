@@ -44,3 +44,6 @@ class EnrollmentDetailSchema(EnrollmentSchema):
     """
 
     lesson_progress: List[LessonProgressSchema] = []
+    current_lesson_id: Optional[int] = None
+    pending_review_lesson_ids: List[int] = []
+    unlocked_lesson_ids: List[int] = []

@@ -11,10 +11,13 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
+from modules.auth.model import PasswordResetTokenModel
 from modules.auth.service import MAX_LOGIN_ATTEMPTS
 from modules.users.model import UserModel, UserRole
 
@@ -117,4 +120,66 @@ def test_role_protected_endpoint_rejects_non_admin_but_allows_admin(client, db):
     admin_headers = auth_headers(client, "the_admin", "secret123")
     ok_resp = client.get("/users/", headers=admin_headers)
     assert ok_resp.status_code == 200
-    assert any(u["name"] == "plain_student" for u in ok_resp.json())
+    # The endpoint is paginated: {users, total, limit, offset}.
+    assert any(u["name"] == "plain_student" for u in ok_resp.json()["users"])
+
+
+@patch("modules.auth.password_reset_service.send_password_reset_email")
+def test_forgot_password_known_vs_unknown_email(mock_send, client, db):
+    make_user(db, name="reset_user", email="reset_user@example.com")
+
+    unknown_resp = client.post(
+        "/auth/forgot-password",
+        json={"email": "nobody@example.com"},
+    )
+    assert unknown_resp.status_code == 200
+    assert db.query(PasswordResetTokenModel).count() == 0
+    mock_send.assert_not_called()
+
+    known_resp = client.post(
+        "/auth/forgot-password",
+        json={"email": "reset_user@example.com"},
+    )
+    assert known_resp.status_code == 200
+    assert db.query(PasswordResetTokenModel).count() == 1
+    mock_send.assert_called_once()
+
+
+@patch("modules.auth.password_reset_service.send_password_reset_email")
+def test_login_with_new_password_after_reset(mock_send, client, db):
+    make_user(
+        db,
+        name="newpass_user",
+        email="newpass_user@example.com",
+        password="old-password",
+    )
+
+    forgot_resp = client.post(
+        "/auth/forgot-password",
+        json={"email": "newpass_user@example.com"},
+    )
+    assert forgot_resp.status_code == 200
+    mock_send.assert_called_once()
+
+    reset_url = mock_send.call_args[0][1]
+    token = parse_qs(urlparse(reset_url).query)["reset_token"][0]
+
+    reset_resp = client.post(
+        "/auth/reset-password",
+        json={"token": token, "new_password": "brand-new-pass"},
+    )
+    assert reset_resp.status_code == 200
+    assert db.query(PasswordResetTokenModel).count() == 0
+
+    old_login = client.post(
+        "/token",
+        data={"username": "newpass_user", "password": "old-password"},
+    )
+    assert old_login.status_code == 401
+
+    new_login = client.post(
+        "/token",
+        data={"username": "newpass_user", "password": "brand-new-pass"},
+    )
+    assert new_login.status_code == 200
+    assert "access_token" in new_login.json()

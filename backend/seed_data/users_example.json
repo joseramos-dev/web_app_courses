@@ -1,0 +1,10 @@
+{
+  "_comment": "Formato para POST /dev/import-users (o el boton 'Importar JSON' del panel de admin). Todas las cuentas se crean como alumnos. El campo 'password' es opcional: si se omite, la contrasena es el propio nombre. Las cuentas cuyo nombre o email ya existan se omiten, asi que se puede reimportar el mismo fichero sin miedo.",
+  "users": [
+    { "name": "alumno_prueba_01", "email": "alumno_prueba_01@demo.local" },
+    { "name": "alumno_prueba_02", "email": "alumno_prueba_02@demo.local" },
+    { "name": "alumno_prueba_03", "email": "alumno_prueba_03@demo.local" },
+    { "name": "maria.lopez", "email": "maria.lopez@demo.local" },
+    { "name": "carlos.ruiz", "email": "carlos.ruiz@demo.local" }
+  ]
+}

@@ -68,6 +68,13 @@ flowchart LR
 | `SECRET_KEY` | **Obligatoria** para firmar JWT |
 | `ALGORITHM` | Opcional; por defecto `HS256` en la ruta de `create_access_token` |
 | `EXP_TOKEN` | Opcional; vida del JWT en **minutos** (por defecto `30`) |
+| `FRONTEND_URL` | URL del frontend para enlaces de reset (por defecto `http://localhost:5173`) |
+| `RESET_TOKEN_MINUTES` | Caducidad del enlace de recuperación (por defecto `30`) |
+| `SMTP_HOST` | Host SMTP (p. ej. sandbox de Mailtrap) |
+| `SMTP_PORT` | Puerto SMTP (por defecto `587`) |
+| `SMTP_USER` | Usuario SMTP |
+| `SMTP_PASSWORD` | Contraseña SMTP |
+| `SMTP_FROM` | Remitente del correo de reset |
 
 Coloca `.env` en `/backend`.
 

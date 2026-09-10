@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { ILesson } from "../../course_edit/lessonTypes";
 import type { ISubmission, SubmissionStatus } from "../../../shared/interfaces/ISubmission";
 import { api } from "../../../shared/api/api";
+import { ACCEPTED_UPLOAD_TYPES, MAX_UPLOAD_MB } from "../../../shared/constants/uploads";
 
 function getStatusLabel(
     t: (key: string) => string,
@@ -157,7 +158,7 @@ export function LessonAssignment({
                             onChange={(e) => setContent(e.target.value)}
                             rows={8}
                             placeholder={t("lessonPage.assignment.answerPlaceholder")}
-                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-accent focus:outline-none focus:ring-2 focus:ring-uned-accent/25 dark:focus:border-uned-accent"
                         />
                     </label>
 
@@ -173,6 +174,7 @@ export function LessonAssignment({
                                     <input
                                         type="file"
                                         className="sr-only"
+                                        accept={ACCEPTED_UPLOAD_TYPES}
                                         onChange={(e) =>
                                             setFile(e.target.files?.[0] ?? null)
                                         }
@@ -184,6 +186,9 @@ export function LessonAssignment({
                                     </span>
                                 ) : null}
                             </div>
+                            <span className="text-xs text-gray-500 dark:text-slate-400">
+                                {t("lessonPage.assignment.uploadHint", { max: MAX_UPLOAD_MB })}
+                            </span>
                         </label>
                     ) : null}
 

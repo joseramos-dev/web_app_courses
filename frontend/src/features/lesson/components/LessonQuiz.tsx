@@ -11,6 +11,8 @@ type Props = {
     onSubmit: (answers: ILessonAnswer[]) => void;
     /** Optional last attempt score to show feedback. */
     lastScore?: number | null;
+    /** When true, the lesson is already completed and the quiz becomes read-only. */
+    completed?: boolean;
 };
 
 export function LessonQuiz({
@@ -19,6 +21,7 @@ export function LessonQuiz({
     submitting,
     onSubmit,
     lastScore,
+    completed = false,
 }: Props) {
     const { t } = useTranslation();
     // selected[questionId] = Set<optionId>
@@ -63,11 +66,15 @@ export function LessonQuiz({
                 <div className="flex justify-end">
                     <button
                         type="button"
-                        disabled={submitting}
+                        disabled={submitting || completed}
                         onClick={() => onSubmit([])}
                         className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 disabled:bg-green-300 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
                     >
-                        {submitting ? t("lessonPage.quiz.marking") : t("lessonPage.quiz.markComplete")}
+                        {completed
+                            ? t("lessonPage.lessonCompleted")
+                            : submitting
+                                ? t("lessonPage.quiz.marking")
+                                : t("lessonPage.quiz.markComplete")}
                     </button>
                 </div>
             </div>
@@ -106,7 +113,7 @@ export function LessonQuiz({
                             return (
                                 <label
                                     key={opt.id}
-                                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${isSelected
+                                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${completed ? "cursor-default opacity-70" : "cursor-pointer"} ${isSelected
                                             ? "border-gray-900 bg-gray-50 dark:border-uned-primary dark:bg-slate-900/80"
                                             : "border-gray-200 hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700/50"
                                         }`}
@@ -115,6 +122,7 @@ export function LessonQuiz({
                                         type={mode === "single" ? "radio" : "checkbox"}
                                         name={`question-${q.id}`}
                                         checked={isSelected}
+                                        disabled={completed}
                                         onChange={() => toggle(q.id, opt.id)}
                                         className="size-4"
                                     />
@@ -129,11 +137,15 @@ export function LessonQuiz({
             <div className="flex justify-end">
                 <button
                     type="button"
-                    disabled={submitting || !allAnswered}
+                    disabled={submitting || !allAnswered || completed}
                     onClick={handleSubmit}
                     className="inline-flex items-center rounded-lg border border-gray-900 bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:border-gray-200 disabled:bg-gray-200 disabled:text-gray-500 dark:border-uned-primary dark:bg-uned-primary dark:text-slate-900 dark:hover:bg-uned-accent disabled:dark:border-slate-600 disabled:dark:bg-slate-700 disabled:dark:text-slate-500"
                 >
-                    {submitting ? t("lessonPage.quiz.sending") : t("lessonPage.quiz.submitAnswers")}
+                    {completed
+                        ? t("lessonPage.lessonCompleted")
+                        : submitting
+                            ? t("lessonPage.quiz.sending")
+                            : t("lessonPage.quiz.submitAnswers")}
                 </button>
             </div>
         </div>

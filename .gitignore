@@ -9,3 +9,7 @@ __pycache__/
 # Configuración del editor (local)
 .vscode/
 .cursor/
+.claude/
+
+# Logs de depuración: nunca deben versionarse.
+*.log

@@ -17,6 +17,7 @@ export interface IRecentAttempt {
     course_title: string;
     lesson_id: number;
     lesson_title: string;
+    lesson_type: string;
     score: number;
     passed: boolean;
     attempted_at: string;

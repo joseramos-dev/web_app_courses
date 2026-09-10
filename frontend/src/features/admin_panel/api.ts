@@ -1,11 +1,27 @@
 import type { AxiosError } from "axios";
-import { api } from "../../shared/api/api"
+import { api, apiArray } from "../../shared/api/api"
 import type { IUser } from "../../shared/interfaces/IUser"
 import type { UserRoles } from "../../shared/types/UserRoles"
 
-export const API_getUsers = async (): Promise<IUser[]> => {
+export interface IPaginatedUsers {
+    users: IUser[]
+    total: number
+    limit: number
+    offset: number
+}
+
+export interface IUserQuery {
+    search?: string
+    /** Repeated in the query string, so several roles can be combined. */
+    role?: UserRoles[]
+    limit?: number
+    offset?: number
+}
+
+export const API_getUsers = async (params: IUserQuery = {}): Promise<IPaginatedUsers> => {
     try {
-        const response = await api.get<IUser[]>("/users")
+        // apiArray serialises repeated params (role=student&role=admin).
+        const response = await apiArray.get<IPaginatedUsers>("/users", { params })
         return response.data;
     } catch (error) {
         console.error("Error fetching users: ", error);

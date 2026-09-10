@@ -48,16 +48,16 @@ export const API_login = async (nameOrEmail: string, password: string): Promise<
     }
 }
 
-export const API_refreshToken = async (refreshToken: string): Promise<IToken> => {
-    const { data } = await api.post<IToken>("/token/refresh", {
-        refresh_token: refreshToken,
-    });
+/** Exchanges the HttpOnly refresh cookie for a fresh access token. The cookie
+ *  is sent automatically by the browser; there is nothing to pass in. */
+export const API_refreshToken = async (): Promise<IToken> => {
+    const { data } = await api.post<IToken>("/token/refresh");
     return data;
 };
 
-export const API_logoutToken = async (refreshToken: string): Promise<void> => {
+export const API_logoutToken = async (): Promise<void> => {
     try {
-        await api.post("/token/logout", { refresh_token: refreshToken });
+        await api.post("/token/logout");
     } catch {
         // Logout is best-effort; local session is cleared regardless.
     }
@@ -66,4 +66,32 @@ export const API_logoutToken = async (refreshToken: string): Promise<void> => {
 export const API_getMe = async (): Promise<IUser> => {
     const { data } = await api.get<IUser>("/me");
     return data;
+};
+
+export const API_forgotPassword = async (email: string): Promise<{ message: string }> => {
+    try {
+        const { data } = await api.post<{ message: string }>("/auth/forgot-password", { email });
+        return data;
+    } catch (error) {
+        console.error(error);
+        const axiosError = error as AxiosError<{ detail: string }>;
+        throw axiosError?.response?.data?.detail || "Error al solicitar el restablecimiento";
+    }
+};
+
+export const API_resetPassword = async (
+    token: string,
+    newPassword: string
+): Promise<{ message: string }> => {
+    try {
+        const { data } = await api.post<{ message: string }>("/auth/reset-password", {
+            token,
+            new_password: newPassword,
+        });
+        return data;
+    } catch (error) {
+        console.error(error);
+        const axiosError = error as AxiosError<{ detail: string }>;
+        throw axiosError?.response?.data?.detail || "Error al restablecer la contraseña";
+    }
 };

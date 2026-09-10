@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'computer science'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "computer science",
+  "topics": [
+    {
+      "name": "Fundamentos de programacion",
+      "lessons": [
+        {
+          "title": "Variables, tipos y control de flujo",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Todo programa se construye con tres piezas: **datos**, **decisiones** y **repeticiones**.\n\nLas variables guardan valores con un tipo asociado (entero, texto, booleano). Las condicionales eligen un camino segun el estado de esos datos, y los bucles repiten un bloque mientras se cumpla una condicion. Con solo estas tres herramientas se puede expresar cualquier algoritmo."
+        },
+        {
+          "title": "Tu primer programa paso a paso",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Para que sirve una estructura condicional?",
+              "options": [
+                {
+                  "text": "Para ejecutar un bloque solo si se cumple una condicion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para repetir un bloque un numero fijo de veces",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para declarar el tipo de una variable",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para reservar memoria dinamica",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que caracteriza a un bucle?",
+              "options": [
+                {
+                  "text": "Repite instrucciones mientras se cumpla una condicion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Se ejecuta siempre una unica vez",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo funciona con numeros enteros",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituye a las funciones",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Estructuras de datos",
+      "lessons": [
+        {
+          "title": "Listas, pilas, colas y diccionarios",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Elegir bien la estructura de datos suele importar mas que optimizar el codigo.\n\nUna **lista** mantiene el orden y permite acceso por indice. Una **pila** sigue el criterio LIFO y una **cola** el FIFO. Un **diccionario** asocia claves con valores y ofrece busqueda practicamente constante, a cambio de no garantizar un orden util."
+        },
+        {
+          "title": "Cuando usar cada estructura",
+          "lesson_type": "video",
+          "duration_minutes": 11
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que estructuras mantienen un orden entre sus elementos?",
+              "options": [
+                {
+                  "text": "Lista",
+                  "is_correct": true
+                },
+                {
+                  "text": "Pila",
+                  "is_correct": true
+                },
+                {
+                  "text": "Cola",
+                  "is_correct": true
+                },
+                {
+                  "text": "Diccionario clasico sin orden garantizado",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que afirmaciones sobre un diccionario son ciertas?",
+              "options": [
+                {
+                  "text": "Asocia claves con valores",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ofrece busqueda muy rapida por clave",
+                  "is_correct": true
+                },
+                {
+                  "text": "Las claves deben ser unicas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Garantiza acceso por posicion numerica",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos y complejidad",
+      "lessons": [
+        {
+          "title": "Notacion asintotica",
+          "lesson_type": "text",
+          "duration_minutes": 20,
+          "body": "La notacion **O grande** describe como crece el coste de un algoritmo al aumentar el tamano de la entrada, ignorando constantes.\n\nUn algoritmo O(n) recorre los datos una vez; uno O(n^2) los recorre por cada elemento; uno O(log n) descarta la mitad en cada paso. La diferencia es irrelevante con diez elementos y decisiva con un millon."
+        },
+        {
+          "title": "Ordenacion y busqueda",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 10,
+          "questions": [
+            {
+              "prompt": "Que complejidad tiene una busqueda binaria sobre una lista ordenada?",
+              "options": [
+                {
+                  "text": "O(log n)",
+                  "is_correct": true
+                },
+                {
+                  "text": "O(n)",
+                  "is_correct": false
+                },
+                {
+                  "text": "O(n^2)",
+                  "is_correct": false
+                },
+                {
+                  "text": "O(1)",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que significa que un algoritmo sea O(n^2)?",
+              "options": [
+                {
+                  "text": "Su coste crece con el cuadrado del tamano de la entrada",
+                  "is_correct": true
+                },
+                {
+                  "text": "Tarda siempre lo mismo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Usa exactamente n^2 bytes de memoria",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo funciona con entradas pares",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Programacion orientada a objetos",
+      "lessons": [
+        {
+          "title": "Clases, objetos y herencia",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "La orientacion a objetos agrupa datos y comportamiento en una misma unidad.\n\nUna **clase** es la plantilla y un **objeto** una instancia concreta. La **herencia** permite reutilizar comportamiento, y el **polimorfismo** que distintas clases respondan al mismo mensaje de forma propia. Bien aplicada reduce duplicacion; mal aplicada crea jerarquias rigidas."
+        },
+        {
+          "title": "Encapsulacion en la practica",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que relacion existe entre clase y objeto?",
+              "options": [
+                {
+                  "text": "La clase es la plantilla y el objeto una instancia suya",
+                  "is_correct": true
+                },
+                {
+                  "text": "Son sinonimos exactos",
+                  "is_correct": false
+                },
+                {
+                  "text": "El objeto contiene varias clases",
+                  "is_correct": false
+                },
+                {
+                  "text": "La clase se crea a partir del objeto",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que aporta el polimorfismo?",
+              "options": [
+                {
+                  "text": "Que distintas clases respondan al mismo mensaje de forma propia",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que una clase tenga un unico metodo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que se eliminen los atributos privados",
+                  "is_correct": false
+                },
+                {
+                  "text": "Que el codigo se ejecute en paralelo",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bases de datos",
+      "lessons": [
+        {
+          "title": "Modelo relacional y SQL",
+          "lesson_type": "text",
+          "duration_minutes": 19,
+          "body": "El modelo relacional organiza la informacion en **tablas** con filas y columnas, relacionadas mediante claves.\n\nLa clave primaria identifica de forma unica cada fila; la clave ajena apunta a la primaria de otra tabla y garantiza la integridad referencial. SQL es el lenguaje con el que se consultan y modifican esos datos."
+        },
+        {
+          "title": "Consultas con JOIN",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que afirmaciones sobre la clave primaria son ciertas?",
+              "options": [
+                {
+                  "text": "Identifica de forma unica cada fila",
+                  "is_correct": true
+                },
+                {
+                  "text": "No admite valores duplicados",
+                  "is_correct": true
+                },
+                {
+                  "text": "No puede ser nula",
+                  "is_correct": true
+                },
+                {
+                  "text": "Debe ser siempre un numero entero",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Para que sirve una clave ajena?",
+              "options": [
+                {
+                  "text": "Para relacionar una tabla con otra",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para garantizar la integridad referencial",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para apuntar a la clave primaria de otra tabla",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para ordenar fisicamente las filas",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ingenieria del software",
+      "lessons": [
+        {
+          "title": "Control de versiones y pruebas",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Un proyecto sin control de versiones y sin pruebas automaticas es un proyecto que da miedo tocar.\n\n**Git** permite trabajar en paralelo y volver atras sin perder nada. Las **pruebas unitarias** verifican piezas aisladas y las **de integracion** que esas piezas encajan. Juntas convierten un cambio arriesgado en un cambio rutinario."
+        },
+        {
+          "title": "Flujo de trabajo con ramas",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que comprueba una prueba unitaria?",
+              "options": [
+                {
+                  "text": "Una pieza pequena de codigo de forma aislada",
+                  "is_correct": true
+                },
+                {
+                  "text": "Que el sistema completo funciona en produccion",
+                  "is_correct": false
+                },
+                {
+                  "text": "La velocidad de la red",
+                  "is_correct": false
+                },
+                {
+                  "text": "El diseno visual de la interfaz",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es una ventaja principal del control de versiones?",
+              "options": [
+                {
+                  "text": "Poder volver a un estado anterior del codigo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Reducir el tamano de los ficheros fuente",
+                  "is_correct": false
+                },
+                {
+                  "text": "Compilar mas rapido",
+                  "is_correct": false
+                },
+                {
+                  "text": "Eliminar la necesidad de pruebas",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "El curso ha recorrido cuatro niveles: la **sintaxis** basica, las **estructuras de datos** que sostienen los programas, los **algoritmos** que las recorren y las **practicas de ingenieria** que hacen mantenible el resultado.\n\nSi hubiera que quedarse con una idea: elegir bien la estructura de datos resuelve la mitad de los problemas de rendimiento."
+        },
+        {
+          "title": "Proyecto integrador comentado",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Por que importa la eleccion de la estructura de datos?",
+              "options": [
+                {
+                  "text": "Condiciona directamente el coste de las operaciones",
+                  "is_correct": true
+                },
+                {
+                  "text": "Determina el lenguaje de programacion",
+                  "is_correct": false
+                },
+                {
+                  "text": "Fija el sistema operativo necesario",
+                  "is_correct": false
+                },
+                {
+                  "text": "No influye en el rendimiento",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que combinacion describe mejor un buen proyecto software?",
+              "options": [
+                {
+                  "text": "Control de versiones y pruebas automaticas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Codigo sin comentarios ni historial",
+                  "is_correct": false
+                },
+                {
+                  "text": "Una unica rama sin revisiones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Pruebas solo manuales al final",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

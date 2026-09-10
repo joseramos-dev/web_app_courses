@@ -40,16 +40,17 @@
         "spanish": "Español",
         "english": "English"
     },
+    "notifications": {
+        "title": "Notifications",
+        "empty": "You have no notifications.",
+        "markAllRead": "Mark all as read",
+        "unreadAria": "Unread notifications: {{count}}"
+    },
     "domain": {
         "difficulty": {
             "beginner": "Beginner",
             "intermediate": "Intermediate",
             "advanced": "Advanced"
-        },
-        "duration": {
-            "short": "Short (< 10 h)",
-            "medium": "Medium (10 h – 1 week)",
-            "long": "Long (> 1 week)"
         },
         "durationShort": {
             "short": "Short",
@@ -128,6 +129,14 @@
             "difficultyDistribution": {
                 "title": "Enrollments by difficulty",
                 "description": "Breakdown by the difficulty level of the enrolled course."
+            },
+            "durationDistribution": {
+                "title": "Length: enrollments and rating",
+                "description": "How much students enroll and how they rate it, by course length."
+            },
+            "categoryRatings": {
+                "title": "Average rating by category",
+                "description": "The number above each bar is how many votes back it up; sorted high to low."
             },
             "cohorts": {
                 "title": "Enrollment cohorts",
@@ -312,7 +321,15 @@
             "noAccount": "Don't have an account?",
             "registerHere": "register here",
             "hasAccount": "Already have an account?",
-            "loginHere": "log in here"
+            "loginHere": "log in here",
+            "forgotPasswordLink": "Forgot your password?",
+            "forgotPasswordTitle": "Recover password",
+            "forgotPasswordDescription": "Enter your email and we will send you a link to reset your password.",
+            "forgotPasswordSent": "If the email exists, you will receive a link shortly.",
+            "sendResetLink": "Send reset link",
+            "resetPasswordTitle": "New password",
+            "resetPasswordSubmit": "Save password",
+            "backToLogin": "Back to log in"
         },
         "role": {
             "student": "Student",
@@ -323,11 +340,15 @@
             "passwordMismatch": "Passwords do not match",
             "nameTooShort": "Name must be at least 3 characters",
             "invalidEmail": "Email must be valid",
-            "registerFailed": "Error registering the user"
+            "registerFailed": "Error registering the user",
+            "forgotFailed": "Error requesting password reset",
+            "resetFailed": "Error resetting password",
+            "passwordTooShort": "Password must be at least 8 characters"
         },
         "toast": {
             "loginSuccess": "Logged in successfully",
-            "registerSuccess": "User registered successfully"
+            "registerSuccess": "User registered successfully",
+            "resetSuccess": "Password reset successfully"
         }
     },
     "courseEdit": {
@@ -353,13 +374,14 @@
                 "title": "Title",
                 "url": "URL",
                 "intro": "Intro",
+                "introVideoUrl": "Intro video URL",
+                "introVideoPlaceholder": "https://www.youtube.com/watch?v=...",
                 "site": "Site",
                 "category": "Category",
                 "subcategory": "Subcategory",
                 "language": "Language",
                 "courseType": "Course type",
                 "difficulty": "Difficulty",
-                "durationMinutes": "Duration (minutes)",
                 "instructor": "Instructor"
             },
             "unassigned": "Unassigned",
@@ -379,11 +401,39 @@
             "editLesson": "Edit lesson",
             "deleteConfirm": "Delete \"{{title}}\"?"
         },
+        "topics": {
+            "title": "Curriculum",
+            "subtitle": "Organize lessons into topics. Reorder topics and lessons within each section.",
+            "addTopic": "Add topic",
+            "newTopicPlaceholder": "Topic name",
+            "newLessonTitle": "New lesson",
+            "rename": "Rename",
+            "deleteTopic": "Delete topic",
+            "deleteTopicConfirm": "Delete this empty topic?",
+            "deleteTopicBlocked": "Remove all lessons before deleting the topic"
+        },
+        "lessonEdit": {
+            "title": "Edit lesson"
+        },
+        "sidebar": {
+            "enrollments": "Enrolled students",
+            "lastEdit": "Last updated",
+            "topics": "Topics",
+            "lessons": "Lessons",
+            "duration": "Total duration",
+            "publicCourse": "Public course (visible in catalog)",
+            "lessonAccessMode": "Lesson access",
+            "lessonAccessOpen": "Open access (all lessons available)",
+            "lessonAccessProgressive": "Progressive (unlock sequentially)"
+        },
         "lessonModal": {
             "subtitle": "Title, type, ordering and content.",
             "fields": {
                 "title": "Title",
                 "type": "Type",
+                "durationMinutes": "Duration (minutes)",
+                "durationPlaceholder": "e.g. 30",
+                "durationHint": "Topic and course durations are the sum of their lessons.",
                 "position": "Position",
                 "contentMarkdown": "Content (markdown)",
                 "assignmentStatement": "Statement",
@@ -405,6 +455,7 @@
             "deleteFileAria": "Delete {{filename}}",
             "uploading": "Uploading…",
             "uploadFile": "Upload file",
+            "uploadHint": "PDF files only, up to {{max}} MB.",
             "saveLesson": "Save lesson",
             "createLesson": "Create lesson",
             "deleteFileConfirm": "Delete this file?"
@@ -414,7 +465,10 @@
             "subtitle": "Define questions and options. Mark the correct option(s).",
             "existingTitle": "Existing questions",
             "loading": "Loading…",
-            "empty": "No questions yet. Create the first one below.",
+            "empty": "No questions yet. Use \"New question\" to create the first one.",
+            "addQuestion": "New question",
+            "modalTitleNew": "New question",
+            "modalTitleEdit": "Edit question",
             "optionsCount": "{{count}} options · {{correct}} correct",
             "editQuestion": "Edit question",
             "newQuestion": "New question",
@@ -447,6 +501,9 @@
             "lessonUpdated": "Lesson updated",
             "lessonDeleted": "Lesson deleted",
             "lessonsReordered": "Lessons reordered",
+            "topicCreated": "Topic created",
+            "topicUpdated": "Topic updated",
+            "topicDeleted": "Topic deleted",
             "saveLessonFailed": "Could not save lesson.",
             "attachmentsLoadFailed": "Could not load attached materials.",
             "fileUploaded": "File uploaded.",
@@ -458,6 +515,8 @@
             "promptRequired": "The question cannot be empty.",
             "minTwoOptions": "You need at least 2 options.",
             "correctOptionRequired": "Mark at least one correct option.",
+            "testNeedsOneCorrect": "A test question must have exactly one correct option",
+            "multipleNeedsTwoCorrect": "A multiple-selection question needs at least two correct options",
             "questionUpdated": "Question updated",
             "questionCreated": "Question created",
             "questionSaveFailed": "Could not save the question.",
@@ -486,7 +545,21 @@
         "completing": "Completing…",
         "completeCourse": "Complete course",
         "continue": "Continue",
+        "continueLabel": "Continue with",
         "review": "Review",
+        "showMore": "Show more",
+        "showLess": "Show less",
+        "instructorCourseCount_one": "{{count}} public course",
+        "instructorCourseCount_other": "{{count}} public courses",
+        "lessonsMeta": "Lessons",
+        "curriculumTitle": "Course content",
+        "topicLessonCount_one": "{{count}} lesson",
+        "topicLessonCount_other": "{{count}} lessons",
+        "expandTopic": "Show lessons in {{name}}",
+        "collapseTopic": "Hide lessons in {{name}}",
+        "lessonLockedHint": "Complete the previous lesson to unlock",
+        "reviewsTitle": "Ratings & reviews",
+        "reviewsComingSoon": "Full reviews are coming soon. You can still rate the course below if you're enrolled.",
         "toast": {
             "enrolled": "You have enrolled in this course",
             "enrollFailed": "Enrollment could not be completed.",
@@ -547,6 +620,9 @@
             "difficulty": "Difficulty"
         },
         "orderBy": "Order by: {{label}}",
+        "sortByLabel": "Sort courses by",
+        "sortAscending": "Ascending order; click to reverse it",
+        "sortDescending": "Descending order; click to reverse it",
         "foundCount_one": "{{count}} course found",
         "foundCount_other": "{{count}} courses found",
         "createCourse": "Create course",
@@ -569,23 +645,29 @@
             "emptyDescription": "Set your course preferences (categories, languages, platforms, etc.) so we can suggest content tailored to you.",
             "configurePreferences": "Set preferences",
             "error": "We couldn't load recommendations.",
+            "timeout": "Recommendations are taking longer than usual. Please try again in a few seconds.",
             "prevAria": "See previous recommendations",
             "nextAria": "See next recommendations",
             "pagesAria": "Carousel pages",
-            "pageAria": "Page {{page}} of {{total}}"
+            "pageAria": "Page {{page}} of {{total}}",
+            "reload": "Refresh",
+            "reloadAria": "Refresh recommendations"
         }
     },
     "charts": {
         "noData": "No data",
         "completed": "{{count}} completed",
         "enrolledCount": "{{count}} enrolled",
+        "avgRatingWithVotes": "{{value}} average rating ({{count}} votes)",
+        "noRatings": "No ratings yet",
         "avgProgress": "Avg. progress: {{value}}%",
         "completionRate": "Completion: {{value}}%",
         "enrollmentsUnit": "enrollments",
         "enrollmentsWithPercent": "{{count}} enrollments ({{percent}}%)",
         "legend": {
             "enrollments": "Enrollments",
-            "avgProgress": "Avg. progress"
+            "avgProgress": "Avg. progress",
+            "avgRating": "Avg. rating"
         },
         "lesson": {
             "studentsCompleted": "{{count}} students completed",
@@ -598,12 +680,41 @@
             "tooltipCohortAverage": "Cohort average: {{value}}%"
         }
     },
+    "markdownEditor": {
+        "edit": "Edit",
+        "preview": "Preview",
+        "placeholder": "Write lesson content in Markdown…",
+        "placeholderText": "text",
+        "previewEmpty": "Nothing to preview yet.",
+        "toolbar": {
+            "h2": "Heading 2",
+            "h3": "Heading 3",
+            "bold": "Bold",
+            "italic": "Italic",
+            "bulletList": "Bullet list",
+            "orderedList": "Numbered list",
+            "quote": "Quote",
+            "code": "Code block",
+            "link": "Link",
+            "image": "Image",
+            "video": "Embedded video"
+        },
+        "prompts": {
+            "linkUrl": "Link URL",
+            "linkLabel": "Link text",
+            "imageUrl": "Image URL",
+            "imageAlt": "Alt text (optional)",
+            "videoUrl": "YouTube or Vimeo URL"
+        }
+    },
     "lessonPage": {
         "invalidLesson": "Invalid lesson.",
         "loading": "Loading lesson...",
         "notFound": "Lesson not found.",
         "progressUpdateFailed": "Your progress couldn't be updated, but you can keep going with the lesson.",
         "loadFailed": "The lesson could not be loaded.",
+        "lessonLocked": "This lesson is locked. Complete the previous lesson first.",
+        "enrollmentRequired": "You need to enroll to access this lesson.",
         "passed": "Lesson passed!",
         "courseCompleted": "Course completed!",
         "markCompleteFailed": "The lesson could not be marked as completed.",
@@ -612,6 +723,15 @@
         "submitAssignmentFailed": "The submission could not be sent.",
         "submissionSent": "Submission sent successfully",
         "backToCourse": "Back to course",
+        "indexOfTotal": "{{current}} / {{total}}",
+        "previous": "Previous",
+        "next": "Next",
+        "passingScoreNote": "You need at least {{score}}% to pass this assessment.",
+        "sidebar": {
+            "title": "Course index",
+            "open": "Index",
+            "close": "Close"
+        },
         "lessonNumber": "Lesson {{position}}",
         "attemptHistory": {
             "title": "Attempt history",
@@ -627,6 +747,7 @@
         "loadingSubmission": "Loading submission…",
         "marking": "Marking…",
         "markComplete": "Mark as completed",
+        "lessonCompleted": "Lesson completed",
         "assignment": {
             "statement": "Statement",
             "noInstructions": "The instructor hasn't added instructions for this assignment yet.",
@@ -649,6 +770,7 @@
             "answerPlaceholder": "Write your answer or comments about the assignment…",
             "attachmentLabel": "Attached file (optional)",
             "selectFile": "Select file",
+            "uploadHint": "PDF files only, up to {{max}} MB.",
             "sending": "Sending…",
             "submit": "Submit",
             "pendingReview": "Your submission is pending review. The instructor will notify you once it's reviewed.",
@@ -657,6 +779,8 @@
         },
         "textEmpty": "This lesson doesn't have content yet.",
         "videoEmpty": "This lesson doesn't have a video configured yet.",
+        "videoOpenExternal": "Watch on YouTube",
+        "videoUnsupported": "This link can't be played here. Open it on its site:",
         "videoTitle": "Lesson video",
         "attachments": {
             "title": "Attached materials",
@@ -855,7 +979,9 @@
         "title": "Users",
         "registeredUsers_one": "{{count}} registered user",
         "registeredUsers_other": "{{count}} registered users",
-        "cannotRemoveOwnAdmin": "You can't remove the administrator role from yourself.",
+        "cannotChangeOwnRole": "You cannot change your own role.",
+        "confirmRoleLeavingStudent": "{{name}} will no longer be a student.\n\nTheir whole learning history will be deleted: enrollments, progress, quiz attempts, submissions and their files, ratings, daily activity, preferences and student notifications.\n\nThis cannot be undone. Continue?",
+        "confirmRoleBecomingStudent": "{{name}} will become a student.\n\nAny courses they authored will be left without an instructor: they stay in the catalogue with their topics, lessons and enrolled students, but this account will no longer be able to edit them.\n\nContinue?",
         "cannotDeleteSelf": "You can't delete your own account.",
         "deleteUserFailed": "Could not delete the user.",
         "roleUpdateSuccess": "Role for {{name}} updated from {{from}} to {{to}}",
@@ -876,6 +1002,48 @@
             "student": "Student",
             "instructor": "Instructor",
             "admin": "Administrator"
+        },
+        "searchPlaceholder": "Search by name…",
+        "resultsCount_one": "{{count}} user found",
+        "resultsCount_other": "{{count}} users found",
+        "clearFilters": "Clear filters",
+        "noResults": "No user matches the search."
+    },
+    "onboarding": {
+        "title": "What would you like to learn?",
+        "description": "Tell us your interests and we will recommend courses that fit you. You can change them any time from Settings.",
+        "save": "Save and continue",
+        "skip": "Not now",
+        "toast": {
+            "saved": "All set! Your recommendations are ready."
+        },
+        "errors": {
+            "empty": "Pick at least one interest so we can recommend courses",
+            "saveFailed": "Could not save your preferences"
         }
+    },
+    "devPanel": {
+        "title": "Development tools",
+        "description": "Visible only because the backend has development routes enabled. They generate test data and will not appear in production.",
+        "coursesLabel": "Courses",
+        "coursesHint": "Imports catalogue courses and gives them topics and lessons. Additive: running it again adds new courses instead of duplicating them.",
+        "seedCourses": "Seed courses",
+        "coursesDone": "{{imported}} courses imported, {{seeded}} seeded with {{lessons}} lessons.",
+        "usersLabel": "Accounts",
+        "usersHint": "Creates demo accounts (85% students, 15% instructors). Each account's password is its own name.",
+        "seedUsers": "Seed accounts",
+        "removeUsers": "Delete them",
+        "usersDone": "{{students}} students and {{instructors}} instructors created. Each password is the account's own username.",
+        "usersRemoved": "{{count}} demo accounts removed.",
+        "simulateStudents": "Simulate student behavior",
+        "simulateDone": "{{students}} students simulated, {{enrollments}} enrollments, {{lessons}} lessons completed.",
+        "resetLabel": "Wipe the database:",
+        "resetKeepUsers": "Wipe (keep users)",
+        "resetAll": "Wipe everything",
+        "confirmReset": "Courses, topics, lessons, enrollments and progress will be deleted. Users are kept. Continue?",
+        "confirmResetAll": "EVERYTHING will be deleted, including user accounts. You will need to bootstrap the admin again. Continue?",
+        "resetDone": "{{count}} tables wiped.",
+        "working": "Working…",
+        "failed": "The operation failed"
     }
 }

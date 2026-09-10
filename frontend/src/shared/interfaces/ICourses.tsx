@@ -10,6 +10,9 @@ export interface ICourses {
     course_type: CourseTypeTypes;
     subcategory: string | null;
     intro: string | null;
+    intro_video_url?: string | null;
+    is_public?: boolean;
+    lesson_access_mode?: "open" | "progressive";
     rating: number | null;
     ratings_count: number;
     duration_seconds: number | null;
@@ -20,4 +23,6 @@ export interface ICourses {
     instructor_id: number | null;
     instructor_name: string | null;
     lessons_count: number;
+    topics_count?: number;
+    instructor_courses_count?: number;
 }

@@ -1,12 +1,17 @@
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from core.rate_limit import limiter
 from core.config import ENABLE_DEV_ROUTES
 from core.i18n import http_error
-from modules.users.schema import UserSchema, UserCreateSchema
+from modules.users.schema import (
+    UserCreateSchema,
+    UserPaginatedSchema,
+    UserSchema,
+)
 from modules.users.model import UserRole
 from modules.users.service import (
     add_user_database,
@@ -25,23 +30,36 @@ users_router = APIRouter(
 )
 
 
-@users_router.get("/", response_model=List[UserSchema], status_code=status.HTTP_200_OK)
+@users_router.get(
+    "/", response_model=UserPaginatedSchema, status_code=status.HTTP_200_OK
+)
 def get_users(
     db: Annotated[Session, Depends(get_db)],
     _user=Depends(require_role(["admin"])),
-    role: Optional[UserRole] = Query(
+    role: Optional[List[UserRole]] = Query(
         None,
-        description="Optional role filter (e.g. 'instructor' to populate pickers).",
+        description="Role filter; repeat the parameter to accept several.",
     ),
+    search: Optional[str] = Query(None, description="Case-insensitive name match."),
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
     """
-    Get users from database, optionally filtered by role.
+    Get a page of users, optionally filtered by name and role.
     """
-    return get_all_users(db, role=role)
+    users, total = get_all_users(
+        db, roles=role, search=search, limit=limit, offset=offset
+    )
+    return UserPaginatedSchema(users=users, total=total, limit=limit, offset=offset)
 
 
 @users_router.post("/", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-def add_user(new_user: UserCreateSchema, db: Annotated[Session, Depends(get_db)]):
+@limiter.limit("5/hour")
+def add_user(
+    request: Request,
+    new_user: UserCreateSchema,
+    db: Annotated[Session, Depends(get_db)],
+):
     """
     Public registration. Admin role is rejected in the service layer.
     """
@@ -73,8 +91,13 @@ def update_user_role(
     db: Annotated[Session, Depends(get_db)],
     current_user=Depends(require_role(["admin"])),
 ):
-    if current_user.id == user_id and role != UserRole.ADMIN:
-        raise http_error(403, "cannot_remove_own_admin")
+    # No self-service on your own role, in either direction. Demoting yourself
+    # could leave the platform with no administrator, and "promoting" yourself
+    # to the role you already hold is at best a no-op -- but it would still run
+    # the role-change side effects, so it is refused too rather than relied on
+    # being harmless.
+    if current_user.id == user_id:
+        raise http_error(403, "cannot_change_own_role")
     return update_user_role_database(db, user_id, role)
 
 

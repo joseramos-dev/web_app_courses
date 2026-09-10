@@ -6,7 +6,7 @@ import { API_login } from "../api"
 import { toast } from "react-hot-toast"
 import { XIcon } from "lucide-react"
 import type { AuthType } from "../../../shared/types/AuthTypes"
-import { useAuth } from "../../../shared/povider/AuthContext"
+import { useAuth } from "../../../shared/provider/AuthContext"
 
 export const AuthLogin = (
     { changeAuthType }
@@ -45,6 +45,13 @@ export const AuthLogin = (
             </div>
             <AuthTextInput label={t("auth.form.nameOrEmail")} text={nameOrEmail} setText={setNameOrEmail} />
             <AuthPasswordInput label={t("auth.form.password")} text={password} setText={setPassword} />
+            <button
+                type="button"
+                className="text-sm text-left text-blue-500 hover:text-blue-700 dark:text-uned-primary dark:hover:text-uned-accent"
+                onClick={() => changeAuthType("ForgotPassword")}
+            >
+                {t("auth.form.forgotPasswordLink")}
+            </button>
             <button
                 type="submit"
                 disabled={loading}

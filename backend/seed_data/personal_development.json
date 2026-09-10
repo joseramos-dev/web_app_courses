@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'personal development'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "personal development",
+  "topics": [
+    {
+      "name": "Gestion del tiempo",
+      "lessons": [
+        {
+          "title": "Prioridades y foco",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "Gestionar el tiempo es en realidad gestionar **decisiones**.\n\nLa matriz de urgente e importante ayuda a ver el problema: casi todo el mundo vive en lo urgente y descuida lo importante no urgente, que es justo donde estan la formacion, la salud y la planificacion. Cambiar eso exige decir que no de forma explicita."
+        },
+        {
+          "title": "Metodos de organizacion personal",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que cuadrante suele descuidarse mas segun la matriz de prioridades?",
+              "options": [
+                {
+                  "text": "Lo importante pero no urgente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Lo urgente e importante",
+                  "is_correct": false
+                },
+                {
+                  "text": "Lo urgente y no importante",
+                  "is_correct": false
+                },
+                {
+                  "text": "Lo que no es ni urgente ni importante",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que exige realmente priorizar?",
+              "options": [
+                {
+                  "text": "Renunciar de forma explicita a otras cosas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Trabajar mas horas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Hacerlo todo a la vez",
+                  "is_correct": false
+                },
+                {
+                  "text": "Delegar la totalidad de las tareas",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Comunicacion eficaz",
+      "lessons": [
+        {
+          "title": "Escuchar y expresarse",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Comunicar bien depende mas de escuchar que de hablar.\n\nLa **escucha activa** implica atender sin preparar la respuesta mientras el otro habla, y confirmar lo entendido antes de replicar. Al expresarse, hablar de hechos observables en lugar de intenciones supuestas evita la mayoria de los conflictos."
+        },
+        {
+          "title": "Tecnicas de escucha activa",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que implica la escucha activa?",
+              "options": [
+                {
+                  "text": "Atender sin preparar la respuesta mientras el otro habla",
+                  "is_correct": true
+                },
+                {
+                  "text": "Confirmar lo entendido antes de replicar",
+                  "is_correct": true
+                },
+                {
+                  "text": "Prestar atencion al lenguaje no verbal",
+                  "is_correct": true
+                },
+                {
+                  "text": "Interrumpir para ahorrar tiempo",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que ayuda a evitar conflictos al expresarse?",
+              "options": [
+                {
+                  "text": "Hablar de hechos observables",
+                  "is_correct": true
+                },
+                {
+                  "text": "Evitar atribuir intenciones supuestas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Describir el efecto concreto de la conducta",
+                  "is_correct": true
+                },
+                {
+                  "text": "Generalizar con expresiones como siempre o nunca",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Habitos y motivacion",
+      "lessons": [
+        {
+          "title": "Como se construye un habito",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "Un habito se forma cuando una conducta se automatiza y deja de requerir voluntad.\n\nEl ciclo tiene tres piezas: **senal**, **rutina** y **recompensa**. Cambiar un habito rara vez funciona por fuerza de voluntad; funciona modificando la senal que lo dispara o el entorno que lo hace facil."
+        },
+        {
+          "title": "Pequenos cambios sostenidos",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que tres elementos forman el ciclo de un habito?",
+              "options": [
+                {
+                  "text": "Senal, rutina y recompensa",
+                  "is_correct": true
+                },
+                {
+                  "text": "Objetivo, plazo y premio",
+                  "is_correct": false
+                },
+                {
+                  "text": "Intencion, esfuerzo y descanso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Idea, accion y resultado",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que suele funcionar mejor para cambiar un habito?",
+              "options": [
+                {
+                  "text": "Modificar la senal o el entorno que lo dispara",
+                  "is_correct": true
+                },
+                {
+                  "text": "Confiar solo en la fuerza de voluntad",
+                  "is_correct": false
+                },
+                {
+                  "text": "Proponerse metas muy ambiciosas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cambiar varios habitos a la vez",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inteligencia emocional",
+      "lessons": [
+        {
+          "title": "Reconocer y regular emociones",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "La inteligencia emocional empieza por **nombrar** lo que se siente.\n\nUna emocion identificada con precision se regula mejor que un malestar difuso. A partir de ahi vienen la autorregulacion, la empatia y la gestion de relaciones. No consiste en suprimir emociones, sino en que no decidan por uno."
+        },
+        {
+          "title": "Autoconocimiento en la practica",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Cual es el primer paso de la inteligencia emocional?",
+              "options": [
+                {
+                  "text": "Reconocer y nombrar la propia emocion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Suprimir las emociones negativas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Evitar las situaciones incomodas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Analizar las emociones de los demas",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que NO es la inteligencia emocional?",
+              "options": [
+                {
+                  "text": "Suprimir o reprimir lo que se siente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Regular la respuesta emocional",
+                  "is_correct": false
+                },
+                {
+                  "text": "Desarrollar empatia",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reconocer la propia emocion",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aprendizaje continuo",
+      "lessons": [
+        {
+          "title": "Aprender a aprender",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "Las tecnicas de estudio mas extendidas son de las menos eficaces.\n\nReleer y subrayar dan sensacion de dominio sin producirlo. Lo que si funciona es la **recuperacion activa**, intentar recordar sin mirar, y el **espaciado**, repartir el estudio en el tiempo. Cuesta mas y por eso se abandona antes."
+        },
+        {
+          "title": "Tecnicas de estudio con evidencia",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que tecnicas de estudio tienen mas respaldo?",
+              "options": [
+                {
+                  "text": "Recuperacion activa",
+                  "is_correct": true
+                },
+                {
+                  "text": "Practica espaciada",
+                  "is_correct": true
+                },
+                {
+                  "text": "Autoevaluacion frecuente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Releer el texto muchas veces",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que releer resulta poco eficaz?",
+              "options": [
+                {
+                  "text": "Genera sensacion de dominio sin producirlo",
+                  "is_correct": true
+                },
+                {
+                  "text": "No obliga a recuperar la informacion",
+                  "is_correct": true
+                },
+                {
+                  "text": "Es un procesamiento pasivo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Requiere demasiado esfuerzo",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resiliencia y bienestar",
+      "lessons": [
+        {
+          "title": "Afrontar la adversidad",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "La resiliencia no es aguantar sin inmutarse: es recuperarse y adaptarse.\n\nSe apoya en factores concretos y entrenables: una red de apoyo, un proposito con sentido, la capacidad de reinterpretar lo ocurrido y el cuidado de lo basico (sueno, ejercicio, alimentacion). No es un rasgo fijo con el que se nace."
+        },
+        {
+          "title": "Estrategias de afrontamiento",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que describe mejor la resiliencia?",
+              "options": [
+                {
+                  "text": "La capacidad de recuperarse y adaptarse a la adversidad",
+                  "is_correct": true
+                },
+                {
+                  "text": "Soportar el sufrimiento sin mostrarlo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Evitar cualquier situacion dificil",
+                  "is_correct": false
+                },
+                {
+                  "text": "Un rasgo innato que no cambia",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es un factor que fortalece la resiliencia?",
+              "options": [
+                {
+                  "text": "Contar con una red de apoyo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aislarse de los demas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reducir las horas de sueno",
+                  "is_correct": false
+                },
+                {
+                  "text": "Evitar hablar de lo ocurrido",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de desarrollo personal y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

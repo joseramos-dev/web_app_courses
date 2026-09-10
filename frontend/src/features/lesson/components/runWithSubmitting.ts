@@ -1,5 +1,7 @@
 import toast from "react-hot-toast";
 
+import { apiErrorMessage } from "../../../shared/utils/apiError";
+
 export async function runWithSubmitting<T>(
   setSubmitting: (next: boolean) => void,
   action: () => Promise<T>,
@@ -10,7 +12,7 @@ export async function runWithSubmitting<T>(
     return await action();
   } catch (e) {
     console.error(e);
-    toast.error(typeof e === "string" ? e : fallbackErrorMessage);
+    toast.error(apiErrorMessage(e, fallbackErrorMessage));
     return undefined;
   } finally {
     setSubmitting(false);

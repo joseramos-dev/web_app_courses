@@ -17,9 +17,9 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
-from modules.recommendations.aux_collaborative import collaborative_course_scores
+from modules.recommendations.aux_history_based import HistoryProfile
 from modules.recommendations.schema import ListCourseRecommendationsSchema, RecommendationSourceType
-from modules.recommendations.service import recommend_courses
+from modules.recommendations.service import RecommendationContext, recommend_courses
 
 NOW = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
@@ -45,6 +45,7 @@ def _course(
         subcategory=None,
         intro=None,
         rating=rating,
+        avg_rating=rating,
         duration_seconds=3600,
         difficulty=difficulty,
         created_at=NOW,
@@ -53,6 +54,7 @@ def _course(
         instructor_name=None,
         lessons_count=0,
         ratings_count=0,
+        is_public=True,
     )
 
 
@@ -73,6 +75,7 @@ def mock_db(mocker, courses):
     db = mocker.Mock()
     query = mocker.Mock()
     query.filter.return_value = query
+    query.options.return_value = query
     query.all.return_value = courses
     db.query.return_value = query
     return db
@@ -91,26 +94,42 @@ def _profile(**prefs):
     )
 
 
+def _ctx(profile, *, active_count=0):
+    return RecommendationContext(
+        user_id=1,
+        profile=profile,
+        sites={Site(s) for s in profile.preferred_sites},
+        categories={Category(c) for c in profile.preferred_categories},
+        languages={Language(l) for l in profile.preferred_languages},
+        course_types={CourseType(t) for t in profile.preferred_course_types},
+        duration_buckets=set(),
+        difficulties=set(),
+        enrolled_ids=set(range(1, active_count + 1)),
+        completed_courses=[],
+        history_profile=HistoryProfile(),
+        active_enrollment_count=active_count,
+    )
+
+
 def test_collaborative_course_scores_returns_normalized_score(mock_db, mocker):
+    from modules.recommendations.aux_collaborative import collaborative_course_scores
+
     mocker.patch(
         "modules.recommendations.aux_collaborative.build_weighted_enrollment_map",
         return_value=WEIGHTED_MAP,
     )
-    mocker.patch(
-        "modules.recommendations.aux_collaborative.enrolled_course_ids",
-        return_value={1, 2, 3},
-    )
 
-    scores = collaborative_course_scores(mock_db, user_id=1)
+    scores = collaborative_course_scores(mock_db, user_id=1, excluded={1, 2, 3})
 
     assert scores == {4: 1.0}
 
 
 def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, mock_db):
     cb_result = ListCourseRecommendationsSchema(recommendations=[])
+    ctx = _ctx(_profile(), active_count=2)
     mocker.patch(
-        "modules.recommendations.service.count_active_enrollments",
-        return_value=2,
+        "modules.recommendations.service._build_context",
+        return_value=ctx,
     )
     content_based = mocker.patch(
         "modules.recommendations.service.recommend_courses_content_based",
@@ -123,21 +142,18 @@ def test_recommend_courses_routes_to_content_based_with_few_enrollments(mocker, 
     result = recommend_courses(mock_db, user_id=1, limit=10)
 
     assert result == cb_result
-    content_based.assert_called_once_with(mock_db, 1, 10)
+    content_based.assert_called_once_with(mock_db, ctx, 10, exclude=set())
 
 
 def test_recommend_courses_pure_collaborative_without_preferences(mocker, mock_db, courses):
+    ctx = _ctx(_profile(), active_count=3)
     mocker.patch(
-        "modules.recommendations.service.count_active_enrollments",
-        return_value=3,
+        "modules.recommendations.service._build_context",
+        return_value=ctx,
     )
     mocker.patch(
         "modules.recommendations.service.collaborative_course_scores",
         return_value={4: 1.0},
-    )
-    mocker.patch(
-        "modules.recommendations.service.get_or_create_recommendation",
-        return_value=_profile(),
     )
 
     result = recommend_courses(mock_db, user_id=1, limit=10)
@@ -152,21 +168,19 @@ def test_recommend_courses_pure_collaborative_without_preferences(mocker, mock_d
 def test_recommend_courses_hybrid_blends_collaborative_and_preferences(
     mocker, mock_db, courses
 ):
+    profile = _profile(
+        sites=[Site.COURSERA],
+        categories=[Category.BUSINESS],
+        languages=[Language.FRENCH],
+    )
+    ctx = _ctx(profile, active_count=3)
     mocker.patch(
-        "modules.recommendations.service.count_active_enrollments",
-        return_value=3,
+        "modules.recommendations.service._build_context",
+        return_value=ctx,
     )
     mocker.patch(
         "modules.recommendations.service.collaborative_course_scores",
         return_value={4: 1.0},
-    )
-    mocker.patch(
-        "modules.recommendations.service.get_or_create_recommendation",
-        return_value=_profile(
-            sites=[Site.COURSERA],
-            categories=[Category.BUSINESS],
-            languages=[Language.FRENCH],
-        ),
     )
 
     result = recommend_courses(mock_db, user_id=1, limit=10)

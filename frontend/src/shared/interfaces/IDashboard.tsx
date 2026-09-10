@@ -1,4 +1,9 @@
-import type { CategoryTypes, DifficultyTypes, SiteTypes } from "../types/CourseTypes";
+import type {
+    CategoryTypes,
+    DifficultyTypes,
+    DurationBucketTypes,
+    SiteTypes,
+} from "../types/CourseTypes";
 import type { LessonProgressStatus } from "./IEnrollment";
 
 export interface IDailyActivity {
@@ -40,6 +45,19 @@ export interface ISiteStat {
 export interface IDifficultyStat {
     difficulty: DifficultyTypes;
     enrollments_count: number;
+}
+
+export interface IDurationStat {
+    duration_bucket: DurationBucketTypes;
+    enrollments_count: number;
+    avg_rating: number | null;
+    ratings_count: number;
+}
+
+export interface ICategoryRating {
+    category: CategoryTypes;
+    avg_rating: number;
+    ratings_count: number;
 }
 
 export interface IEnrollmentCohort {
@@ -153,6 +171,8 @@ export interface IAdminDashboard {
     category_distribution: ICategoryStat[];
     site_distribution: ISiteStat[];
     difficulty_distribution: IDifficultyStat[];
+    duration_distribution: IDurationStat[];
+    category_ratings: ICategoryRating[];
     enrollment_cohorts: IEnrollmentCohort[];
     last_30_days: IDailyActivity[];
 }

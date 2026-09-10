@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../shared/povider/AuthContext";
+import { useAuth } from "../../shared/provider/AuthContext";
 import { get_preferences, patch_preferences } from "../courses/api";
 import type { IRecommendationPreferencesUpdate } from "../../shared/interfaces/IRecommendation";
 import { PreferencesSelector } from "../../shared/components/PreferencesSelector";
+import { hasAnyPreference } from "../../shared/utils/preferencesUtils";
 import { API_patchMe } from "./api";
-import { runWithToastSaving } from "./components/runWithToastSaving";
+import { runWithToastSaving } from "../../shared/utils/runWithToastSaving";
 import { SettingsAppearanceSection } from "./components/SettingsAppearanceSection";
 import { settingsFieldLabelClassName } from "./components/settingsFieldLabelClassName";
 import { settingsInputClassName } from "./components/settingsInputClassName";
@@ -166,14 +167,7 @@ export function Settings() {
   };
 
   const handleSavePreferences = async () => {
-    const hasAny =
-      (prefs.preferred_sites?.length ?? 0) > 0 ||
-      (prefs.preferred_categories?.length ?? 0) > 0 ||
-      (prefs.preferred_languages?.length ?? 0) > 0 ||
-      (prefs.preferred_course_types?.length ?? 0) > 0 ||
-      (prefs.preferred_duration_buckets?.length ?? 0) > 0 ||
-      (prefs.preferred_difficulties?.length ?? 0) > 0;
-    if (!hasAny) {
+    if (!hasAnyPreference(prefs)) {
       toast.error(t("settings.toast.preferencesEmpty"));
       return;
     }

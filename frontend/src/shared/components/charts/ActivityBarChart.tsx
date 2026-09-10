@@ -70,13 +70,22 @@ export function ActivityBarChart({
     const maxValue = Math.max(...data.map((d) => d.value));
     const yDomainMax = maxValue === 0 ? 1 : maxValue;
 
+    // The X axis is a category axis, and it resolves the hovered point by its
+    // category value. Callers that repeat a label -- the platform-activity
+    // charts pass an empty one for every day, and narrow weekday initials
+    // collide in some locales -- would make every bar answer with the first
+    // matching row, so the tooltip stayed stuck on day one. Indexing by
+    // position makes the category unique by construction; `tickFormatter`
+    // puts the caller's label back on screen.
+    const rows = data.map((datum, index) => ({ ...datum, index }));
+
     return (
         <div
             className={`${chartWrapperClassName}${fill ? " h-full min-h-[180px]" : ""}${className ? ` ${className}` : ""}`}
         >
             <ResponsiveContainer width="100%" height={fill ? "100%" : height}>
                 <BarChart
-                    data={data}
+                    data={rows}
                     margin={{
                         top: showValues ? 20 : 8,
                         right: 4,
@@ -86,7 +95,9 @@ export function ActivityBarChart({
                 >
                     <CartesianGrid {...chartGridProps} />
                     <XAxis
-                        dataKey="label"
+                        dataKey="index"
+                        type="category"
+                        tickFormatter={(value) => rows[Number(value)]?.label ?? ""}
                         tick={hideXLabels ? false : chartAxisTickStyle}
                         axisLine={false}
                         tickLine={false}

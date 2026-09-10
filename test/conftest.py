@@ -39,7 +39,25 @@ from modules.courses.model import (  # noqa: E402
 )
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus  # noqa: E402
 from modules.lessons.model import LessonModel, LessonType  # noqa: E402
+from modules.topics.model import TopicModel  # noqa: E402
+from modules.topics.service import create_default_topic  # noqa: E402
 from modules.users.model import UserModel, UserRole  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _disable_rate_limit():
+    """Los tests hacen login repetido con la misma IP; sin esto, `auth_headers`
+    agotaría el límite de POST /token y empezaría a devolver 429. Los tests que
+    comprueban el rate limiting lo reactivan explícitamente."""
+    from core.rate_limit import limiter
+
+    previous = limiter.enabled
+    limiter.enabled = False
+    try:
+        yield
+    finally:
+        limiter.enabled = previous
+        limiter.reset()
 
 
 @pytest.fixture()
@@ -142,6 +160,8 @@ def make_course(
     db.add(course)
     db.commit()
     db.refresh(course)
+    create_default_topic(db, course.id)
+    db.commit()
     return course
 
 
@@ -152,9 +172,22 @@ def make_lesson(
     title: str = "Lesson",
     position: int = 1,
     lesson_type: LessonType = LessonType.TEXT,
+    topic_id: Optional[int] = None,
 ) -> LessonModel:
+    if topic_id is None:
+        topic = (
+            db.query(TopicModel)
+            .filter(TopicModel.course_id == course.id)
+            .order_by(TopicModel.position.asc())
+            .first()
+        )
+        if topic is None:
+            topic = create_default_topic(db, course.id)
+            db.commit()
+        topic_id = topic.id
     lesson = LessonModel(
         course_id=course.id,
+        topic_id=topic_id,
         title=title,
         lesson_type=lesson_type,
         position=position,

@@ -2,6 +2,7 @@ from enum import Enum
 
 from fastapi import Depends, Query
 from pydantic import BaseModel
+from sqlalchemy import func
 
 from core.i18n import http_error
 from modules.auth.service import get_current_user
@@ -40,7 +41,7 @@ class PaginationParams(BaseModel):
 
 def sort_map_column(sortField: SortField):
     dict = {
-        SortField.title: CourseModel.title,
+        SortField.title: func.trim(CourseModel.title),
         SortField.duration: CourseModel.duration_seconds,
         SortField.rating: CourseModel.rating,
         SortField.created_at: CourseModel.created_at,

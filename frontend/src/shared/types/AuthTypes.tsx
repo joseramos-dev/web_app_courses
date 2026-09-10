@@ -1,1 +1,1 @@
-export type AuthType = "Login" | "Register" | null;
+export type AuthType = "Login" | "Register" | "ForgotPassword" | "ResetPassword" | null;

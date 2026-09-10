@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.i18n import http_error, msg
+from core.rate_limit import limiter
 from modules.lessons.schema import (
     LessonSchema,
     LessonCreateSchema,
@@ -16,8 +17,8 @@ from modules.lessons.schema import (
     LessonFileSchema,
 )
 from modules.lessons.service import (
-    get_lessons as get_lessons_service,
     get_lessons_by_course as get_lessons_by_course_service,
+    redact_locked_lessons,
     create_lesson as create_lesson_service,
     update_lesson as update_lesson_service,
     delete_lesson as delete_lesson_service,
@@ -29,9 +30,11 @@ from modules.lessons.service import (
 )
 from modules.lessons import file_service
 from modules.auth.service import get_current_user
+from modules.courses.permissions import is_course_editor
 from modules.courses.service import get_course_detail
 from modules.lessons.model import LessonModel
 from modules.enrollments.model import EnrollmentModel
+from modules.progress.access_service import assert_lesson_unlocked
 
 lessons_router = APIRouter(
     prefix="/lessons",
@@ -46,20 +49,6 @@ def _require_lesson(db: Session, lesson_id: int) -> LessonModel:
     return lesson
 
 
-def _is_course_editor(user, course) -> bool:
-    return user.role == "admin" or (
-        course.instructor_id is not None and user.id == course.instructor_id
-    )
-
-
-@lessons_router.get("/", response_model=List[LessonSchema], status_code=status.HTTP_200_OK)
-def get_lessons(db: Annotated[Session, Depends(get_db)]):
-    """
-    Get all lessons for a course
-    """
-    return get_lessons_service(db)
-
-
 @lessons_router.get(
     "/course/{course_id}",
     response_model=List[LessonSchema],
@@ -68,22 +57,33 @@ def get_lessons(db: Annotated[Session, Depends(get_db)]):
 def get_lessons_for_course(
     course_id: int,
     db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
 ):
     """
-    Get all lessons for a specific course
+    Get all lessons for a specific course.
+    Requires authentication; private courses are hidden from users who cannot
+    see them, and the body/video_url of still-locked lessons is redacted.
     """
-    return get_lessons_by_course_service(db, course_id)
+    course = get_course_detail(db, course_id, user=user)
+    lessons = get_lessons_by_course_service(db, course_id)
+    return redact_locked_lessons(db, course, lessons, user)
 
 
 @lessons_router.get("/{lesson_id}", response_model=LessonSchema, status_code=status.HTTP_200_OK)
 def get_lesson_by_id(
     lesson_id: int,
     db: Annotated[Session, Depends(get_db)],
+    user=Depends(get_current_user),
 ):
     """
     Get a single lesson with its content (body / video_url).
+    Requires authentication; progressive courses enforce sequential unlock.
     """
-    return _require_lesson(db, lesson_id)
+    lesson = _require_lesson(db, lesson_id)
+    course = get_course_detail(db, lesson.course_id, user=user)
+    if not is_course_editor(user, course):
+        assert_lesson_unlocked(db, lesson, user)
+    return lesson
 
 
 @lessons_router.post(
@@ -100,8 +100,8 @@ def create_lesson(
     """
     Create a new lesson for a course
     """
-    course = get_course_detail(db, course_id)
-    if not _is_course_editor(user, course):
+    course = get_course_detail(db, course_id, user=user)
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
     return create_lesson_service(db, course_id, lesson)
 
@@ -115,7 +115,7 @@ def patch_lesson(
 ):
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
 
     updated = update_lesson_service(db, lesson_id, payload)
@@ -132,7 +132,7 @@ def remove_lesson(
 ):
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
 
     ok = delete_lesson_service(db, lesson_id)
@@ -153,7 +153,7 @@ def reorder_course_lessons(
     user=Depends(get_current_user),
 ):
     course = get_course_detail(db, course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
 
     reordered = reorder_lessons_service(db, course_id, payload.ordered_lesson_ids)
@@ -169,7 +169,9 @@ def reorder_course_lessons(
     response_model=LessonFileSchema,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("20/hour")
 async def upload_lesson_file(
+    request: Request,
     lesson_id: int,
     db: Annotated[Session, Depends(get_db)],
     user=Depends(get_current_user),
@@ -184,7 +186,9 @@ async def upload_lesson_file(
     response_model=LessonFileSchema,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("20/hour")
 async def upload_assignment_submission_file(
+    request: Request,
     lesson_id: int,
     db: Annotated[Session, Depends(get_db)],
     user=Depends(get_current_user),
@@ -206,7 +210,19 @@ def list_lesson_files(
     user=Depends(get_current_user),
 ):
     lesson = _require_lesson(db, lesson_id)
-    file_service.require_course_access(db, user, lesson)
+    course = get_course_detail(db, lesson.course_id, user=user)
+    if not is_course_editor(user, course):
+        enrolled = (
+            db.query(EnrollmentModel)
+            .filter(
+                EnrollmentModel.user_id == user.id,
+                EnrollmentModel.course_id == lesson.course_id,
+            )
+            .first()
+        )
+        if not enrolled:
+            raise http_error(403, "must_enroll_first")
+        assert_lesson_unlocked(db, lesson, user)
     return file_service.list_lesson_files(db, lesson_id)
 
 
@@ -264,9 +280,9 @@ def get_lesson_questions_public(
     (admins and the course instructor can also see them).
     """
     lesson = _require_lesson(db, lesson_id)
-    course = get_course_detail(db, lesson.course_id)
+    course = get_course_detail(db, lesson.course_id, user=user)
 
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         enrolled = (
             db.query(EnrollmentModel)
             .filter(
@@ -277,6 +293,7 @@ def get_lesson_questions_public(
         )
         if not enrolled:
             raise http_error(403, "must_enroll_first")
+        assert_lesson_unlocked(db, lesson, user)
 
     return get_questions_by_lesson_service(db, lesson_id)
 
@@ -296,8 +313,8 @@ def get_lesson_questions_admin(
     Reveals `is_correct`.
     """
     lesson = _require_lesson(db, lesson_id)
-    course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    course = get_course_detail(db, lesson.course_id, user=user)
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
     return get_questions_by_lesson_service(db, lesson_id)
 
@@ -315,7 +332,7 @@ def create_lesson_question(
 ):
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
     return create_question_service(db, lesson_id, payload)
 
@@ -334,7 +351,7 @@ def update_lesson_question(
 ):
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
     updated = update_question_service(db, question_id, payload)
     if not updated:
@@ -354,7 +371,7 @@ def delete_lesson_question(
 ):
     lesson = _require_lesson(db, lesson_id)
     course = get_course_detail(db, lesson.course_id)
-    if not _is_course_editor(user, course):
+    if not is_course_editor(user, course):
         raise http_error(403, "insufficient_privileges")
     ok = delete_question_service(db, question_id)
     if not ok:

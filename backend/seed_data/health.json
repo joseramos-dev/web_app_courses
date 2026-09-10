@@ -1,0 +1,461 @@
+{
+  "_comment": "Temas y lecciones para cursos de categoria 'health'. Las lecciones de video no llevan video_url: el sembrador les asigna una de videos.json antes de validar.",
+  "category": "health",
+  "topics": [
+    {
+      "name": "Anatomia y fisiologia basica",
+      "lessons": [
+        {
+          "title": "Sistemas del cuerpo humano",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "El cuerpo humano se estudia como un conjunto de **sistemas** que cooperan.\n\nEl sistema circulatorio transporta oxigeno y nutrientes, el respiratorio realiza el intercambio gaseoso, el digestivo extrae la energia de los alimentos y el nervioso coordina al resto. Ningun sistema funciona de forma aislada: el fallo de uno repercute en todos."
+        },
+        {
+          "title": "Recorrido por el sistema circulatorio",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Cual es la funcion principal del sistema circulatorio?",
+              "options": [
+                {
+                  "text": "Transportar oxigeno y nutrientes por el organismo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Realizar el intercambio gaseoso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Coordinar los movimientos voluntarios",
+                  "is_correct": false
+                },
+                {
+                  "text": "Absorber los nutrientes del intestino",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que caracteriza a los sistemas del cuerpo humano?",
+              "options": [
+                {
+                  "text": "Funcionan de forma interdependiente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Cada uno actua de forma totalmente aislada",
+                  "is_correct": false
+                },
+                {
+                  "text": "Solo el nervioso resulta imprescindible",
+                  "is_correct": false
+                },
+                {
+                  "text": "Se activan por turnos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Nutricion y metabolismo",
+      "lessons": [
+        {
+          "title": "Macronutrientes y energia",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "La energia de la dieta procede de tres **macronutrientes**: hidratos de carbono, proteinas y grasas.\n\nLos hidratos son el combustible mas accesible, las proteinas aportan los aminoacidos con los que el cuerpo se construye y repara, y las grasas cumplen funciones estructurales y hormonales. El equilibrio entre ellos importa mas que el total de calorias."
+        },
+        {
+          "title": "Como leer una etiqueta nutricional",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Cuales son macronutrientes?",
+              "options": [
+                {
+                  "text": "Hidratos de carbono",
+                  "is_correct": true
+                },
+                {
+                  "text": "Proteinas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Grasas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Vitamina C",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que funciones cumplen las proteinas?",
+              "options": [
+                {
+                  "text": "Aportar aminoacidos esenciales",
+                  "is_correct": true
+                },
+                {
+                  "text": "Reparar tejidos",
+                  "is_correct": true
+                },
+                {
+                  "text": "Formar enzimas y hormonas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Ser la principal reserva energetica a largo plazo",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Salud publica",
+      "lessons": [
+        {
+          "title": "Prevencion y epidemiologia",
+          "lesson_type": "text",
+          "duration_minutes": 18,
+          "body": "La salud publica trabaja sobre poblaciones, no sobre pacientes individuales.\n\nSe distinguen tres niveles de prevencion: **primaria**, que evita que la enfermedad aparezca; **secundaria**, que la detecta pronto mediante cribados; y **terciaria**, que limita las secuelas una vez establecida."
+        },
+        {
+          "title": "Como se investiga un brote",
+          "lesson_type": "video",
+          "duration_minutes": 13
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "Que persigue la prevencion primaria?",
+              "options": [
+                {
+                  "text": "Evitar que la enfermedad llegue a aparecer",
+                  "is_correct": true
+                },
+                {
+                  "text": "Detectarla en fase temprana",
+                  "is_correct": false
+                },
+                {
+                  "text": "Reducir las secuelas ya establecidas",
+                  "is_correct": false
+                },
+                {
+                  "text": "Tratar los casos graves",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que tipo de prevencion representa un programa de cribado?",
+              "options": [
+                {
+                  "text": "Secundaria",
+                  "is_correct": true
+                },
+                {
+                  "text": "Primaria",
+                  "is_correct": false
+                },
+                {
+                  "text": "Terciaria",
+                  "is_correct": false
+                },
+                {
+                  "text": "Cuaternaria",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primeros auxilios",
+      "lessons": [
+        {
+          "title": "Actuacion ante una emergencia",
+          "lesson_type": "text",
+          "duration_minutes": 16,
+          "body": "Ante una emergencia el orden de actuacion se resume en tres palabras: **proteger, avisar, socorrer**.\n\nProteger la escena evita nuevas victimas, incluido uno mismo. Avisar activa la cadena asistencial cuanto antes. Y socorrer significa aplicar solo aquello para lo que uno esta formado: la intervencion improvisada suele empeorar la situacion."
+        },
+        {
+          "title": "Reanimacion cardiopulmonar basica",
+          "lesson_type": "video",
+          "duration_minutes": 14
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Cual es el orden correcto de actuacion ante una emergencia?",
+              "options": [
+                {
+                  "text": "Proteger, avisar, socorrer",
+                  "is_correct": true
+                },
+                {
+                  "text": "Socorrer, proteger, avisar",
+                  "is_correct": false
+                },
+                {
+                  "text": "Avisar, socorrer, proteger",
+                  "is_correct": false
+                },
+                {
+                  "text": "Socorrer, avisar, proteger",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Por que se protege primero la escena?",
+              "options": [
+                {
+                  "text": "Para evitar nuevas victimas, incluido el propio auxiliador",
+                  "is_correct": true
+                },
+                {
+                  "text": "Para ganar tiempo antes de avisar",
+                  "is_correct": false
+                },
+                {
+                  "text": "Porque lo exige el protocolo administrativo",
+                  "is_correct": false
+                },
+                {
+                  "text": "Para poder tomar fotografias",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bienestar y actividad fisica",
+      "lessons": [
+        {
+          "title": "Ejercicio y descanso",
+          "lesson_type": "text",
+          "duration_minutes": 15,
+          "body": "La actividad fisica regular no es solo cuestion de peso: mejora el sistema cardiovascular, la densidad osea y el estado de animo.\n\nLas recomendaciones habituales hablan de al menos 150 minutos semanales de intensidad moderada. Y el **descanso** forma parte del entrenamiento: es durante el sueno cuando el cuerpo consolida la adaptacion."
+        },
+        {
+          "title": "Rutinas para empezar desde cero",
+          "lesson_type": "video",
+          "duration_minutes": 12
+        },
+        {
+          "title": "Selecciona todo lo correcto",
+          "lesson_type": "multiple_selection",
+          "duration_minutes": 8,
+          "questions": [
+            {
+              "prompt": "Que beneficios aporta la actividad fisica regular?",
+              "options": [
+                {
+                  "text": "Mejora cardiovascular",
+                  "is_correct": true
+                },
+                {
+                  "text": "Mayor densidad osea",
+                  "is_correct": true
+                },
+                {
+                  "text": "Mejor estado de animo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Sustituye por completo a una dieta equilibrada",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que papel cumple el descanso en el entrenamiento?",
+              "options": [
+                {
+                  "text": "Permite la adaptacion del organismo",
+                  "is_correct": true
+                },
+                {
+                  "text": "Consolida las mejoras durante el sueno",
+                  "is_correct": true
+                },
+                {
+                  "text": "Previene lesiones por sobrecarga",
+                  "is_correct": true
+                },
+                {
+                  "text": "Es tiempo perdido que conviene reducir",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Etica y cuidado del paciente",
+      "lessons": [
+        {
+          "title": "Consentimiento y confidencialidad",
+          "lesson_type": "text",
+          "duration_minutes": 17,
+          "body": "La relacion asistencial se apoya en cuatro principios: **autonomia**, **beneficencia**, **no maleficencia** y **justicia**.\n\nDe la autonomia nace el consentimiento informado: el paciente decide sobre su propio cuerpo tras recibir informacion comprensible. Y la confidencialidad no es cortesia, es una obligacion profesional y legal."
+        },
+        {
+          "title": "Comunicacion con el paciente",
+          "lesson_type": "video",
+          "duration_minutes": 11
+        },
+        {
+          "title": "Comprueba lo aprendido",
+          "lesson_type": "test",
+          "duration_minutes": 9,
+          "questions": [
+            {
+              "prompt": "De que principio deriva el consentimiento informado?",
+              "options": [
+                {
+                  "text": "De la autonomia del paciente",
+                  "is_correct": true
+                },
+                {
+                  "text": "De la justicia distributiva",
+                  "is_correct": false
+                },
+                {
+                  "text": "De la no maleficencia",
+                  "is_correct": false
+                },
+                {
+                  "text": "De la eficiencia del sistema",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Que significa el principio de no maleficencia?",
+              "options": [
+                {
+                  "text": "Evitar causar dano al paciente",
+                  "is_correct": true
+                },
+                {
+                  "text": "Repartir los recursos con equidad",
+                  "is_correct": false
+                },
+                {
+                  "text": "Actuar siempre en beneficio economico",
+                  "is_correct": false
+                },
+                {
+                  "text": "Dejar decidir siempre a la familia",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Evaluacion final",
+      "lessons": [
+        {
+          "title": "Repaso general del curso",
+          "lesson_type": "text",
+          "duration_minutes": 12,
+          "body": "Este ultimo tema recoge los hilos del curso de salud y los pone a prueba.\n\nAntes de responder conviene volver sobre los conceptos que quedaron menos firmes: casi siempre son los de los primeros temas, que se dan por sabidos y sostienen todo lo demas."
+        },
+        {
+          "title": "Sintesis del curso en video",
+          "lesson_type": "video",
+          "duration_minutes": 15
+        },
+        {
+          "title": "Prueba final",
+          "lesson_type": "test",
+          "duration_minutes": 12,
+          "questions": [
+            {
+              "prompt": "Que conviene repasar antes de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Los conceptos base de los primeros temas",
+                  "is_correct": true
+                },
+                {
+                  "text": "Solo el ultimo tema visto",
+                  "is_correct": false
+                },
+                {
+                  "text": "Unicamente los titulos de las lecciones",
+                  "is_correct": false
+                },
+                {
+                  "text": "Nada, basta con la intuicion",
+                  "is_correct": false
+                }
+              ]
+            },
+            {
+              "prompt": "Cual es el objetivo de una evaluacion final?",
+              "options": [
+                {
+                  "text": "Comprobar que los contenidos se han integrado",
+                  "is_correct": true
+                },
+                {
+                  "text": "Aumentar la duracion del curso",
+                  "is_correct": false
+                },
+                {
+                  "text": "Sustituir a las lecciones anteriores",
+                  "is_correct": false
+                },
+                {
+                  "text": "Repetir literalmente los tests previos",
+                  "is_correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -70,4 +70,140 @@
     font-family: var(--font-sans-stack);
     @apply bg-surface text-slate-900 antialiased dark:text-slate-100;
   }
+
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--uned-primary);
+  }
+
+  input[type="range"] {
+    accent-color: var(--uned-accent);
+  }
+
+  input[type="range"]:focus,
+  input[type="range"]:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--surface-bg),
+      0 0 0 4px var(--uned-accent);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    background: var(--uned-accent);
+    border: 2px solid var(--surface-bg);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--uned-accent) 45%, transparent);
+  }
+
+  input[type="range"]:focus::-webkit-slider-thumb,
+  input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 2px var(--surface-bg),
+      0 0 0 4px var(--uned-accent);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    background: var(--uned-accent);
+    border: 2px solid var(--surface-bg);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--uned-accent) 45%, transparent);
+  }
+
+  input[type="range"]:focus::-moz-range-thumb,
+  input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow:
+      0 0 0 2px var(--surface-bg),
+      0 0 0 4px var(--uned-accent);
+  }
+
+  /*
+   * Browser default focus (often orange on Chrome/Windows).
+   * Use institutional green (--uned-accent) app-wide.
+   */
+  :where(
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    a,
+    summary,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="color"]),
+    textarea,
+    select
+  ):focus-visible {
+    outline: none;
+    border-color: var(--uned-accent);
+    box-shadow:
+      0 0 0 2px var(--surface-bg),
+      0 0 0 4px var(--uned-accent);
+  }
+
+  :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="color"]),
+    textarea,
+    select
+  ):focus {
+    outline: none;
+    border-color: var(--uned-accent);
+    box-shadow:
+      0 0 0 2px var(--surface-bg),
+      0 0 0 4px color-mix(in srgb, var(--uned-accent) 40%, transparent);
+  }
+
+  :where(
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    a,
+    summary
+  ):focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :where(button, a, summary, input, textarea, select) {
+    -webkit-tap-highlight-color: color-mix(in srgb, var(--uned-accent) 35%, transparent);
+  }
+
+  /* Native sort dropdown: list stays light in dark mode; force readable option text. */
+  .dark select.courses-sort-select option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    rgb(229 231 235) 0%,
+    rgb(243 244 246) 40%,
+    rgb(229 231 235) 80%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    rgb(51 65 85) 0%,
+    rgb(71 85 105) 40%,
+    rgb(51 65 85) 80%
+  );
 }

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { courseTypesDict, getDifficultyLabels } from "../../../shared/types/CourseTypes";
 import { API_getInstructors } from "../api";
 import { InstructorCombobox } from "./InstructorCombobox";
+import { formatDateTime } from "../../../shared/utils/formatDateTime";
 
 type Props = {
   value: ICourses;
@@ -21,8 +22,11 @@ function FieldLabel({ children }: { children: string }) {
   );
 }
 
+const fieldControlClass =
+  "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-primary focus:outline-none focus:ring-2 focus:ring-uned-primary/25 disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-uned-primary disabled:dark:bg-slate-800/60";
+
 export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const difficultyLabels = getDifficultyLabels(t);
   const sites = useMemo(() => courseTypesDict.SiteTypes, []);
   const categories = useMemo(() => courseTypesDict.CategoryTypes, []);
@@ -68,7 +72,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             value={value.title}
             disabled={disabled}
             onChange={(e) => onChange({ ...value, title: e.target.value })}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           />
         </label>
 
@@ -78,7 +82,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             value={value.url}
             disabled={disabled}
             onChange={(e) => onChange({ ...value, url: e.target.value })}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           />
         </label>
 
@@ -89,7 +93,20 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             disabled={disabled}
             onChange={(e) => onChange({ ...value, intro: e.target.value || null })}
             rows={4}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
+          />
+        </label>
+
+        <label className="flex flex-col gap-2 sm:col-span-2">
+          <FieldLabel>{t("courseEdit.form.fields.introVideoUrl")}</FieldLabel>
+          <input
+            value={value.intro_video_url ?? ""}
+            disabled={disabled}
+            onChange={(e) =>
+              onChange({ ...value, intro_video_url: e.target.value || null })
+            }
+            placeholder={t("courseEdit.form.fields.introVideoPlaceholder")}
+            className={fieldControlClass}
           />
         </label>
 
@@ -99,7 +116,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             value={value.site}
             disabled={disabled}
             onChange={(e) => onChange({ ...value, site: e.target.value as ICourses["site"] })}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           >
             {sites.map((s) => (
               <option key={s} value={s}>
@@ -117,7 +134,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             onChange={(e) =>
               onChange({ ...value, category: e.target.value as ICourses["category"] })
             }
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           >
             {categories.map((c) => (
               <option key={c} value={c}>
@@ -133,7 +150,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             value={value.subcategory ?? ""}
             disabled={disabled}
             onChange={(e) => onChange({ ...value, subcategory: e.target.value || null })}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           />
         </label>
 
@@ -145,7 +162,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             onChange={(e) =>
               onChange({ ...value, language: e.target.value as ICourses["language"] })
             }
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           >
             {languages.map((l) => (
               <option key={l} value={l}>
@@ -163,7 +180,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             onChange={(e) =>
               onChange({ ...value, course_type: e.target.value as ICourses["course_type"] })
             }
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           >
             {courseTypes.map((t) => (
               <option key={t} value={t}>
@@ -181,7 +198,7 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             onChange={(e) =>
               onChange({ ...value, difficulty: e.target.value as ICourses["difficulty"] })
             }
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
+            className={fieldControlClass}
           >
             {difficulties.map((d) => (
               <option key={d} value={d}>
@@ -189,31 +206,6 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="flex flex-col gap-2">
-          <FieldLabel>{t("courseEdit.form.fields.durationMinutes")}</FieldLabel>
-          <input
-            value={
-              value.duration_seconds != null
-                ? String(Math.round(value.duration_seconds / 60))
-                : ""
-            }
-            disabled={disabled}
-            onChange={(e) => {
-              const raw = e.target.value.trim();
-              const minutes = raw === "" ? null : Number(raw);
-              onChange({
-                ...value,
-                duration_seconds:
-                  minutes === null || Number.isNaN(minutes)
-                    ? null
-                    : Math.round(minutes * 60),
-              });
-            }}
-            inputMode="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-400 focus:outline-none disabled:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 disabled:dark:bg-slate-800/60"
-          />
         </label>
 
         <div className="flex flex-col gap-2">
@@ -252,8 +244,8 @@ export function CourseEditForm({ value, onChange, isAdmin, disabled }: Props) {
             <div className="mt-1">
               {t("courseEdit.form.readOnlyMeta", {
                 id: value.id,
-                createdAt: value.created_at,
-                updatedAt: value.updated_at,
+                createdAt: formatDateTime(value.created_at, i18n.language) ?? "—",
+                updatedAt: formatDateTime(value.updated_at, i18n.language) ?? "—",
               })}
             </div>
           </div>

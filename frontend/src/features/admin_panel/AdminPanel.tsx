@@ -3,27 +3,71 @@ import type { IUser } from "../../shared/interfaces/IUser"
 import type { UserRoles } from "../../shared/types/UserRoles"
 import { API_deleteUser, API_getUsers, API_updateUserRole } from "./api"
 import { useState, useEffect } from "react"
+import Pagination from "@mui/material/Pagination"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
-import { useAuth } from "../../shared/povider/AuthContext"
+import { useAuth } from "../../shared/provider/AuthContext"
+import { useDebounce } from "../../shared/hooks/useDebounce"
+import { paginationSx } from "../../shared/components/paginationSx"
+import { apiErrorMessage } from "../../shared/utils/apiError"
+import { DevSeedPanel } from "./components/DevSeedPanel"
 
 const userRoles: UserRoles[] = ["student", "instructor", "admin"]
+
+const PAGE_SIZE = 10
 
 export const AdminPanel = () => {
     const { t } = useTranslation()
     const { user: currentUser } = useAuth()
     const [users, setUsers] = useState<IUser[]>([])
+    const [total, setTotal] = useState(0)
     const [loading, setLoading] = useState(false)
+    const [search, setSearch] = useState("")
+    const [roleFilter, setRoleFilter] = useState<UserRoles[]>([])
+    const [page, setPage] = useState(1)
 
-    const fetchUsers = async () => {
-        setLoading(true)
-        setUsers(await API_getUsers())
-        setLoading(false)
-    }
+    // Typing shouldn't fire a request per keystroke.
+    const debouncedSearch = useDebounce(search, 400)
+
+    // Filtering from the first page again: staying on page 5 of a result set
+    // that now has two pages would show an empty list.
+    useEffect(() => {
+        setPage(1)
+    }, [debouncedSearch, roleFilter])
 
     useEffect(() => {
-        fetchUsers()
-    }, [])
+        let cancelled = false
+        const load = async () => {
+            setLoading(true)
+            try {
+                const data = await API_getUsers({
+                    search: debouncedSearch || undefined,
+                    role: roleFilter.length ? roleFilter : undefined,
+                    limit: PAGE_SIZE,
+                    offset: (page - 1) * PAGE_SIZE,
+                })
+                if (cancelled) return
+                setUsers(data.users)
+                setTotal(data.total)
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        }
+        void load()
+        return () => {
+            cancelled = true
+        }
+    }, [debouncedSearch, roleFilter, page])
+
+    const toggleRole = (role: UserRoles) => {
+        setRoleFilter((current) =>
+            current.includes(role)
+                ? current.filter((r) => r !== role)
+                : [...current, role],
+        )
+    }
+
+    const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
     const onDeleteUser = async (user: IUser, index: number) => {
         if (currentUser?.id === user.id) {
@@ -33,6 +77,7 @@ export const AdminPanel = () => {
         try {
             const detail = await API_deleteUser(user.id!)
             setUsers((currentUsers) => currentUsers.filter((_, currentIndex) => currentIndex !== index))
+            setTotal((current) => Math.max(0, current - 1))
             toast.success(detail)
         } catch (error) {
             toast.error(typeof error === "string" ? error : t("admin.deleteUserFailed"))
@@ -40,10 +85,17 @@ export const AdminPanel = () => {
     }
 
     const onRoleChange = async (user: IUser, role: UserRoles) => {
-        if (currentUser?.id === user.id && role !== "admin") {
-            toast.error(t("admin.cannotRemoveOwnAdmin"))
-            return
-        }
+        // Changing the role is destructive on the server: leaving `student`
+        // deletes the learning history, becoming one releases the courses they
+        // authored. Cancelling just skips the call and the select repaints from
+        // state back to its previous value.
+        const warning =
+            user.role === "student"
+                ? "admin.confirmRoleLeavingStudent"
+                : role === "student"
+                  ? "admin.confirmRoleBecomingStudent"
+                  : null
+        if (warning && !confirm(t(warning, { name: user.name }))) return
         try {
             const updatedUser = await API_updateUserRole(user.id!, role)
             toast.success(t("admin.roleUpdateSuccess", {
@@ -56,12 +108,12 @@ export const AdminPanel = () => {
                     currentUser === user ? { ...currentUser, role } : currentUser
                 )
             )
-        } catch {
-            toast.error(t("admin.roleUpdateFailed"))
+        } catch (e) {
+            toast.error(apiErrorMessage(e, t("admin.roleUpdateFailed")))
         }
     }
 
-    if (loading) {
+    if (loading && users.length === 0 && total === 0 && !debouncedSearch && !roleFilter.length) {
         return (
             <p className="min-h-screen bg-neutral-100 p-8 text-sm text-gray-600 dark:bg-surface dark:text-slate-400">
                 {t("admin.loading")}
@@ -73,17 +125,64 @@ export const AdminPanel = () => {
             <div className="mx-auto flex max-w-5xl flex-col gap-4">
                 <header>
                     <h1 className="text-3xl font-semibold text-gray-900 dark:text-slate-100">{t("admin.title")}</h1>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                        {t("admin.registeredUsers", { count: users.length })}
-                    </p>
                 </header>
 
-                {
+                <DevSeedPanel />
+
+                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+                    <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={t("admin.searchPlaceholder")}
+                        aria-label={t("admin.searchPlaceholder")}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-primary focus:outline-none focus:ring-2 focus:ring-uned-primary/25 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    />
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {userRoles.map((role) => {
+                            const active = roleFilter.includes(role)
+                            return (
+                                <button
+                                    key={role}
+                                    type="button"
+                                    aria-pressed={active}
+                                    onClick={() => toggleRole(role)}
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                        active
+                                            ? "bg-uned-primary text-white shadow-sm"
+                                            : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-700"
+                                    }`}
+                                >
+                                    {t(`admin.roles.${role}`)}
+                                </button>
+                            )
+                        })}
+                        {roleFilter.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setRoleFilter([])}
+                                className="text-xs font-medium text-gray-500 underline hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                            >
+                                {t("admin.clearFilters")}
+                            </button>
+                        )}
+                    </div>
+
+                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
+                        {t("admin.resultsCount", { count: total })}
+                    </p>
+                </div>
+
+                {users.length === 0 && !loading ? (
+                    <p className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        {t("admin.noResults")}
+                    </p>
+                ) : (
                     users.map((user, index) => (
                         <UserCard
                             key={user.id ?? index}
                             user={user}
-                            canDelete={currentUser?.id !== user.id}
+                            isSelf={currentUser?.id === user.id}
                             onDelete={() => {
                                 onDeleteUser(user, index)
                             }}
@@ -92,17 +191,29 @@ export const AdminPanel = () => {
                             }}
                         />
                     ))
-                }
+                )}
+
+                {pageCount > 1 && (
+                    <div className="mt-2 flex justify-center">
+                        <Pagination
+                            count={pageCount}
+                            page={page}
+                            onChange={(_, value) => setPage(value)}
+                            shape="rounded"
+                            sx={paginationSx}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     )
 }
 
 const UserCard = (
-    { user, canDelete, onDelete, onRoleChange }
+    { user, isSelf, onDelete, onRoleChange }
         : {
             user: IUser,
-            canDelete: boolean,
+            isSelf: boolean,
             onDelete: () => void,
             onRoleChange: (role: UserRoles) => void
         }
@@ -136,8 +247,10 @@ const UserCard = (
                             {t("admin.fields.role")}
                             <select
                                 value={user.role}
+                                disabled={isSelf}
+                                aria-describedby={isSelf ? `own-role-${user.id}` : undefined}
                                 onChange={(event) => onRoleChange(event.target.value as UserRoles)}
-                                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-gray-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-500"
+                                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-uned-accent focus:outline-none focus:ring-2 focus:ring-uned-accent/25 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-uned-accent dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
                             >
                                 {userRoles.map((role) => (
                                     <option key={role} value={role}>
@@ -145,9 +258,17 @@ const UserCard = (
                                     </option>
                                 ))}
                             </select>
+                            {isSelf && (
+                                <span
+                                    id={`own-role-${user.id}`}
+                                    className="text-xs font-normal text-gray-500 dark:text-slate-400"
+                                >
+                                    {t("admin.cannotChangeOwnRole")}
+                                </span>
+                            )}
                         </label>
 
-                        {canDelete && (
+                        {!isSelf && (
                             <button
                                 type="button"
                                 onClick={() => setIsConfirmModalOpen(true)}

@@ -97,16 +97,6 @@ export function getDurationBucketShortLabels(
     };
 }
 
-export function getDurationBucketLabels(
-    t: (key: string) => string,
-): Record<DurationBucketTypes, string> {
-    return {
-        short: t("domain.duration.short"),
-        medium: t("domain.duration.medium"),
-        long: t("domain.duration.long"),
-    };
-}
-
 export function getDifficultyLabels(
     t: (key: string) => string,
 ): Record<DifficultyTypes, string> {

@@ -11,19 +11,26 @@ from modules.courses.schema import (
     CoursePaginatedSchema,
     CourseUpdateSchema,
     CourseCreateSchema,
+    CourseEditStatsSchema,
 )
 from modules.courses.service import (
     populate_courses,
     get_course_detail,
+    get_course_edit_stats,
     update_course,
     create_course,
     delete_course,
 )
 from modules.courses.model import CourseModel, Site, Category, Language, CourseType, DurationBucket, Difficulty
 from modules.courses.duration_utils import duration_bucket_filter
-from modules.auth.service import get_current_user
+from modules.courses.query_utils import with_course_computed_columns
+from modules.auth.service import get_current_user, get_optional_current_user
 from modules.lessons.schema import LessonSchema, LessonsReorderSchema
-from modules.lessons.service import get_lessons_by_course, reorder_lessons
+from modules.lessons.service import (
+    get_lessons_by_course,
+    redact_locked_lessons,
+    reorder_lessons,
+)
 from modules.users.model import UserModel, UserRole
 from modules.enrollments.model import EnrollmentStatus
 from modules.enrollments.service import get_enrollment
@@ -44,7 +51,6 @@ from modules.progress.submission_schema import (
     GradeSubmissionResultSchema,
     GradeSubmissionSchema,
     SubmissionListSchema,
-    SubmissionSchema,
 )
 from modules.progress.submission_service import (
     grade_submission,
@@ -100,7 +106,7 @@ def get_courses(
     """
     Get all courses from database with support for multiple filter values
     """
-    query = db.query(CourseModel)
+    query = db.query(CourseModel).filter(CourseModel.is_public.is_(True))
     if search:
         query = query.filter(CourseModel.title.ilike(f"%{search}%"))
     if category:
@@ -117,10 +123,17 @@ def get_courses(
         query = query.filter(CourseModel.difficulty.in_(difficulty))
     total = query.count()
     sort_column = sort_map_column(pag.sort_by)
-    if pag.order == "asc":
-        query = query.order_by(asc(sort_column))
-    else:
-        query = query.order_by(desc(sort_column))
+    direction = asc(sort_column) if pag.order == "asc" else desc(sort_column)
+    # NULLS LAST in both directions: `avg_rating` and `duration_seconds` are
+    # nullable, and Postgres sorts NULLs first on DESC, so "best rated first"
+    # opened with the 189 courses nobody has rated. An absent rating is not a
+    # low rating -- it belongs at the end whichever way the list is sorted.
+    #
+    # The id breaks ties so paging is stable: without it, two courses with the
+    # same rating can swap places between requests and a row is repeated on one
+    # page and missing from the next.
+    query = query.order_by(direction.nulls_last(), CourseModel.id.asc())
+    query = with_course_computed_columns(query)
     return CoursePaginatedSchema(
         courses=query.offset(pag.offset).limit(pag.limit).all(),
         total=total,
@@ -178,7 +191,7 @@ def get_my_course_rating(
 ):
     if user.role != UserRole.STUDENT:
         raise http_error(403, "only_students_view_rating")
-    get_course_detail(db, course_id)
+    get_course_detail(db, course_id, user=user)
     enr = get_enrollment(db, user.id, course_id)
     if not enr or enr.status == EnrollmentStatus.DROPPED:
         raise http_error(403, "must_enroll")
@@ -277,11 +290,32 @@ def grade_course_submission(
 def get_course_detail_by_id(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
+    user=Depends(get_optional_current_user),
 ):
     """
-    Get course detail from database
+    Get course detail from database. Private courses return 404 unless the
+    caller is instructor, admin, or an enrolled student.
     """
-    return get_course_detail(db, course_id)
+    return get_course_detail(db, course_id, user=user)
+
+
+@courses_router.get(
+    "/{course_id}/edit-stats",
+    response_model=CourseEditStatsSchema,
+    status_code=status.HTTP_200_OK,
+)
+def get_course_edit_stats_route(
+    db: Annotated[Session, Depends(get_db)],
+    course_id: int,
+    user=Depends(get_current_user),
+):
+    """Enrollment and curriculum counts for the course edit sidebar."""
+    course = get_course_detail(db, course_id, user=user)
+    if user.role != "admin" and (
+        course.instructor_id is None or user.id != course.instructor_id
+    ):
+        raise http_error(403, "insufficient_privileges")
+    return get_course_edit_stats(db, course_id)
 
 
 @courses_router.put("/{course_id}", response_model=CourseSchema, status_code=status.HTTP_200_OK)
@@ -297,7 +331,7 @@ def update_course_by_id(
     Reassigning `instructor_id` is restricted to admins, and the new id must
     point to a user with role=instructor (or be `None` to unassign).
     """
-    course = get_course_detail(db, course_id)
+    course = get_course_detail(db, course_id, user=user)
     if user.role != "admin" and (course.instructor_id is None or user.id != course.instructor_id):
         raise http_error(403, "insufficient_privileges")
 
@@ -321,7 +355,7 @@ def update_course_by_id(
                     user_id=target.id,
                 )
 
-    return update_course(db, course_id, payload)
+    return update_course(db, course_id, payload, user=user)
 
 
 @courses_router.delete(
@@ -338,7 +372,7 @@ def delete_course_by_id(
     via database ON DELETE CASCADE.
     Allowed: admin OR instructor-owner (user.id == course.instructor_id).
     """
-    course = get_course_detail(db, course_id)
+    course = get_course_detail(db, course_id, user=user)
     if user.role != "admin" and (
         course.instructor_id is None or user.id != course.instructor_id
     ):
@@ -355,12 +389,14 @@ def delete_course_by_id(
 def get_course_lessons(
     db: Annotated[Session, Depends(get_db)],
     course_id: int,
+    user=Depends(get_optional_current_user),
 ):
     """
-    Get lessons for a course.
+    Get lessons for a course. The syllabus is visible to anyone who can see
+    the course, but the body/video_url of still-locked lessons is redacted.
     """
-    _ = get_course_detail(db, course_id)
-    return get_lessons_by_course(db, course_id)
+    course = get_course_detail(db, course_id, user=user)
+    return redact_locked_lessons(db, course, get_lessons_by_course(db, course_id), user)
 
 
 @courses_router.post(
@@ -378,7 +414,7 @@ def reorder_course_lessons(
     Reorder lessons within a course.
     Allowed: admin OR instructor-owner.
     """
-    course = get_course_detail(db, course_id)
+    course = get_course_detail(db, course_id, user=user)
     if user.role != "admin" and (course.instructor_id is None or user.id != course.instructor_id):
         raise http_error(403, "insufficient_privileges")
     reordered = reorder_lessons(db, course_id, payload.ordered_lesson_ids)
@@ -393,5 +429,5 @@ if ENABLE_DEV_ROUTES:
         db: Annotated[Session, Depends(get_db)],
         user=Depends(require_role(["admin"])),
     ):
-        """Development only: import courses from Kaggle CSV."""
-        populate_courses(db)
+        """Development only: import a categorised sample from the Kaggle CSV."""
+        return {"courses_imported": populate_courses(db)}

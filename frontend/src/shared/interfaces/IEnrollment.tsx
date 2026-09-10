@@ -33,4 +33,7 @@ export interface IEnrollment {
 
 export interface IEnrollmentDetail extends IEnrollment {
     lesson_progress: ILessonProgress[];
+    current_lesson_id?: number | null;
+    pending_review_lesson_ids?: number[];
+    unlocked_lesson_ids?: number[];
 }

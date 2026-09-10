@@ -2,15 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BookOpen, Clock, Globe, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ICourses } from "../../../shared/interfaces/ICourses";
-
-function formatDuration(seconds: number | null) {
-    if (!seconds || seconds <= 0) return null;
-    const totalMinutes = Math.round(seconds / 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours <= 0) return `${minutes}m`;
-    return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
-}
+import { formatDuration } from "../../../shared/utils/formatDuration";
 
 function formatRating(rating: number | null) {
     if (rating == null) return null;

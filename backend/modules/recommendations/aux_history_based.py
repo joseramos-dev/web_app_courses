@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from sqlalchemy.orm import Session
 
-from modules.course_ratings.model import CourseRatingModel
 from modules.courses.duration_utils import duration_bucket
 from modules.courses.model import (
     Category,
@@ -15,11 +14,6 @@ from modules.courses.model import (
     Site,
 )
 from modules.enrollments.model import EnrollmentModel, EnrollmentStatus
-
-MIN_SHARED_DIMENSIONS = 2
-RATING_MAX = 5
-
-CompletedWithRating = Tuple[CourseModel, int]
 
 
 @dataclass
@@ -42,26 +36,6 @@ def fetch_completed_courses(db: Session, user_id: int) -> List[CourseModel]:
         )
         .all()
     )
-
-
-def fetch_completed_with_ratings(
-    db: Session, user_id: int
-) -> List[CompletedWithRating]:
-    rows = (
-        db.query(CourseModel, CourseRatingModel.score)
-        .join(EnrollmentModel, EnrollmentModel.course_id == CourseModel.id)
-        .join(
-            CourseRatingModel,
-            (CourseRatingModel.course_id == CourseModel.id)
-            & (CourseRatingModel.user_id == user_id),
-        )
-        .filter(
-            EnrollmentModel.user_id == user_id,
-            EnrollmentModel.status == EnrollmentStatus.COMPLETED,
-        )
-        .all()
-    )
-    return [(course, int(score)) for course, score in rows]
 
 
 def _frequency_map(values: List) -> Dict:
@@ -93,7 +67,7 @@ def build_history_profile(completed: List[CourseModel]) -> HistoryProfile:
     )
 
 
-def history_match_ratio(course: CourseModel, profile: HistoryProfile) -> float:
+def history_match_ratio(course, profile: HistoryProfile) -> float:
     contributions: List[float] = []
 
     if profile.sites:
@@ -115,42 +89,3 @@ def history_match_ratio(course: CourseModel, profile: HistoryProfile) -> float:
     if not contributions:
         return 0.0
     return sum(contributions) / len(contributions)
-
-
-def shared_dimensions(course_a: CourseModel, course_b: CourseModel) -> int:
-    shared = 0
-    if course_a.site == course_b.site:
-        shared += 1
-    if course_a.category == course_b.category:
-        shared += 1
-    if course_a.language == course_b.language:
-        shared += 1
-    if course_a.course_type == course_b.course_type:
-        shared += 1
-    bucket_a = duration_bucket(course_a.duration_seconds)
-    bucket_b = duration_bucket(course_b.duration_seconds)
-    if bucket_a is not None and bucket_a == bucket_b:
-        shared += 1
-    if course_a.difficulty == course_b.difficulty:
-        shared += 1
-    return shared
-
-
-def similar_completed_rating_score(
-    course: CourseModel,
-    completed_with_ratings: List[CompletedWithRating],
-) -> float | None:
-    weighted_sum = 0.0
-    weight_total = 0.0
-
-    for completed_course, rating_score in completed_with_ratings:
-        shared = shared_dimensions(course, completed_course)
-        if shared < MIN_SHARED_DIMENSIONS:
-            continue
-        weight = float(shared)
-        weighted_sum += weight * (rating_score / RATING_MAX)
-        weight_total += weight
-
-    if weight_total <= 0.0:
-        return None
-    return weighted_sum / weight_total

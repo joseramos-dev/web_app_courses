@@ -1,11 +1,12 @@
 import { Link, NavLink } from "react-router-dom";
-import { useAuth } from "../povider/AuthContext";
+import { useAuth } from "../provider/AuthContext";
 import { useState } from "react";
 import type { AuthType } from "../types/AuthTypes";
 import { LogOut, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "../../features/notifications/components/NotificationBell";
 
 
 export const ButtonsNavBar = (
@@ -49,6 +50,7 @@ export const ButtonsNavBar = (
             <div className="hidden md:flex items-center gap-3 shrink-0 relative">
                 <ThemeToggle variant="desktop" />
                 <LanguageSwitcher variant="desktop" />
+                {user ? <NotificationBell variant="desktop" /> : null}
                 {
                     user ? (
                         <div className="relative ">

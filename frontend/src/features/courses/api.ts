@@ -1,9 +1,14 @@
-import { api, apiArray } from "../../shared/api/api";
+import { api, apiArray, apiRecommendations } from "../../shared/api/api";
 import type {
     IListCourseRecommendations,
     IRecommendationPreferences,
     IRecommendationPreferencesUpdate,
 } from "../../shared/interfaces/IRecommendation";
+import {
+    getCachedRecommendations,
+    invalidateRecommendationsCache,
+    setCachedRecommendations,
+} from "../../shared/utils/recommendationsCache";
 import type { IPaginatedCourses } from "./IQueryCourses";
 import type { CategoryTypes, CourseTypeTypes, DifficultyTypes, DurationBucketTypes, LanguageTypes, SiteTypes } from "../../shared/types/CourseTypes";
 import {
@@ -38,7 +43,6 @@ export const get_courses = async (
         const {data} = await apiArray.get<IPaginatedCourses>('/courses', {
             params: query,
         });
-        console.log(params)
         return data;
     } catch (error) {
         console.error("Error fetching courses:", error);
@@ -48,11 +52,32 @@ export const get_courses = async (
 
 export const get_recommended = async (
     limit = 16,
+    userId?: number,
+    options?: { forceRefresh?: boolean; excludeCourseIds?: number[] },
 ): Promise<IListCourseRecommendations> => {
-    const { data } = await api.get<IListCourseRecommendations>(
+    if (userId !== undefined) {
+        if (options?.forceRefresh) {
+            invalidateRecommendationsCache();
+        } else {
+            const cached = getCachedRecommendations(userId, limit);
+            if (cached) return cached;
+        }
+    }
+
+    const params: { limit: number; exclude?: number[] } = { limit };
+    if (options?.excludeCourseIds?.length) {
+        params.exclude = options.excludeCourseIds;
+    }
+
+    const { data } = await apiRecommendations.get<IListCourseRecommendations>(
         "/recommendations/me",
-        { params: { limit } },
+        { params },
     );
+
+    if (userId !== undefined) {
+        setCachedRecommendations(userId, limit, data);
+    }
+
     return data;
 };
 
@@ -70,5 +95,6 @@ export const patch_preferences = async (
         "/recommendations/preferences",
         payload,
     );
+    invalidateRecommendationsCache();
     return data;
 };
