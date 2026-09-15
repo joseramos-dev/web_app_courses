@@ -2,6 +2,7 @@ import axios from "axios";
 import { api } from "../../shared/api/api";
 import type { ICourses } from "../../shared/interfaces/ICourses";
 import type { IEnrollment, IEnrollmentDetail } from "../../shared/interfaces/IEnrollment";
+import { invalidateRecommendationsCache } from "../../shared/utils/recommendationsCache";
 import type { ICourseCurriculum } from "../course_edit/lessonTypes";
 
 export const API_getCourseDetailById = async (course_Id: number): Promise<ICourses> => {
@@ -47,6 +48,8 @@ export const API_enrollInCourse = async (
     courseId: number,
 ): Promise<IEnrollment> => {
     const { data } = await api.post<IEnrollment>(`/enrollments/${courseId}`);
+    // The cached list may still suggest the course just enrolled in.
+    invalidateRecommendationsCache();
     return data;
 };
 

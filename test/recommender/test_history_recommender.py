@@ -1,20 +1,15 @@
 """Recomendador por historial de completados y valoraciones de cursos similares.
 
     cd backend
-    uv run pytest ../test/test_history_recommender.py -v
+    uv run pytest ../test/recommender/test_history_recommender.py -v
 """
 
 from __future__ import annotations
 
-import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
-BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
-sys.path.insert(0, str(BACKEND_DIR))
 
 from modules.courses.model import Category, CourseType, Difficulty, Language, Site
 from modules.recommendations.aux_content_based import ScoringCourse
