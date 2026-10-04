@@ -93,10 +93,10 @@ npm test -- useExpandableList
 
 ## Qué falta
 
-- `flows/` (sección 2 de la memoria): el guion manual con los pasos a
-  seguir, las capturas a tomar y el texto para la memoria ya está en
-  [`flows/GUION.md`](flows/GUION.md). Falta ejecutarlo a mano y decidir
-  si alguno de los 3 flujos merece automatizarse más adelante.
+- `flows/` (sección 2 de la memoria): falta escribir el guion manual con los
+  pasos a seguir, las capturas a tomar y el texto para la memoria, ejecutarlo
+  a mano y decidir si alguno de los 3 flujos merece automatizarse más
+  adelante.
 - `recommender/`: pendiente añadir un test en un entorno más limitado
   (pocos cursos/usuarios) que permita observar a simple vista si las
   recomendaciones tienen sentido, más allá de los mocks actuales.
